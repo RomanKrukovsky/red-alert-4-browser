@@ -1,0 +1,6 @@
+{
+  "status": "BLOCKED_AUTH",
+  "reason": "SKETCHFAB_OAUTH_TOKEN environment variable not set. Official API requires OAuth authentication.",
+  "uid": "7103a15d0c0141d6b3372e781e2f4e92",
+  "sourcePage": "https://sketchfab.com/3d-models/7103a15d0c0141d6b3372e781e2f4e92"
+}

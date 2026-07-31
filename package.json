@@ -16,7 +16,12 @@
     "test:combat": "pnpm --filter @ra4/testing test:combat",
     "test:economy": "pnpm --filter @ra4/testing test:economy",
     "test:building": "pnpm --filter @ra4/testing test:building",
-    "test:ai": "pnpm --filter @ra4/testing test:ai"
+    "test:ai": "pnpm --filter @ra4/testing test:ai",
+    "assets:fetch": "npx tsx tools/asset-pipeline/fetch-assets.ts",
+    "assets:verify": "npx tsx tools/asset-pipeline/verify-assets.ts",
+    "assets:process": "npx tsx tools/asset-pipeline/process-assets.ts",
+    "assets:build": "npx tsx tools/asset-pipeline/build-all-models.ts",
+    "assets:report": "npx tsx tools/asset-pipeline/report-assets.ts"
   },
   "devDependencies": {
     "turbo": "^2.4.0",

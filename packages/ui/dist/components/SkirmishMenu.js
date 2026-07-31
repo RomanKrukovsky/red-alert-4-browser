@@ -1,10 +1,10 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useUIStore } from '../store.js';
-export const SkirmishMenu = ({ onStartMatch, onRestartMatch }) => {
+export const SkirmishMenu = ({ onStartMatch, onRestartMatch, onOpenGallery }) => {
     const snapshot = useUIStore((s) => s.snapshot);
     const activePlayerIndex = useUIStore((s) => s.activePlayerIndex);
     if (!snapshot) {
-        return (_jsx("div", { style: overlayStyle, children: _jsxs("div", { style: panelStyle, children: [_jsx("h1", { style: { color: '#00ffc8', fontSize: '32px', marginBottom: '10px' }, children: "RED ALERT 4: BROWSER RTS" }), _jsx("p", { style: { color: '#aaa', marginBottom: '30px' }, children: "\u0420\u0435\u0436\u0438\u043C \u00AB\u0421\u0445\u0432\u0430\u0442\u043A\u0430\u00BB \u2014 \u0421\u0421\u0421\u0420 vs \u0410\u043B\u044C\u044F\u043D\u0441 (\u0418\u0418)" }), _jsx("button", { style: btnStyle, onClick: onStartMatch, children: "\u25BA \u041D\u0410\u0427\u0410\u0422\u042C \u041C\u0410\u0422\u0427" })] }) }));
+        return (_jsx("div", { style: overlayStyle, children: _jsxs("div", { style: panelStyle, children: [_jsx("h1", { style: { color: '#00ffc8', fontSize: '32px', marginBottom: '10px' }, children: "RED ALERT 4: BROWSER RTS" }), _jsx("p", { style: { color: '#aaa', marginBottom: '30px' }, children: "\u0420\u0435\u0436\u0438\u043C \u00AB\u0421\u0445\u0432\u0430\u0442\u043A\u0430\u00BB \u2014 \u0421\u0421\u0421\u0420 vs \u0410\u043B\u044C\u044F\u043D\u0441 (\u0418\u0418)" }), _jsxs("div", { style: { display: 'flex', gap: '15px', justifyContent: 'center' }, children: [_jsx("button", { style: btnStyle, onClick: onStartMatch, children: "\u25BA \u041D\u0410\u0427\u0410\u0422\u042C \u041C\u0410\u0422\u0427" }), onOpenGallery && (_jsx("button", { style: { ...btnStyle, backgroundColor: '#3b82f6', color: '#fff' }, onClick: onOpenGallery, children: "\uD83D\uDD0D 3D ASSET GALLERY" }))] })] }) }));
     }
     // Check Match Finish (Victory / Defeat)
     const player = snapshot.players[activePlayerIndex];

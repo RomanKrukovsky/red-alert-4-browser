@@ -5,9 +5,10 @@ import { MatchState } from '@ra4/shared-types';
 export interface SkirmishMenuProps {
   onStartMatch: () => void;
   onRestartMatch: () => void;
+  onOpenGallery?: () => void;
 }
 
-export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartMatch, onRestartMatch }) => {
+export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartMatch, onRestartMatch, onOpenGallery }) => {
   const snapshot = useUIStore((s) => s.snapshot);
   const activePlayerIndex = useUIStore((s) => s.activePlayerIndex);
 
@@ -17,9 +18,16 @@ export const SkirmishMenu: React.FC<SkirmishMenuProps> = ({ onStartMatch, onRest
         <div style={panelStyle}>
           <h1 style={{ color: '#00ffc8', fontSize: '32px', marginBottom: '10px' }}>RED ALERT 4: BROWSER RTS</h1>
           <p style={{ color: '#aaa', marginBottom: '30px' }}>Режим «Схватка» — СССР vs Альянс (ИИ)</p>
-          <button style={btnStyle} onClick={onStartMatch}>
-            ► НАЧАТЬ МАТЧ
-          </button>
+          <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+            <button style={btnStyle} onClick={onStartMatch}>
+              ► НАЧАТЬ МАТЧ
+            </button>
+            {onOpenGallery && (
+              <button style={{ ...btnStyle, backgroundColor: '#3b82f6', color: '#fff' }} onClick={onOpenGallery}>
+                🔍 3D ASSET GALLERY
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );

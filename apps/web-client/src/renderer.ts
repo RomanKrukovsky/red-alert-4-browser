@@ -1,4 +1,5 @@
-import { Engine, Scene, Vector3, HemisphericLight, DirectionalLight, MeshBuilder, StandardMaterial, Color3, Color4, Mesh } from '@babylonjs/core';
+import { Engine, Scene, Vector3, HemisphericLight, DirectionalLight, MeshBuilder, StandardMaterial, Color3, Color4, Mesh, SceneLoader, TransformNode } from '@babylonjs/core';
+import '@babylonjs/loaders/glTF/index.js';
 import { WorldSnapshot } from '@ra4/shared-types';
 import { RTSCamera } from './camera.js';
 import { useUIStore } from '@ra4/ui';
@@ -7,8 +8,9 @@ export class RTSRenderer {
   public engine: Engine;
   public scene: Scene;
   public rtsCamera: RTSCamera;
-  public entityMeshes: Map<number, Mesh> = new Map();
+  public entityMeshes: Map<number, TransformNode> = new Map();
   public selectionRings: Map<number, Mesh> = new Map();
+  public loadedTemplates: Map<string, Mesh> = new Map();
 
   private materials: Map<string, StandardMaterial> = new Map();
 
@@ -17,20 +19,22 @@ export class RTSRenderer {
     this.scene = new Scene(this.engine);
     this.scene.clearColor = new Color4(0.03, 0.05, 0.08, 1);
 
-    // RTS Camera (Stage 2)
+    // RTS Camera
     this.rtsCamera = new RTSCamera(this.scene, canvas);
 
-    // Lighting setup
+    // Realistic PBR RTS Lighting Setup
     const hemiLight = new HemisphericLight('hemi', new Vector3(0, 1, 0), this.scene);
-    hemiLight.intensity = 0.6;
-    hemiLight.groundColor = new Color3(0.1, 0.1, 0.15);
+    hemiLight.intensity = 0.55;
+    hemiLight.groundColor = new Color3(0.12, 0.14, 0.18);
 
-    const dirLight = new DirectionalLight('dir', new Vector3(-1, -2, -1), this.scene);
-    dirLight.position = new Vector3(50, 80, 50);
-    dirLight.intensity = 1.2;
+    const dirLight = new DirectionalLight('dir', new Vector3(-1.2, -2.5, -1.0), this.scene);
+    dirLight.position = new Vector3(60, 100, 60);
+    dirLight.intensity = 1.4;
 
     this.initMaterials();
     this.createTerrain();
+    this.preloadGLBModels();
+    this.spawnEnvironmentDecor();
 
     this.engine.runRenderLoop(() => {
       this.rtsCamera.update();
@@ -59,7 +63,7 @@ export class RTSRenderer {
     createMat('mat_AL', new Color3(0.15, 0.4, 0.85), new Color3(0.03, 0.08, 0.2));
     createMat('mat_CO', new Color3(0.15, 0.7, 0.35), new Color3(0.03, 0.15, 0.07));
     createMat('mat_CH', new Color3(0.6, 0.2, 0.85), new Color3(0.12, 0.04, 0.2));
-    createMat('mat_ground', new Color3(0.12, 0.16, 0.22), new Color3(0.02, 0.03, 0.04));
+    createMat('mat_ground', new Color3(0.14, 0.18, 0.22), new Color3(0.02, 0.03, 0.04));
     createMat('mat_ring', new Color3(0.0, 1.0, 0.8), new Color3(0.0, 0.4, 0.3));
 
     const validMat = new StandardMaterial('mat_ghost_valid', this.scene);
@@ -79,39 +83,108 @@ export class RTSRenderer {
     ground.material = this.materials.get('mat_ground')!;
   }
 
+  private async preloadGLBModels(): Promise<void> {
+    const modelSpecs = [
+      { id: 'SU_GranitMBT', url: '/assets/models/units/SU_GranitMBT.glb' },
+      { id: 'SU_BogatyrOreCarrier', url: '/assets/models/units/SU_BogatyrOreCarrier.glb' },
+      { id: 'SU_RubezhRifleman', url: '/assets/models/units/SU_RubezhRifleman.glb' },
+      { id: 'SU_HeavyFactory', url: '/assets/models/buildings/SU_HeavyFactory.glb' },
+      { id: 'SU_Pillbox', url: '/assets/models/buildings/SU_Pillbox.glb' }
+    ];
+
+    for (const spec of modelSpecs) {
+      try {
+        const result = await SceneLoader.ImportMeshAsync('', '', spec.url, this.scene);
+        const root = result.meshes[0] as Mesh;
+        if (root) {
+          root.setEnabled(false);
+          this.loadedTemplates.set(spec.id, root);
+          console.log(`[RTSRenderer] Loaded 3D GLB model template: ${spec.id}`);
+        }
+      } catch (e) {
+        console.warn(`[RTSRenderer] Could not load GLB model ${spec.url}, fallback primitive will be used:`, e);
+      }
+    }
+  }
+
+  private async spawnEnvironmentDecor(): Promise<void> {
+    try {
+      const treeRes = await SceneLoader.ImportMeshAsync('', '', '/assets/models/environment/pine_tree_01.glb', this.scene);
+      const treeRoot = treeRes.meshes[0] as Mesh;
+      if (treeRoot) {
+        treeRoot.setEnabled(false);
+        // Scatter decor trees
+        const treeCoords = [
+          [10, 10], [14, 8], [12, 16], [50, 12], [54, 15], [52, 50], [10, 52]
+        ];
+        treeCoords.forEach(([tx, tz], i) => {
+          const instance = treeRoot.clone(`tree_${i}`, null);
+          if (instance) {
+            instance.setEnabled(true);
+            instance.position = new Vector3(tx, 0, tz);
+            instance.scaling = new Vector3(0.8 + Math.random() * 0.4, 0.8 + Math.random() * 0.4, 0.8 + Math.random() * 0.4);
+          }
+        });
+      }
+
+      const rockRes = await SceneLoader.ImportMeshAsync('', '', '/assets/models/environment/coast_rocks_01.glb', this.scene);
+      const rockRoot = rockRes.meshes[0] as Mesh;
+      if (rockRoot) {
+        rockRoot.setEnabled(false);
+        const rockCoords = [[5, 30], [58, 30], [30, 5], [32, 58]];
+        rockCoords.forEach(([rx, rz], i) => {
+          const instance = rockRoot.clone(`rock_${i}`, null);
+          if (instance) {
+            instance.setEnabled(true);
+            instance.position = new Vector3(rx, 0, rz);
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('[RTSRenderer] Environment decor loading warning:', e);
+    }
+  }
+
   public updateScene(snapshot: WorldSnapshot): void {
     const activeIds = new Set<number>();
     const selectedIds = new Set(useUIStore.getState().selectedEntityIds);
 
     for (const e of snapshot.entities) {
       activeIds.add(e.id);
-      let mesh = this.entityMeshes.get(e.id);
+      let node = this.entityMeshes.get(e.id);
 
       const wx = e.position.x / 1000;
       const wz = e.position.y / 1000;
-      const wy = e.isBuilding ? 1.0 : 0.5;
+      const wy = 0;
 
-      if (!mesh) {
-        if (e.isBuilding) {
-          mesh = MeshBuilder.CreateBox(`entity_${e.id}`, { width: 3, height: 2, depth: 3 }, this.scene);
+      if (!node) {
+        const template = this.loadedTemplates.get(e.specId);
+        if (template) {
+          node = template.clone(`entity_${e.id}`, null) as TransformNode;
+          node.setEnabled(true);
         } else {
-          mesh = MeshBuilder.CreateCylinder(`entity_${e.id}`, { diameter: 1.2, height: 1.0 }, this.scene);
+          // Fallback Primitive
+          if (e.isBuilding) {
+            node = MeshBuilder.CreateBox(`entity_${e.id}`, { width: 3, height: 2, depth: 3 }, this.scene);
+          } else {
+            node = MeshBuilder.CreateCylinder(`entity_${e.id}`, { diameter: 1.2, height: 1.0 }, this.scene);
+          }
+          const matName = `mat_${e.factionId}`;
+          (node as Mesh).material = this.materials.get(matName) ?? this.materials.get('mat_SU')!;
         }
 
-        const matName = `mat_${e.factionId}`;
-        mesh.material = this.materials.get(matName) ?? this.materials.get('mat_SU')!;
-        this.entityMeshes.set(e.id, mesh);
+        this.entityMeshes.set(e.id, node);
       }
 
-      mesh.position.x = wx;
-      mesh.position.z = wz;
-      mesh.position.y = wy;
+      node.position.x = wx;
+      node.position.z = wz;
+      node.position.y = wy;
 
       // Selection Ring
       let ring = this.selectionRings.get(e.id);
       if (selectedIds.has(e.id)) {
         if (!ring) {
-          ring = MeshBuilder.CreateTorus(`ring_${e.id}`, { diameter: e.isBuilding ? 3.5 : 1.6, thickness: 0.1 }, this.scene);
+          ring = MeshBuilder.CreateTorus(`ring_${e.id}`, { diameter: e.isBuilding ? 3.8 : 1.8, thickness: 0.12 }, this.scene);
           ring.material = this.materials.get('mat_ring')!;
           this.selectionRings.set(e.id, ring);
         }
@@ -133,15 +206,15 @@ export class RTSRenderer {
             new Vector3(shot.targetX / 1000, 1.2, shot.targetY / 1000)
           ]
         }, this.scene);
-        line.color = new Color3(1.0, 0.8, 0.2);
-        setTimeout(() => line.dispose(), 100);
+        line.color = new Color3(1.0, 0.85, 0.25);
+        setTimeout(() => line.dispose(), 90);
       }
     }
 
     // Cleanup destroyed entities
-    for (const [id, mesh] of this.entityMeshes.entries()) {
+    for (const [id, node] of this.entityMeshes.entries()) {
       if (!activeIds.has(id)) {
-        mesh.dispose();
+        node.dispose();
         this.entityMeshes.delete(id);
         const ring = this.selectionRings.get(id);
         if (ring) {
@@ -182,6 +255,16 @@ export class RTSRenderer {
     if (this.ghostMesh) {
       this.ghostMesh.dispose();
     }
+    for (const node of this.entityMeshes.values()) {
+      node.dispose();
+    }
+    this.entityMeshes.clear();
+
+    for (const template of this.loadedTemplates.values()) {
+      template.dispose();
+    }
+    this.loadedTemplates.clear();
+
     this.rtsCamera.dispose();
     this.engine.dispose();
   }

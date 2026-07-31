@@ -6,4 +6,5 @@ export * from './components/CommandBar.js';
 export * from './components/EVALog.js';
 export * from './components/MainHUD.js';
 export * from './components/SkirmishMenu.js';
+export * from './components/AssetGallery.js';
 //# sourceMappingURL=index.js.map

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { RTSRenderer } from './renderer.js';
 import { InputManager } from './inputManager.js';
-import { MainHUD, SkirmishMenu, useUIStore } from '@ra4/ui';
+import { MainHUD, SkirmishMenu, AssetGallery, useUIStore } from '@ra4/ui';
 import { MatchLifecycleManager } from '@ra4/sim-core';
 import { FactionId, PlayerType, PlayerCommand } from '@ra4/shared-types';
 
@@ -11,6 +11,7 @@ export const App: React.FC = () => {
   const inputManagerRef = useRef<InputManager | null>(null);
   const managerRef = useRef<MatchLifecycleManager | null>(null);
   const [matchStarted, setMatchStarted] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
   const setSnapshot = useUIStore((s) => s.setSnapshot);
 
   const startMatch = () => {
@@ -71,7 +72,8 @@ export const App: React.FC = () => {
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <canvas ref={canvasRef} id="renderCanvas" />
       {matchStarted && <MainHUD onIssueCommand={handleIssueCommand} />}
-      <SkirmishMenu onStartMatch={startMatch} onRestartMatch={startMatch} />
+      <SkirmishMenu onStartMatch={startMatch} onRestartMatch={startMatch} onOpenGallery={() => setShowGallery(true)} />
+      {showGallery && <AssetGallery onClose={() => setShowGallery(false)} />}
     </div>
   );
 };

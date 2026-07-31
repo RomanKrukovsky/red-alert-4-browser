@@ -94,6 +94,9 @@ importers:
       '@babylonjs/gui':
         specifier: ^7.47.1
         version: 7.54.3(@babylonjs/core@7.54.3)
+      '@babylonjs/loaders':
+        specifier: ^7.47.1
+        version: 7.54.3(@babylonjs/core@7.54.3)(babylonjs-gltf2interface@7.54.3)
       '@ra4/content-runtime':
         specifier: workspace:*
         version: link:../../packages/content-runtime
@@ -389,6 +392,12 @@ packages:
     resolution: {integrity: sha512-fsPJpfMWXliEFXhVYk9eqRjT1JB+Zv0TtSDs9QWdUKhVexCyaeDCcMS7j+YkQhupOHpR8HBYXlsP/7je4NmbDg==}
     peerDependencies:
       '@babylonjs/core': ^7.0.0
+
+  '@babylonjs/loaders@7.54.3':
+    resolution: {integrity: sha512-RBPmOsaMTxi6Ga08ueLTm6Tnvx/l2nNQigucubvrngZ7muwn5/ubfcStckkI1c0qvhR1+/FFlD54do7gZ1pnsQ==}
+    peerDependencies:
+      '@babylonjs/core': ^7.0.0
+      babylonjs-gltf2interface: ^7.0.0
 
   '@esbuild/aix-ppc64@0.25.12':
     resolution: {integrity: sha512-Hhmwd6CInZ3dwpuGTF8fJG6yoWmsToE+vYgD4nytZVxcu1ulHpUQRAB1UJ8+N1Am3Mz4+xOByoQoSZf4D+CpkA==}
@@ -890,6 +899,9 @@ packages:
   assertion-error@2.0.1:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
+
+  babylonjs-gltf2interface@7.54.3:
+    resolution: {integrity: sha512-ZAWYFyE+SOczfWT19O4e3YRkCZ5i57SiD2eK2kqc+Tow/t9X1S45xgSFNuHZff++dd5BlVIEQDSnFV+McFLSnQ==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -1600,6 +1612,11 @@ snapshots:
     dependencies:
       '@babylonjs/core': 7.54.3
 
+  '@babylonjs/loaders@7.54.3(@babylonjs/core@7.54.3)(babylonjs-gltf2interface@7.54.3)':
+    dependencies:
+      '@babylonjs/core': 7.54.3
+      babylonjs-gltf2interface: 7.54.3
+
   '@esbuild/aix-ppc64@0.25.12':
     optional: true
 
@@ -1979,6 +1996,8 @@ snapshots:
   argparse@2.0.1: {}
 
   assertion-error@2.0.1: {}
+
+  babylonjs-gltf2interface@7.54.3: {}
 
   balanced-match@1.0.2: {}
 

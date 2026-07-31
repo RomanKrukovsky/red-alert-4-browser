@@ -18,6 +18,7 @@
     "@ra4/replay": "workspace:*",
     "@babylonjs/core": "^7.47.1",
     "@babylonjs/gui": "^7.47.1",
+    "@babylonjs/loaders": "^7.47.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^5.0.3",
