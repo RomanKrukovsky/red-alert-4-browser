@@ -1,4 +1,8 @@
-import { Engine, Scene, Vector3, HemisphericLight, DirectionalLight, MeshBuilder, StandardMaterial, Color3, Color4, Mesh, SceneLoader, TransformNode } from '@babylonjs/core';
+import {
+  Engine, Scene, Vector3, HemisphericLight, DirectionalLight, PointLight,
+  MeshBuilder, StandardMaterial, PBRMaterial, Color3, Color4, Mesh, SceneLoader, TransformNode,
+  DefaultRenderingPipeline, DynamicTexture, ShadowGenerator
+} from '@babylonjs/core';
 import '@babylonjs/loaders/glTF/index.js';
 import { WorldSnapshot } from '@ra4/shared-types';
 import { RTSCamera } from './camera.js';
@@ -11,33 +15,50 @@ export class RTSRenderer {
   public entityMeshes: Map<number, TransformNode> = new Map();
   public selectionRings: Map<number, Mesh> = new Map();
   public loadedTemplates: Map<string, Mesh> = new Map();
+  public shadowGenerator: ShadowGenerator | null = null;
+  public pipeline: DefaultRenderingPipeline | null = null;
 
-  private materials: Map<string, StandardMaterial> = new Map();
+  private materials: Map<string, StandardMaterial | PBRMaterial> = new Map();
 
   constructor(canvas: HTMLCanvasElement) {
     this.engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
     this.scene = new Scene(this.engine);
-    this.scene.clearColor = new Color4(0.03, 0.05, 0.08, 1);
+    this.scene.clearColor = new Color4(0.04, 0.06, 0.1, 1);
 
     // RTS Camera
     this.rtsCamera = new RTSCamera(this.scene, canvas);
 
-    // Realistic PBR RTS Lighting Setup
+    // Dynamic Directional Sunlight with Cascaded Soft Shadows
     const hemiLight = new HemisphericLight('hemi', new Vector3(0, 1, 0), this.scene);
-    hemiLight.intensity = 0.55;
-    hemiLight.groundColor = new Color3(0.12, 0.14, 0.18);
+    hemiLight.intensity = 0.45;
+    hemiLight.groundColor = new Color3(0.08, 0.1, 0.14);
 
-    const dirLight = new DirectionalLight('dir', new Vector3(-1.2, -2.5, -1.0), this.scene);
+    const dirLight = new DirectionalLight('dir', new Vector3(-1.4, -2.8, -1.2), this.scene);
     dirLight.position = new Vector3(60, 100, 60);
-    dirLight.intensity = 1.4;
+    dirLight.intensity = 1.6;
 
+    this.shadowGenerator = new ShadowGenerator(2048, dirLight);
+    this.shadowGenerator.useBlurExponentialShadowMap = true;
+    this.shadowGenerator.blurKernel = 16;
+
+    // AAA Post-Processing Pipeline
+    this.initPostProcessing();
     this.initMaterials();
-    this.createTerrain();
+    this.createTacticalTerrain();
     this.preloadGLBModels();
     this.spawnEnvironmentDecor();
 
+    // Main Render & Animation Loop
     this.engine.runRenderLoop(() => {
       this.rtsCamera.update();
+      
+      // Rotate selection rings
+      for (const ring of this.selectionRings.values()) {
+        if (ring.isVisible) {
+          ring.rotation.y += 0.02;
+        }
+      }
+
       this.scene.render();
     });
 
@@ -50,21 +71,39 @@ export class RTSRenderer {
     return this.rtsCamera.camera;
   }
 
+  private initPostProcessing(): void {
+    try {
+      this.pipeline = new DefaultRenderingPipeline('ra4Pipeline', true, this.scene, [this.camera]);
+      this.pipeline.bloomEnabled = true;
+      this.pipeline.bloomThreshold = 0.65;
+      this.pipeline.bloomWeight = 0.35;
+      this.pipeline.bloomKernel = 64;
+      this.pipeline.fxaaEnabled = true;
+      this.pipeline.chromaticAberrationEnabled = true;
+      this.pipeline.chromaticAberration.aberrationAmount = 2.5;
+    } catch (e) {
+      console.warn('[RTSRenderer] Post-processing pipeline initialization warning:', e);
+    }
+  }
+
   private initMaterials(): void {
-    const createMat = (name: string, color: Color3, glow: Color3) => {
+    const createStdMat = (name: string, color: Color3, glow: Color3) => {
       const mat = new StandardMaterial(name, this.scene);
       mat.diffuseColor = color;
-      mat.specularColor = new Color3(0.3, 0.3, 0.3);
+      mat.specularColor = new Color3(0.4, 0.4, 0.4);
       mat.emissiveColor = glow;
       this.materials.set(name, mat);
     };
 
-    createMat('mat_SU', new Color3(0.8, 0.15, 0.15), new Color3(0.2, 0.03, 0.03));
-    createMat('mat_AL', new Color3(0.15, 0.4, 0.85), new Color3(0.03, 0.08, 0.2));
-    createMat('mat_CO', new Color3(0.15, 0.7, 0.35), new Color3(0.03, 0.15, 0.07));
-    createMat('mat_CH', new Color3(0.6, 0.2, 0.85), new Color3(0.12, 0.04, 0.2));
-    createMat('mat_ground', new Color3(0.14, 0.18, 0.22), new Color3(0.02, 0.03, 0.04));
-    createMat('mat_ring', new Color3(0.0, 1.0, 0.8), new Color3(0.0, 0.4, 0.3));
+    createStdMat('mat_SU', new Color3(0.85, 0.15, 0.15), new Color3(0.25, 0.04, 0.04));
+    createStdMat('mat_AL', new Color3(0.15, 0.5, 0.9), new Color3(0.04, 0.1, 0.25));
+    createStdMat('mat_CO', new Color3(0.15, 0.75, 0.35), new Color3(0.04, 0.18, 0.08));
+    createStdMat('mat_CH', new Color3(0.65, 0.2, 0.9), new Color3(0.15, 0.04, 0.22));
+
+    const ringMat = new StandardMaterial('mat_ring', this.scene);
+    ringMat.diffuseColor = new Color3(0.0, 1.0, 0.8);
+    ringMat.emissiveColor = new Color3(0.0, 0.6, 0.5);
+    this.materials.set('mat_ring', ringMat);
 
     const validMat = new StandardMaterial('mat_ghost_valid', this.scene);
     validMat.diffuseColor = new Color3(0, 1, 0.4);
@@ -77,10 +116,35 @@ export class RTSRenderer {
     this.materials.set('mat_ghost_invalid', invalidMat);
   }
 
-  private createTerrain(): void {
-    const ground = MeshBuilder.CreateGround('ground', { width: 64, height: 64, subdivisions: 32 }, this.scene);
+  private createTacticalTerrain(): void {
+    const ground = MeshBuilder.CreateGround('ground', { width: 64, height: 64, subdivisions: 64 }, this.scene);
     ground.position = new Vector3(32, 0, 32);
-    ground.material = this.materials.get('mat_ground')!;
+    ground.receiveShadows = true;
+
+    // Tactical Grid Dynamic Texture
+    const dynamicTex = new DynamicTexture('gridTex', 1024, this.scene, true);
+    const ctx = dynamicTex.getContext();
+    ctx.fillStyle = '#0c121e';
+    ctx.fillRect(0, 0, 1024, 1024);
+
+    // Draw Grid Lines
+    ctx.strokeStyle = 'rgba(0, 255, 200, 0.15)';
+    ctx.lineWidth = 2;
+    const step = 1024 / 32;
+    for (let i = 0; i <= 1024; i += step) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0); ctx.lineTo(i, 1024);
+      ctx.moveTo(0, i); ctx.lineTo(1024, i);
+      ctx.stroke();
+    }
+    dynamicTex.update();
+
+    const pbrGround = new PBRMaterial('pbrGround', this.scene);
+    pbrGround.albedoTexture = dynamicTex;
+    pbrGround.roughness = 0.65;
+    pbrGround.metallic = 0.25;
+
+    ground.material = pbrGround;
   }
 
   private async preloadGLBModels(): Promise<void> {
@@ -99,10 +163,9 @@ export class RTSRenderer {
         if (root) {
           root.setEnabled(false);
           this.loadedTemplates.set(spec.id, root);
-          console.log(`[RTSRenderer] Loaded 3D GLB model template: ${spec.id}`);
         }
       } catch (e) {
-        console.warn(`[RTSRenderer] Could not load GLB model ${spec.url}, fallback primitive will be used:`, e);
+        console.warn(`[RTSRenderer] Fallback used for ${spec.id}`);
       }
     }
   }
@@ -113,16 +176,15 @@ export class RTSRenderer {
       const treeRoot = treeRes.meshes[0] as Mesh;
       if (treeRoot) {
         treeRoot.setEnabled(false);
-        // Scatter decor trees
-        const treeCoords = [
-          [10, 10], [14, 8], [12, 16], [50, 12], [54, 15], [52, 50], [10, 52]
-        ];
+        const treeCoords = [[10, 10], [14, 8], [12, 16], [50, 12], [54, 15], [52, 50], [10, 52]];
         treeCoords.forEach(([tx, tz], i) => {
           const instance = treeRoot.clone(`tree_${i}`, null);
           if (instance) {
             instance.setEnabled(true);
             instance.position = new Vector3(tx, 0, tz);
-            instance.scaling = new Vector3(0.8 + Math.random() * 0.4, 0.8 + Math.random() * 0.4, 0.8 + Math.random() * 0.4);
+            if (this.shadowGenerator) {
+              this.shadowGenerator.addShadowCaster(instance, true);
+            }
           }
         });
       }
@@ -141,7 +203,7 @@ export class RTSRenderer {
         });
       }
     } catch (e) {
-      console.warn('[RTSRenderer] Environment decor loading warning:', e);
+      console.warn('[RTSRenderer] Environment decor warning:', e);
     }
   }
 
@@ -155,15 +217,18 @@ export class RTSRenderer {
 
       const wx = e.position.x / 1000;
       const wz = e.position.y / 1000;
-      const wy = 0;
 
       if (!node) {
         const template = this.loadedTemplates.get(e.specId);
         if (template) {
           node = template.clone(`entity_${e.id}`, null) as TransformNode;
           node.setEnabled(true);
+          if (this.shadowGenerator) {
+            for (const m of node.getChildMeshes()) {
+              this.shadowGenerator.addShadowCaster(m, true);
+            }
+          }
         } else {
-          // Fallback Primitive
           if (e.isBuilding) {
             node = MeshBuilder.CreateBox(`entity_${e.id}`, { width: 3, height: 2, depth: 3 }, this.scene);
           } else {
@@ -178,7 +243,7 @@ export class RTSRenderer {
 
       node.position.x = wx;
       node.position.z = wz;
-      node.position.y = wy;
+      node.position.y = 0;
 
       // Selection Ring
       let ring = this.selectionRings.get(e.id);
@@ -190,14 +255,14 @@ export class RTSRenderer {
         }
         ring.position.x = wx;
         ring.position.z = wz;
-        ring.position.y = 0.05;
+        ring.position.y = 0.06;
         ring.isVisible = true;
       } else if (ring) {
         ring.isVisible = false;
       }
     }
 
-    // Render Tracer Lines for Shot FX
+    // Render Tracer Lines & Muzzle Light Flashes for Shot FX
     if (snapshot.shotFX) {
       for (const shot of snapshot.shotFX) {
         const line = MeshBuilder.CreateLines(`tracer_${Date.now()}_${Math.random()}`, {
@@ -207,7 +272,16 @@ export class RTSRenderer {
           ]
         }, this.scene);
         line.color = new Color3(1.0, 0.85, 0.25);
-        setTimeout(() => line.dispose(), 90);
+
+        const flash = new PointLight(`flash_${Date.now()}`, new Vector3(shot.startX / 1000, 1.4, shot.startY / 1000), this.scene);
+        flash.diffuse = new Color3(1.0, 0.7, 0.2);
+        flash.intensity = 4.0;
+        flash.range = 8.0;
+
+        setTimeout(() => {
+          line.dispose();
+          flash.dispose();
+        }, 80);
       }
     }
 
@@ -265,6 +339,9 @@ export class RTSRenderer {
     }
     this.loadedTemplates.clear();
 
+    if (this.pipeline) {
+      this.pipeline.dispose();
+    }
     this.rtsCamera.dispose();
     this.engine.dispose();
   }
