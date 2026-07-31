@@ -7,3 +7,5 @@ export * from './components/EVALog.js';
 export * from './components/MainHUD.js';
 export * from './components/SkirmishMenu.js';
 export * from './components/AssetGallery.js';
+export * from './components/TitleScreen.js';
+export * from './components/MainMenuScreen.js';

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { RTSRenderer } from './renderer.js';
 import { InputManager } from './inputManager.js';
-import { MainHUD, SkirmishMenu, AssetGallery, useUIStore } from '@ra4/ui';
+import { MainHUD, SkirmishMenu, AssetGallery, TitleScreen, MainMenuScreen, useUIStore } from '@ra4/ui';
 import { MatchLifecycleManager } from '@ra4/sim-core';
 import { FactionId, PlayerType, PlayerCommand } from '@ra4/shared-types';
 
@@ -10,8 +10,8 @@ export const App: React.FC = () => {
   const rendererRef = useRef<RTSRenderer | null>(null);
   const inputManagerRef = useRef<InputManager | null>(null);
   const managerRef = useRef<MatchLifecycleManager | null>(null);
-  const [matchStarted, setMatchStarted] = useState(false);
-  const [showGallery, setShowGallery] = useState(false);
+
+  const [currentScreen, setCurrentScreen] = useState<'TITLE' | 'MAIN_MENU' | 'MATCH' | 'GALLERY'>('TITLE');
   const setSnapshot = useUIStore((s) => s.setSnapshot);
 
   const startMatch = () => {
@@ -51,7 +51,15 @@ export const App: React.FC = () => {
       setSnapshot(snapshot);
     });
 
-    setMatchStarted(true);
+    setCurrentScreen('MATCH');
+  };
+
+  const handleMenuSelect = (option: string) => {
+    if (option === 'SKIRMISH') {
+      startMatch();
+    } else if (option === 'EXIT') {
+      setCurrentScreen('TITLE');
+    }
   };
 
   useEffect(() => {
@@ -71,9 +79,11 @@ export const App: React.FC = () => {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <canvas ref={canvasRef} id="renderCanvas" />
-      {matchStarted && <MainHUD onIssueCommand={handleIssueCommand} />}
-      <SkirmishMenu onStartMatch={startMatch} onRestartMatch={startMatch} onOpenGallery={() => setShowGallery(true)} />
-      {showGallery && <AssetGallery onClose={() => setShowGallery(false)} />}
+      {currentScreen === 'TITLE' && <TitleScreen onEnter={() => setCurrentScreen('MAIN_MENU')} />}
+      {currentScreen === 'MAIN_MENU' && <MainMenuScreen onSelectOption={handleMenuSelect} />}
+      {currentScreen === 'MATCH' && <MainHUD onIssueCommand={handleIssueCommand} />}
+      {currentScreen === 'MATCH' && <SkirmishMenu onStartMatch={startMatch} onRestartMatch={startMatch} onOpenGallery={() => setCurrentScreen('GALLERY')} />}
+      {currentScreen === 'GALLERY' && <AssetGallery onClose={() => setCurrentScreen('MATCH')} />}
     </div>
   );
 };
