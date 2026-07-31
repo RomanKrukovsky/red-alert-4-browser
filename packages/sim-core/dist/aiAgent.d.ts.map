@@ -1,0 +1,1 @@
+{"version":3,"file":"aiAgent.d.ts","sourceRoot":"","sources":["../src/aiAgent.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,cAAc,EAAE,MAAM,iBAAiB,CAAC;AACjD,OAAO,EAAe,aAAa,EAAE,MAAM,mBAAmB,CAAC;AAE/D,qBAAa,eAAe;IACnB,WAAW,EAAE,MAAM,CAAC;IAC3B,OAAO,CAAC,iBAAiB,CAAc;gBAE3B,WAAW,EAAE,MAAM;IAIxB,MAAM,CAAC,GAAG,EAAE,cAAc,GAAG,aAAa,EAAE;CAsGpD"}

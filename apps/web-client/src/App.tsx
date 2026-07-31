@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { RTSRenderer } from './renderer.js';
 import { InputManager } from './inputManager.js';
-import { MainHUD, useUIStore } from '@ra4/ui';
+import { MainHUD, SkirmishMenu, useUIStore } from '@ra4/ui';
 import { MatchLifecycleManager } from '@ra4/sim-core';
 import { FactionId, PlayerType, PlayerCommand } from '@ra4/shared-types';
 
@@ -10,21 +10,27 @@ export const App: React.FC = () => {
   const rendererRef = useRef<RTSRenderer | null>(null);
   const inputManagerRef = useRef<InputManager | null>(null);
   const managerRef = useRef<MatchLifecycleManager | null>(null);
+  const [matchStarted, setMatchStarted] = useState(false);
   const setSnapshot = useUIStore((s) => s.setSnapshot);
 
-  useEffect(() => {
+  const startMatch = () => {
     if (!canvasRef.current) return;
 
-    // 1. Initialize Babylon 3D Renderer
+    if (managerRef.current) {
+      managerRef.current.dispose();
+    }
+    if (rendererRef.current) {
+      rendererRef.current.dispose();
+    }
+
     const renderer = new RTSRenderer(canvasRef.current);
     rendererRef.current = renderer;
 
-    // 2. Initialize MatchLifecycleManager (Stage 1 Architecture)
     const manager = new MatchLifecycleManager();
     managerRef.current = manager;
 
     manager.initialize({
-      seed: 1337,
+      seed: Math.floor(Math.random() * 1000000),
       tickRate: 30,
       players: [
         { name: 'Игрок (СССР)', factionId: FactionId.USSR, type: PlayerType.HUMAN, team: 0 },
@@ -36,22 +42,24 @@ export const App: React.FC = () => {
       manager.commandBus.dispatch(cmd);
     };
 
-    // 3. Initialize InputManager (Stage 2 Controls & Selection)
     const inputManager = new InputManager(renderer, canvasRef.current, handleDispatch);
     inputManagerRef.current = inputManager;
 
-    // 4. Start Fixed-Step Loop
     manager.start((snapshot) => {
       renderer.updateScene(snapshot);
       setSnapshot(snapshot);
     });
 
+    setMatchStarted(true);
+  };
+
+  useEffect(() => {
     return () => {
-      inputManager.dispose();
-      manager.dispose();
-      renderer.dispose();
+      inputManagerRef.current?.dispose();
+      managerRef.current?.dispose();
+      rendererRef.current?.dispose();
     };
-  }, [setSnapshot]);
+  }, []);
 
   const handleIssueCommand = (cmd: PlayerCommand) => {
     if (managerRef.current) {
@@ -62,7 +70,8 @@ export const App: React.FC = () => {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <canvas ref={canvasRef} id="renderCanvas" />
-      <MainHUD onIssueCommand={handleIssueCommand} />
+      {matchStarted && <MainHUD onIssueCommand={handleIssueCommand} />}
+      <SkirmishMenu onStartMatch={startMatch} onRestartMatch={startMatch} />
     </div>
   );
 };

@@ -5,4 +5,5 @@ export * from './components/ProductionPanel.js';
 export * from './components/CommandBar.js';
 export * from './components/EVALog.js';
 export * from './components/MainHUD.js';
+export * from './components/SkirmishMenu.js';
 //# sourceMappingURL=index.js.map

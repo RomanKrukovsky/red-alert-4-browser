@@ -58,5 +58,11 @@ export interface WorldSnapshot {
     seed: number;
     entities: EntityStateSnapshot[];
     players: PlayerEconomyState[];
+    shotFX?: {
+        startX: number;
+        startY: number;
+        targetX: number;
+        targetY: number;
+    }[];
 }
 //# sourceMappingURL=simulation.d.ts.map

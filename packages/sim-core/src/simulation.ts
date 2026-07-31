@@ -6,6 +6,7 @@ import { FogOfWarManager } from './fogOfWar.js';
 import { calculateDamage } from './combat.js';
 import { fixedDistanceSq } from './fixedMath.js';
 import { NavigationService } from './navigation.js';
+import { SkirmishAIAgent } from './aiAgent.js';
 
 export interface SimEntity {
   id: number;
@@ -68,6 +69,7 @@ export class GameSimulation {
   public entities: Map<number, SimEntity> = new Map();
   public players: PlayerEconomyState[] = [];
   public resourceNodes: Map<string, ResourceNodeState> = new Map();
+  public aiAgents: Map<number, SkirmishAIAgent> = new Map();
 
   public nextEntityId: number = 1;
   public matchState: MatchState = MatchState.IN_GAME;
@@ -96,6 +98,9 @@ export class GameSimulation {
 
     playerConfigs.forEach((p, idx) => {
       this.fogOfWar.registerTeam(p.team);
+      if (p.type !== PlayerType.HUMAN && p.type !== PlayerType.SPECTATOR) {
+        this.aiAgents.set(idx, new SkirmishAIAgent(idx));
+      }
     });
 
     // Spawn Resource Nodes from default map
@@ -255,6 +260,27 @@ export class GameSimulation {
         }
         break;
       }
+      case CommandType.GATHER: {
+        for (const id of cmd.entityIds) {
+          const e = this.entities.get(id);
+          if (e && e.playerIndex === cmd.playerIndex && e.maxOre > 0) {
+            e.harvestingNodeId = cmd.resourceNodeId;
+            e.refineryTargetId = undefined;
+            e.targetEntityId = undefined;
+          }
+        }
+        break;
+      }
+      case CommandType.DEPOSIT_ORE: {
+        for (const id of cmd.entityIds) {
+          const e = this.entities.get(id);
+          if (e && e.playerIndex === cmd.playerIndex && e.maxOre > 0) {
+            e.refineryTargetId = cmd.refineryEntityId;
+            e.targetEntityId = undefined;
+          }
+        }
+        break;
+      }
       case CommandType.PRODUCE_UNIT: {
         const producer = this.entities.get(cmd.producerEntityId);
         if (producer && producer.playerIndex === cmd.playerIndex && producer.isBuilding) {
@@ -292,6 +318,12 @@ export class GameSimulation {
 
   public step(): WorldSnapshot {
     this.tickIndex++;
+
+    // 0. AI Agents Decision Loop
+    for (const agent of this.aiAgents.values()) {
+      const aiCmds = agent.update(this);
+      this.processCommands(aiCmds);
+    }
 
     // 1. Spatial Grid Reset
     this.spatialGrid.clear();

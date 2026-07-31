@@ -3,6 +3,7 @@ import { Mulberry32PRNG } from './prng.js';
 import { SpatialHashGrid } from './spatialGrid.js';
 import { FogOfWarManager } from './fogOfWar.js';
 import { NavigationService } from './navigation.js';
+import { SkirmishAIAgent } from './aiAgent.js';
 export interface SimEntity {
     id: number;
     specId: string;
@@ -64,6 +65,7 @@ export declare class GameSimulation {
     entities: Map<number, SimEntity>;
     players: PlayerEconomyState[];
     resourceNodes: Map<string, ResourceNodeState>;
+    aiAgents: Map<number, SkirmishAIAgent>;
     nextEntityId: number;
     matchState: MatchState;
     winnerTeam: number;

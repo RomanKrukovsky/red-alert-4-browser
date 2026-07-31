@@ -74,6 +74,11 @@ export interface CaptureBuildingCommand extends BaseCommand {
   targetStructureId: number;
 }
 
+export interface GatherCommand extends BaseCommand {
+  type: CommandType.GATHER;
+  resourceNodeId?: string;
+}
+
 export interface DepositOreCommand extends BaseCommand {
   type: CommandType.DEPOSIT_ORE;
   refineryEntityId: number;
@@ -97,4 +102,5 @@ export type PlayerCommand =
   | UseAbilityCommand
   | CaptureBuildingCommand
   | DepositOreCommand
+  | GatherCommand
   | SurrenderCommand;

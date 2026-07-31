@@ -60,6 +60,10 @@ export interface CaptureBuildingCommand extends BaseCommand {
     type: CommandType.CAPTURE_BUILDING;
     targetStructureId: number;
 }
+export interface GatherCommand extends BaseCommand {
+    type: CommandType.GATHER;
+    resourceNodeId?: string;
+}
 export interface DepositOreCommand extends BaseCommand {
     type: CommandType.DEPOSIT_ORE;
     refineryEntityId: number;
@@ -67,5 +71,5 @@ export interface DepositOreCommand extends BaseCommand {
 export interface SurrenderCommand extends BaseCommand {
     type: CommandType.SURRENDER;
 }
-export type PlayerCommand = MoveCommand | AttackCommand | AttackMoveCommand | StopCommand | HoldCommand | BuildStructureCommand | ProduceUnitCommand | CancelProductionCommand | SellStructureCommand | RepairStructureCommand | UseAbilityCommand | CaptureBuildingCommand | DepositOreCommand | SurrenderCommand;
+export type PlayerCommand = MoveCommand | AttackCommand | AttackMoveCommand | StopCommand | HoldCommand | BuildStructureCommand | ProduceUnitCommand | CancelProductionCommand | SellStructureCommand | RepairStructureCommand | UseAbilityCommand | CaptureBuildingCommand | DepositOreCommand | GatherCommand | SurrenderCommand;
 //# sourceMappingURL=commands.d.ts.map

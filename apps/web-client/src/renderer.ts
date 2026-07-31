@@ -61,6 +61,16 @@ export class RTSRenderer {
     createMat('mat_CH', new Color3(0.6, 0.2, 0.85), new Color3(0.12, 0.04, 0.2));
     createMat('mat_ground', new Color3(0.12, 0.16, 0.22), new Color3(0.02, 0.03, 0.04));
     createMat('mat_ring', new Color3(0.0, 1.0, 0.8), new Color3(0.0, 0.4, 0.3));
+
+    const validMat = new StandardMaterial('mat_ghost_valid', this.scene);
+    validMat.diffuseColor = new Color3(0, 1, 0.4);
+    validMat.alpha = 0.55;
+    this.materials.set('mat_ghost_valid', validMat);
+
+    const invalidMat = new StandardMaterial('mat_ghost_invalid', this.scene);
+    invalidMat.diffuseColor = new Color3(1, 0.1, 0.1);
+    invalidMat.alpha = 0.55;
+    this.materials.set('mat_ghost_invalid', invalidMat);
   }
 
   private createTerrain(): void {
@@ -114,6 +124,20 @@ export class RTSRenderer {
       }
     }
 
+    // Render Tracer Lines for Shot FX
+    if (snapshot.shotFX) {
+      for (const shot of snapshot.shotFX) {
+        const line = MeshBuilder.CreateLines(`tracer_${Date.now()}_${Math.random()}`, {
+          points: [
+            new Vector3(shot.startX / 1000, 1.2, shot.startY / 1000),
+            new Vector3(shot.targetX / 1000, 1.2, shot.targetY / 1000)
+          ]
+        }, this.scene);
+        line.color = new Color3(1.0, 0.8, 0.2);
+        setTimeout(() => line.dispose(), 100);
+      }
+    }
+
     // Cleanup destroyed entities
     for (const [id, mesh] of this.entityMeshes.entries()) {
       if (!activeIds.has(id)) {
@@ -128,7 +152,36 @@ export class RTSRenderer {
     }
   }
 
+  public ghostMesh: Mesh | null = null;
+
+  public setPlacementGhost(show: boolean, width: number = 3, depth: number = 3): void {
+    if (!show) {
+      if (this.ghostMesh) {
+        this.ghostMesh.dispose();
+        this.ghostMesh = null;
+      }
+      return;
+    }
+
+    if (!this.ghostMesh) {
+      this.ghostMesh = MeshBuilder.CreateBox('placement_ghost', { width, height: 1.8, depth }, this.scene);
+      this.ghostMesh.material = this.materials.get('mat_ghost_valid')!;
+    }
+  }
+
+  public updateGhostPosition(gx: number, gy: number, isValid: boolean): void {
+    if (this.ghostMesh) {
+      this.ghostMesh.position.x = gx;
+      this.ghostMesh.position.z = gy;
+      this.ghostMesh.position.y = 0.9;
+      this.ghostMesh.material = this.materials.get(isValid ? 'mat_ghost_valid' : 'mat_ghost_invalid')!;
+    }
+  }
+
   public dispose(): void {
+    if (this.ghostMesh) {
+      this.ghostMesh.dispose();
+    }
     this.rtsCamera.dispose();
     this.engine.dispose();
   }

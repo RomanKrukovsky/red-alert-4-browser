@@ -11,7 +11,11 @@
     "typecheck": "tsc --noEmit",
     "test:determinism": "node ./dist/determinismRunner.js",
     "test:lifecycle": "node ./dist/lifecycle.test.js",
-    "test:navigation": "node ./dist/navigation.test.js"
+    "test:navigation": "node ./dist/navigation.test.js",
+    "test:combat": "node ./dist/combat.test.js",
+    "test:economy": "node ./dist/economy.test.js",
+    "test:building": "node ./dist/building.test.js",
+    "test:ai": "node ./dist/aiMatch.test.js"
   },
   "dependencies": {
     "@ra4/shared-types": "workspace:*",

@@ -69,6 +69,7 @@ export declare enum CommandType {
     USE_ABILITY = "USE_ABILITY",
     CAPTURE_BUILDING = "CAPTURE_BUILDING",
     DEPOSIT_ORE = "DEPOSIT_ORE",
+    GATHER = "GATHER",
     SURRENDER = "SURRENDER"
 }
 export declare enum VeterancyRank {

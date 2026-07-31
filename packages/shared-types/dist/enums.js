@@ -76,6 +76,7 @@ export var CommandType;
     CommandType["USE_ABILITY"] = "USE_ABILITY";
     CommandType["CAPTURE_BUILDING"] = "CAPTURE_BUILDING";
     CommandType["DEPOSIT_ORE"] = "DEPOSIT_ORE";
+    CommandType["GATHER"] = "GATHER";
     CommandType["SURRENDER"] = "SURRENDER";
 })(CommandType || (CommandType = {}));
 export var VeterancyRank;

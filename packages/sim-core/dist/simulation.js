@@ -1,4 +1,4 @@
-import { BuildingCategory, CommandType, MatchState, TechTier, VeterancyRank } from '@ra4/shared-types';
+import { BuildingCategory, CommandType, MatchState, PlayerType, TechTier, VeterancyRank } from '@ra4/shared-types';
 import { DEFAULT_DATABASE } from '@ra4/content-runtime';
 import { Mulberry32PRNG } from './prng.js';
 import { SpatialHashGrid } from './spatialGrid.js';
@@ -6,6 +6,7 @@ import { FogOfWarManager } from './fogOfWar.js';
 import { calculateDamage } from './combat.js';
 import { fixedDistanceSq } from './fixedMath.js';
 import { NavigationService } from './navigation.js';
+import { SkirmishAIAgent } from './aiAgent.js';
 export class GameSimulation {
     tickIndex = 0;
     seed;
@@ -16,6 +17,7 @@ export class GameSimulation {
     entities = new Map();
     players = [];
     resourceNodes = new Map();
+    aiAgents = new Map();
     nextEntityId = 1;
     matchState = MatchState.IN_GAME;
     winnerTeam = -1;
@@ -40,6 +42,9 @@ export class GameSimulation {
         }));
         playerConfigs.forEach((p, idx) => {
             this.fogOfWar.registerTeam(p.team);
+            if (p.type !== PlayerType.HUMAN && p.type !== PlayerType.SPECTATOR) {
+                this.aiAgents.set(idx, new SkirmishAIAgent(idx));
+            }
         });
         // Spawn Resource Nodes from default map
         const defaultMap = DEFAULT_DATABASE.maps[0];
@@ -187,6 +192,27 @@ export class GameSimulation {
                 }
                 break;
             }
+            case CommandType.GATHER: {
+                for (const id of cmd.entityIds) {
+                    const e = this.entities.get(id);
+                    if (e && e.playerIndex === cmd.playerIndex && e.maxOre > 0) {
+                        e.harvestingNodeId = cmd.resourceNodeId;
+                        e.refineryTargetId = undefined;
+                        e.targetEntityId = undefined;
+                    }
+                }
+                break;
+            }
+            case CommandType.DEPOSIT_ORE: {
+                for (const id of cmd.entityIds) {
+                    const e = this.entities.get(id);
+                    if (e && e.playerIndex === cmd.playerIndex && e.maxOre > 0) {
+                        e.refineryTargetId = cmd.refineryEntityId;
+                        e.targetEntityId = undefined;
+                    }
+                }
+                break;
+            }
             case CommandType.PRODUCE_UNIT: {
                 const producer = this.entities.get(cmd.producerEntityId);
                 if (producer && producer.playerIndex === cmd.playerIndex && producer.isBuilding) {
@@ -223,6 +249,11 @@ export class GameSimulation {
     }
     step() {
         this.tickIndex++;
+        // 0. AI Agents Decision Loop
+        for (const agent of this.aiAgents.values()) {
+            const aiCmds = agent.update(this);
+            this.processCommands(aiCmds);
+        }
         // 1. Spatial Grid Reset
         this.spatialGrid.clear();
         for (const e of this.entities.values()) {
