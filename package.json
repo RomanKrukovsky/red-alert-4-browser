@@ -1,0 +1,29 @@
+{
+  "name": "red-alert-4-browser",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AAA Browser RTS based on RA4 Bible v2.0 - 4 Asymmetric Factions, Deterministic Simulation, Babylon.js WebGPU/WebGL2, Node.js Server",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "content:validate": "pnpm --filter @ra4/content-runtime validate",
+    "test:determinism": "pnpm --filter @ra4/testing test:determinism",
+    "test:lifecycle": "pnpm --filter @ra4/testing test:lifecycle",
+    "test:navigation": "pnpm --filter @ra4/testing test:navigation"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.0",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5",
+    "prettier": "^3.5.1",
+    "eslint": "^9.20.1"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@10.33.0"
+}

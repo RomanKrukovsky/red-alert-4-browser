@@ -1,0 +1,1 @@
+{"version":3,"file":"prng.d.ts","sourceRoot":"","sources":["prng.ts"],"names":[],"mappings":"AAAA,qBAAa,cAAc;IACzB,OAAO,CAAC,KAAK,CAAS;gBAEV,IAAI,EAAE,MAAM;IAIjB,OAAO,IAAI,MAAM;IAOjB,SAAS,CAAC,GAAG,EAAE,MAAM,EAAE,GAAG,EAAE,MAAM,GAAG,MAAM;IAM3C,YAAY,IAAI,MAAM;CAG9B"}
