@@ -21,7 +21,11 @@
     "assets:verify": "npx tsx tools/asset-pipeline/verify-assets.ts",
     "assets:process": "npx tsx tools/asset-pipeline/process-assets.ts",
     "assets:build": "npx tsx tools/asset-pipeline/build-all-models.ts",
-    "assets:report": "npx tsx tools/asset-pipeline/report-assets.ts"
+    "assets:report": "npx tsx tools/asset-pipeline/report-assets.ts",
+    "ui:references": "npx tsx tools/ui-pipeline/references.ts",
+    "ui:screenshots": "npx tsx tools/ui-pipeline/references.ts",
+    "ui:compare": "npx tsx tools/ui-pipeline/compare.ts",
+    "ui:test": "npx tsx tools/ui-pipeline/test.ts"
   },
   "devDependencies": {
     "turbo": "^2.4.0",

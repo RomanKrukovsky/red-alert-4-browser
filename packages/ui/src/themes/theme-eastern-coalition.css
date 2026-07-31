@@ -1,0 +1,14 @@
+/* Faction Theme: Eastern Coalition */
+.theme-eastern-coalition {
+  --faction-primary: #26b259;
+  --faction-gold: #ffd700;
+  --faction-glow: rgba(38, 178, 89, 0.4);
+  --faction-bg-accent: rgba(38, 178, 89, 0.12);
+  --faction-border: 1px solid #26b259;
+  --faction-font-header: 'Chakra Petch', sans-serif;
+}
+
+.theme-eastern-coalition .ra4-hud-panel {
+  border-color: #26b259;
+  box-shadow: 0 0 20px rgba(38, 178, 89, 0.25), inset 0 0 15px rgba(255, 215, 0, 0.1);
+}

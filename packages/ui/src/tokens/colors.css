@@ -1,0 +1,30 @@
+/* RA4 Design Token System: Colors */
+:root {
+  /* Faction Primary & Accent Colors */
+  --ra4-color-soviet-primary: #ff2a4b;
+  --ra4-color-soviet-dark: #800a1c;
+  --ra4-color-soviet-glow: rgba(255, 42, 75, 0.4);
+
+  --ra4-color-allies-primary: #2a8bf2;
+  --ra4-color-allies-dark: #0a3b75;
+  --ra4-color-allies-glow: rgba(42, 139, 242, 0.4);
+
+  --ra4-color-eastern-primary: #26b259;
+  --ra4-color-eastern-gold: #ffd700;
+  --ra4-color-eastern-dark: #0c4d24;
+  --ra4-color-eastern-glow: rgba(38, 178, 89, 0.4);
+
+  --ra4-color-chrono-primary: #9933da;
+  --ra4-color-chrono-dark: #460e6b;
+  --ra4-color-chrono-glow: rgba(153, 51, 218, 0.4);
+
+  /* Surface & Panel Colors */
+  --ra4-bg-panel-dark: rgba(10, 16, 26, 0.88);
+  --ra4-bg-panel-heavy: rgba(6, 9, 15, 0.96);
+  --ra4-bg-glass: rgba(14, 22, 35, 0.75);
+
+  /* Border & Line Colors */
+  --ra4-border-cyan: rgba(0, 255, 200, 0.35);
+  --ra4-border-metal: rgba(255, 255, 255, 0.12);
+  --ra4-border-light: rgba(255, 255, 255, 0.25);
+}

@@ -1,0 +1,13 @@
+/* Faction Theme: Chronolegion */
+.theme-chronolegion {
+  --faction-primary: #9933da;
+  --faction-glow: rgba(153, 51, 218, 0.4);
+  --faction-bg-accent: rgba(153, 51, 218, 0.15);
+  --faction-border: 1px solid #9933da;
+  --faction-font-header: 'Orbitron', sans-serif;
+}
+
+.theme-chronolegion .ra4-hud-panel {
+  border-color: #9933da;
+  box-shadow: 0 0 25px rgba(153, 51, 218, 0.35), inset 0 0 15px rgba(153, 51, 218, 0.15);
+}

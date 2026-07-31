@@ -1,0 +1,13 @@
+/* Faction Theme: Allies (Western Alliance) */
+.theme-allies {
+  --faction-primary: #2a8bf2;
+  --faction-glow: rgba(42, 139, 242, 0.4);
+  --faction-bg-accent: rgba(42, 139, 242, 0.12);
+  --faction-border: 1px solid #2a8bf2;
+  --faction-font-header: 'Orbitron', sans-serif;
+}
+
+.theme-allies .ra4-hud-panel {
+  border-color: #2a8bf2;
+  box-shadow: 0 0 20px rgba(42, 139, 242, 0.25), inset 0 0 15px rgba(42, 139, 242, 0.1);
+}
