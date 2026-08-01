@@ -9,4 +9,6 @@ export * from './commandBus.js';
 export * from './entityRegistry.js';
 export * from './lifecycle.js';
 export * from './navigation.js';
+export * from './aiAgent.js';
+export * from './ai/aiBlackboard.js';
 //# sourceMappingURL=index.d.ts.map

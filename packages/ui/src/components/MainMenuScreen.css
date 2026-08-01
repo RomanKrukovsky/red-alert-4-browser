@@ -69,8 +69,11 @@
   width: 100%;
   justify-content: flex-start;
   padding: 16px 20px;
-  font-size: 20px;
+  font-family: var(--font-family-header);
+  font-size: 21px;
+  font-weight: 700;
   letter-spacing: 2px;
+  text-transform: uppercase;
   text-align: left;
 }
 

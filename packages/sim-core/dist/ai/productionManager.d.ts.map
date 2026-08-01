@@ -1,0 +1,1 @@
+{"version":3,"file":"productionManager.d.ts","sourceRoot":"","sources":["../../src/ai/productionManager.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,cAAc,EAAE,MAAM,kBAAkB,CAAC;AAClD,OAAO,EAAE,aAAa,EAA0B,MAAM,mBAAmB,CAAC;AAC1E,OAAO,EAAE,YAAY,EAAE,MAAM,mBAAmB,CAAC;AAEjD,qBAAa,mBAAmB;IACvB,MAAM,CAAC,GAAG,EAAE,cAAc,EAAE,EAAE,EAAE,YAAY,GAAG,aAAa,EAAE;CAyCtE"}

@@ -1,5 +1,4 @@
 import React from 'react';
-import './LoadingScreen.css';
 
 export interface LoadingScreenProps {
   progress: number;

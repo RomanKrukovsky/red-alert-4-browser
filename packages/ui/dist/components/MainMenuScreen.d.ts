@@ -1,5 +1,4 @@
 import React from 'react';
-import './MainMenuScreen.css';
 export interface MainMenuScreenProps {
     onSelectOption: (option: string) => void;
 }

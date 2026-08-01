@@ -1,10 +1,11 @@
-/* RA4 Design Token System: AAA RTS Typography */
+/* RA4 Design Token System: AAA Soviet & Sci-Fi RTS Typography */
 :root {
   /* Font Families */
-  --font-family-logo: 'Russo One', 'Oswald', sans-serif;
-  --font-family-header: 'Russo One', 'Oswald', sans-serif;
-  --font-family-ui: 'Rajdhani', 'Oswald', sans-serif;
-  --font-family-mono: 'Share Tech Mono', 'Courier New', monospace;
+  --font-family-logo: 'Russo One', sans-serif;
+  --font-family-header: 'Russo One', sans-serif;
+  --font-family-ui: 'Exo 2', sans-serif;
+  --font-family-condensed: 'Teko', sans-serif;
+  --font-family-mono: 'Share Tech Mono', monospace;
 
   /* Font Sizes */
   --font-size-xs: 11px;
@@ -14,19 +15,20 @@
   --font-size-xl: 22px;
   --font-size-2xl: 28px;
   --font-size-3xl: 36px;
-  --font-size-logo: 52px;
+  --font-size-logo: 54px;
 
   /* Font Weights */
-  --font-weight-regular: 500;
-  --font-weight-medium: 600;
-  --font-weight-bold: 700;
+  --font-weight-regular: 600;
+  --font-weight-medium: 700;
+  --font-weight-bold: 800;
+  --font-weight-heavy: 900;
 
   /* Letter Spacings */
-  --letter-spacing-tight: -0.02em;
-  --letter-spacing-normal: 0.03em;
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-normal: 0.04em;
   --letter-spacing-wide: 0.08em;
-  --letter-spacing-widest: 0.15em;
-  --letter-spacing-header: 0.12em;
+  --letter-spacing-header: 0.07em;
+  --letter-spacing-soviet: 0.09em;
 }
 
 /* Typography Utility Classes */
@@ -38,6 +40,7 @@
 
 .ra4-font-ui {
   font-family: var(--font-family-ui);
+  font-weight: 700;
   letter-spacing: var(--letter-spacing-normal);
 }
 
@@ -46,21 +49,27 @@
   letter-spacing: var(--letter-spacing-tight);
 }
 
+.ra4-font-condensed {
+  font-family: var(--font-family-condensed);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
 .ra4-tabular-num {
   font-family: var(--font-family-mono);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
 
-/* Tactical Text Effects */
+/* Tactical Text Glow Effects */
 .ra4-text-glow-soviet {
-  text-shadow: 0 0 8px rgba(231, 72, 53, 0.6), 0 0 16px rgba(231, 72, 53, 0.3);
+  text-shadow: 0 0 10px rgba(231, 72, 53, 0.7), 0 0 20px rgba(231, 72, 53, 0.4);
 }
 
 .ra4-text-glow-allies {
-  text-shadow: 0 0 8px rgba(74, 158, 255, 0.6), 0 0 16px rgba(74, 158, 255, 0.3);
+  text-shadow: 0 0 10px rgba(74, 158, 255, 0.7), 0 0 20px rgba(74, 158, 255, 0.4);
 }
 
 .ra4-text-glow-gold {
-  text-shadow: 0 0 8px rgba(236, 182, 70, 0.6), 0 0 16px rgba(236, 182, 70, 0.3);
+  text-shadow: 0 0 10px rgba(236, 182, 70, 0.7), 0 0 20px rgba(236, 182, 70, 0.4);
 }

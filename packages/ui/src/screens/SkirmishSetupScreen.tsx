@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button } from '../components/Button';
-import './SkirmishSetupScreen.css';
 
 export interface SkirmishSetupScreenProps {
   onStartMatch: () => void;

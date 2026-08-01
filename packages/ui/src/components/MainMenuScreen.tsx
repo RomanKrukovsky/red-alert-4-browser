@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Button } from './Button';
-import './MainMenuScreen.css';
+import { Button } from './Button.js';
 
 export interface MainMenuScreenProps {
   onSelectOption: (option: string) => void;

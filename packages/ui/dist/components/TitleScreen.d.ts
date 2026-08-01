@@ -1,5 +1,4 @@
 import React from 'react';
-import './TitleScreen.css';
 export interface TitleScreenProps {
     onEnter: () => void;
 }

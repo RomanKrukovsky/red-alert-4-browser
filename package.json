@@ -25,7 +25,10 @@
     "ui:references": "npx tsx tools/ui-pipeline/references.ts",
     "ui:screenshots": "npx tsx tools/ui-pipeline/screenshots.ts",
     "ui:compare": "npx tsx tools/ui-pipeline/compare.ts",
-    "ui:test": "npx tsx tools/ui-pipeline/test.ts"
+    "ui:test": "npx tsx tools/ui-pipeline/test.ts",
+    "test:ai:scenarios": "pnpm --filter @ra4/testing build && node packages/testing/dist/aiScenarios.test.js",
+    "test:ai:selfplay": "pnpm --filter @ra4/testing build && node packages/testing/dist/aiBenchmark.js",
+    "benchmark:ai": "pnpm --filter @ra4/testing build && node packages/testing/dist/aiBenchmark.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

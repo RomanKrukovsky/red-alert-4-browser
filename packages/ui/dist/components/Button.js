@@ -1,9 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useUIStore } from '../store';
-import '../tokens/colors.css';
-import '../tokens/spacing.css';
-import '../tokens/typography.css';
-import '../tokens/effects.css';
+import { useUIStore } from '../store.js';
 export const Button = ({ children, variant = 'primary', size = 'md', active = false, className = '', ...props }) => {
     const { theme } = useUIStore();
     // Base classes that apply layout, typography and effects via tokens

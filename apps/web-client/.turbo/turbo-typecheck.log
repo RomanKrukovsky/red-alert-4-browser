@@ -1,0 +1,4 @@
+
+> @ra4/web-client@1.0.0 typecheck /Users/romanmolodyko/Documents/red-alert-4-browser/apps/web-client
+> tsc --noEmit
+

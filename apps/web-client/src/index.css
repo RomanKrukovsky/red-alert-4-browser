@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&family=Russo+One&family=Share+Tech+Mono&display=swap&subset=cyrillic');
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,600;0,700;0,800;0,900;1,700;1,800&family=Orbitron:wght@600;700;800;900&family=Russo+One&family=Share+Tech+Mono&family=Teko:wght@600;700&display=swap&subset=cyrillic');
 
 :root {
-  font-family: 'Rajdhani', 'Oswald', sans-serif;
+  font-family: 'Russo One', 'Exo 2', sans-serif;
   color: #e7dfd3;
   background: #030507;
   font-synthesis: none;

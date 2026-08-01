@@ -65,7 +65,8 @@
 
 .ra4-skirmish-section-title {
   color: var(--faction-secondary);
-  font-size: 14px;
+  font-family: var(--font-family-header);
+  font-size: 15px;
   letter-spacing: 2px;
   margin-bottom: 10px;
   text-transform: uppercase;
@@ -75,7 +76,9 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 8px;
-  font-size: 13px;
+  font-family: var(--font-family-ui);
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .ra4-skirmish-setting-label {
@@ -99,10 +102,13 @@
   display: grid;
   grid-template-columns: 30px 1fr 120px 60px 80px 100px;
   color: var(--faction-text-muted);
-  font-size: 11px;
+  font-family: var(--font-family-header);
+  font-size: 12px;
+  letter-spacing: 1px;
   padding: 5px 10px;
   border-bottom: 1px solid var(--faction-dark);
   margin-bottom: 10px;
+  text-transform: uppercase;
 }
 
 .ra4-player-row {
@@ -112,7 +118,9 @@
   background: rgba(255, 0, 0, 0.05);
   border: 1px solid rgba(255, 0, 0, 0.1);
   padding: 8px 10px;
-  font-size: 13px;
+  font-family: var(--font-family-ui);
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .ra4-player-row:hover {
@@ -138,6 +146,7 @@
   border: 1px solid var(--faction-dark);
   background: rgba(0, 0, 0, 0.5);
   padding: 10px;
+  font-family: var(--font-family-mono);
   font-size: 12px;
   overflow-y: auto;
   display: flex;

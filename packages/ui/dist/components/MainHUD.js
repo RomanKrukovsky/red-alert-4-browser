@@ -4,7 +4,6 @@ import { Minimap } from './Minimap.js';
 import { ProductionPanel } from './ProductionPanel.js';
 import { CommandBar } from './CommandBar.js';
 import { EVALog } from './EVALog.js';
-import './MainHUD.css';
 import { useUIStore } from '../store.js';
 export const MainHUD = ({ onIssueCommand }) => {
     const { theme } = useUIStore();

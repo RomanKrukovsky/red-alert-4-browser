@@ -1,5 +1,4 @@
 import React from 'react';
-import './MainHUD.css';
 interface MainHUDProps {
     onIssueCommand?: (cmd: any) => void;
 }

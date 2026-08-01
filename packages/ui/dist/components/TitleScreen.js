@@ -1,6 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect } from 'react';
-import './TitleScreen.css';
 export const TitleScreen = ({ onEnter }) => {
     useEffect(() => {
         const handleKeyDown = () => onEnter();

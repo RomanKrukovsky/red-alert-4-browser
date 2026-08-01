@@ -1,7 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from 'react';
-import { Button } from './Button';
-import './MainMenuScreen.css';
+import { Button } from './Button.js';
 export const MainMenuScreen = ({ onSelectOption }) => {
     const [activeItem, setActiveItem] = useState('СХВАТКА');
     const navItems = [

@@ -1,9 +1,5 @@
 import React from 'react';
-import { useUIStore } from '../store';
-import '../tokens/colors.css';
-import '../tokens/spacing.css';
-import '../tokens/typography.css';
-import '../tokens/effects.css';
+import { useUIStore } from '../store.js';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'metallic' | 'holographic' | 'ghost';

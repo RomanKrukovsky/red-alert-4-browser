@@ -2,7 +2,3 @@
 > @ra4/ui@1.0.0 typecheck /Users/romanmolodyko/Documents/red-alert-4-browser/packages/ui
 > tsc --noEmit
 
-src/components/Button.tsx(22,11): error TS2339: Property 'theme' does not exist on type 'UIState'.
-src/components/Frame.tsx(16,11): error TS2339: Property 'theme' does not exist on type 'UIState'.
-src/components/MainHUD.tsx(15,11): error TS2339: Property 'theme' does not exist on type 'UIState'.
- ELIFECYCLE  Command failed with exit code 2.
