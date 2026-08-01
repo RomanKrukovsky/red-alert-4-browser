@@ -313,7 +313,7 @@ export const GameplayHUD: React.FC<GameplayHUDProps> = ({ faction, snapshot, sel
       </MetalPanel>
       <MetalPanel className="ra4-queue-panel" title="ОЧЕРЕДЬ ПРОИЗВОДСТВА">{viewModel.queue.length > 0 ? viewModel.queue.map((item, index) => {
         const progress = queueProgress(item.progressTicks, item.totalTicks);
-        return <div className="ra4-queue-row" key={item.id}><b>{index + 1}</b><span>{specLookup.get(item.specId) ?? item.specId}<div className="ra4-queue-progress"><div className="ra4-queue-progress-fill" style={{ '--progress': `${progress * 100}%` } as React.CSSProperties} /></div></span><small>{Math.ceil((item.totalTicks - item.progressTicks) / 30)} с</small><button aria-label="Отменить" onClick={() => issueCancelQueue(item.producerEntityId, index)}>×</button></div>;
+        return <div className="ra4-queue-row" key={`${item.id}-${index}`}><b>{index + 1}</b><span>{specLookup.get(item.specId) ?? item.specId}<div className="ra4-queue-progress"><div className="ra4-queue-progress-fill" style={{ '--progress': `${progress * 100}%` } as React.CSSProperties} /></div></span><small>{Math.ceil((item.totalTicks - item.progressTicks) / 30)} с</small><button aria-label="Отменить" onClick={() => issueCancelQueue(item.producerEntityId, index)}>×</button></div>;
       }) : <div className="ra4-queue-empty"><span /><p>ОЧЕРЕДЬ СВОБОДНА</p></div>}</MetalPanel>
       <MetalPanel className="ra4-command-panel">{[
         { icon: 'back', label: 'ДВИЖЕНИЕ', action: () => onBeginCommandMode(CommandType.MOVE) },

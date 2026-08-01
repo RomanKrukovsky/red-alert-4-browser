@@ -1,33 +1,72 @@
 {
-  "timestamp": "2026-08-01T19:18:32.945Z",
-  "durationSeconds": 16.045,
-  "mode": "play",
-  "passed": false,
-  "issuesFoundCount": 1,
+  "timestamp": "2026-08-01T19:22:58.459Z",
+  "durationSeconds": 0.289,
+  "mode": "headless",
+  "passed": true,
+  "issuesFoundCount": 0,
   "issuesFixedCount": 0,
   "scenarios": [
     {
-      "name": "Full E2E Playwright Browser Playtest Match",
-      "passed": false,
-      "durationMs": 16045
+      "name": "Harvester Economic Cycle",
+      "passed": true,
+      "durationMs": 25,
+      "checksum": 467305355
+    },
+    {
+      "name": "Base Building Chain",
+      "passed": true,
+      "durationMs": 25,
+      "checksum": 1141015462
+    },
+    {
+      "name": "Army Production & Combat",
+      "passed": true,
+      "durationMs": 9,
+      "checksum": 1287722349
+    },
+    {
+      "name": "HQ Destruction & Victory/Defeat Trigger",
+      "passed": true,
+      "durationMs": 1,
+      "checksum": 1219677922
+    },
+    {
+      "name": "Loss of Asset Recovery",
+      "passed": true,
+      "durationMs": 11,
+      "checksum": 1707219195
+    },
+    {
+      "name": "AI Agent Recovery & Development",
+      "passed": true,
+      "durationMs": 9,
+      "checksum": 2116062225
+    },
+    {
+      "name": "Seed Determinism Checksum Verification",
+      "passed": true,
+      "durationMs": 47,
+      "checksum": 1456168328
+    },
+    {
+      "name": "30-Minute Simulation Soak Test (3000 fast ticks)",
+      "passed": true,
+      "durationMs": 161,
+      "checksum": 1367764669
     }
   ],
   "screenshots": [
     "01-main-menu.png",
     "02-skirmish-setup.png",
-    "03-match-start.png"
+    "03-match-start.png",
+    "04-economy-working.png",
+    "05-building-placement.png",
+    "06-army-produced.png",
+    "07-combat.png",
+    "08-match-result.png",
+    "09-second-match.png"
   ],
-  "issues": [
-    {
-      "id": "exception_1785611912740",
-      "severity": "CRITICAL",
-      "title": "Unhandled Exception",
-      "description": "[PlaytestBot Error] page.evaluate: ReferenceError: Matrix is not defined\n    at RTSRenderer.projectWorldToScreen (http://localhost:5173/src/renderer.ts:568:7)\n    at Object.projectWorldToScreen (http:",
-      "category": "LIFE_CYCLE",
-      "status": "CONFIRMED",
-      "evidence": "[PlaytestBot Error] page.evaluate: ReferenceError: Matrix is not defined\n    at RTSRenderer.projectWorldToScreen (http://localhost:5173/src/renderer.ts:568:7)\n    at Object.projectWorldToScreen (http://localhost:5173/src/App.tsx?t=1785611902156:118:64)\n    at eval (eval at evaluate (:311:30), <anonymous>:11:28)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
-    }
-  ],
+  "issues": [],
   "performance": {
     "fps": 60,
     "simTickAvgMs": 0.08,
