@@ -236,3 +236,244 @@
 @media (max-width: 1400px) {
   .ra4-app-shell { --ui-scale: .82; }.ra4-gameplay-hud { font-size: 12px; }.ra4-panel-title { font-size: 12px; }.ra4-production-grid b { font-size: 8px; }.ra4-main-navigation { gap: 4px; }.ra4-menu-logo strong { font-size: 44px; }.ra4-briefing-data p { font-size: 13px; }.ra4-roster-row, .ra4-roster-header { min-height: 38px; }
 }
+
+/* Keep the battlefield dominant instead of scaling the HUD with ultrawide screens. */
+.ra4-objectives-panel > div:not(.ra4-panel-title) { display: block; margin: 5px 2px; color: #c7beb4; font-size: 13px; }
+.ra4-objectives-panel > div:not(.ra4-panel-title) i { display: inline-block; width: 12px; height: 12px; margin-inline-end: 6px; border: 1px solid var(--accent-bright); }
+.ra4-objectives-toggle { display: none; position: absolute; z-index: 4; padding: 8px 14px; border: 1px solid rgba(var(--accent-rgb), .62); color: var(--accent-bright); background: var(--panel); }
+.ra4-commander-chip > div:nth-of-type(2) { min-width: 0; flex: 1; }
+.ra4-commander-chip > div:nth-of-type(2) b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ra4-commander-chip > .ra4-icon { flex: 0 0 auto; margin-inline-start: auto; }
+.ra4-production-tools button:disabled,
+.ra4-command-panel button:disabled,
+.ra4-minimap-controls button:disabled { cursor: not-allowed; opacity: .38; }
+.ra4-production-grid > button:disabled { cursor: not-allowed; }
+.ra4-production-grid b { font-size: 10px; }
+.ra4-production-section > header small { font-size: 10px; }
+.ra4-production-shell button:active:not(:disabled),
+.ra4-command-panel button:active:not(:disabled),
+.ra4-minimap-controls button:active:not(:disabled) { transform: scale(.96); }
+
+@media (min-width: 1200px) {
+  .ra4-commander-chip { width: clamp(340px, 20vw, 390px); height: clamp(64px, 7.8vh, 80px); }
+  .ra4-resource-bar { width: clamp(500px, 32vw, 640px); height: clamp(44px, 4.7vh, 52px); }
+  .ra4-objectives-panel { width: clamp(300px, 19vw, 360px); min-height: 0; height: clamp(156px, 17vh, 176px); }
+  .ra4-alert-stack { top: clamp(254px, 28.5vh, 292px); width: clamp(300px, 18vw, 340px); }
+  .ra4-minimap-shell { width: clamp(280px, 17vw, 340px); height: clamp(220px, 28vh, 284px); }
+  .ra4-production-shell { top: auto; width: clamp(340px, 23.8vw, 420px); height: min(55vh, 560px); }
+  .ra4-selection-card { width: clamp(340px, 22.5vw, 420px); height: min(23vh, 230px); }
+  .ra4-queue-panel { left: calc(.7% + clamp(340px, 22.5vw, 420px) + 10px); width: clamp(280px, 18vw, 340px); height: min(21vh, 210px); }
+  .ra4-command-panel { left: calc(.7% + clamp(340px, 22.5vw, 420px) + clamp(280px, 18vw, 340px) + 20px); width: clamp(390px, 24vw, 500px); height: clamp(64px, 8vh, 78px); }
+  .theme-allies .ra4-production-shell { width: clamp(340px, 23.8vw, 420px); }
+  .theme-allies .ra4-minimap-shell { width: clamp(280px, 17vw, 340px); }
+  .theme-allies .ra4-selection-card,
+  .theme-coalition .ra4-selection-card,
+  .theme-chronolegion .ra4-selection-card { width: clamp(340px, 22.5vw, 420px); }
+}
+
+@media (max-width: 1199px) {
+  .ra4-commander-chip { width: 270px; height: 64px; }
+  .ra4-resource-bar { width: min(560px, 55vw); height: 46px; }
+  .ra4-objectives-panel,
+  .ra4-alert-stack { display: none; }
+  .ra4-minimap-shell { top: 62px; width: 240px; height: 190px; }
+  .ra4-production-shell { top: auto; width: 270px; height: min(52vh, 470px); }
+  .ra4-selection-card { width: 280px; height: 180px; padding: 10px; }
+  .ra4-queue-panel { display: none; }
+  .ra4-command-panel { left: 292px; right: 282px; width: auto; height: 66px; }
+  .ra4-commander-chip > .ra4-icon { display: none; }
+  .ra4-objectives-toggle { display: block; top: 76px; left: 8px; }
+  .ra4-objectives-panel.is-open { display: block; top: 116px; left: 8px; width: 280px; height: 164px; }
+}
+
+@media (max-width: 768px) {
+  .ra4-commander-chip { display: none; }
+  .ra4-resource-bar { left: 8px; right: 8px; width: auto; height: 44px; }
+  .ra4-resource { min-width: 0; flex: 1; padding: 0 5px; gap: 4px; font-size: 10px; }
+  .ra4-minimap-shell { top: 58px; width: 180px; height: 145px; padding: 7px; }
+  .ra4-minimap-terrain { top: 7px; left: 7px; right: 7px; }
+  .ra4-production-shell { bottom: 72px; width: 220px; height: min(43vh, 390px); }
+  .ra4-production-section > header small { display: none; }
+  .ra4-production-shell nav button { overflow: hidden; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+  .ra4-production-grid { grid-template-columns: repeat(2, 1fr); }
+  .ra4-selection-card { bottom: 72px; width: 220px; height: 155px; }
+  .ra4-selection-emblem { display: none; }
+  .ra4-command-panel { left: 8px; right: 8px; bottom: 8px; width: auto; height: 56px; padding: 5px; gap: 3px; }
+  .ra4-objectives-toggle { top: 58px; }
+  .ra4-objectives-panel.is-open { top: 98px; width: min(280px, calc(100vw - 16px)); }
+  .ra4-music-player { display: none; }
+}
+
+@media (max-width: 520px) {
+  .ra4-minimap-shell { display: none; }
+  .ra4-resource .ra4-icon { display: none; }
+  .ra4-production-shell { width: 184px; height: 38vh; }
+  .ra4-production-shell nav { display: flex; height: auto; overflow-x: auto; scrollbar-width: none; }
+  .ra4-production-shell nav::-webkit-scrollbar { display: none; }
+  .ra4-production-shell nav button { flex: 0 0 62px; min-height: 28px; }
+  .ra4-selection-card { width: 184px; height: 132px; grid-template-columns: 1fr; }
+  .ra4-selected-render { display: none; }
+  .ra4-selection-copy progress { margin-top: 7px; }
+  .ra4-result-title { top: 5%; left: 8px; right: 8px; }
+  .ra4-result-title .ra4-emblem { transform: scale(.72); }
+  .ra4-result-title h1 { font-size: clamp(36px, 12vw, 52px); letter-spacing: 0; white-space: nowrap; }
+  .ra4-result-title p { max-width: 34ch; margin: 4px auto; font-size: 14px; line-height: 1.45; text-wrap: pretty; }
+  .ra4-result-stats { left: 8%; right: 8%; bottom: 18%; height: 28%; grid-template-columns: repeat(2, 1fr); padding: 40px 10px 10px; }
+  .ra4-result-stats > div { padding: 5px 8px; }
+  .ra4-result-stats > div:nth-child(2) { border-right: 0; }
+  .ra4-result-stats b { font-size: 20px; }
+  .ra4-result-actions { left: 8px; right: 8px; bottom: 4%; gap: 6px; }
+  .ra4-result-actions .ra4-military-button { min-width: 0; padding-inline: 8px; font-size: 10px; }
+}
+
+.ra4-music-player {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border: 1px solid #ff2400;
+  border-radius: 6px;
+  color: #fff;
+  background: rgba(10, 10, 15, .85);
+  box-shadow: 0 4px 15px rgba(255, 36, 0, .25);
+  backdrop-filter: blur(8px);
+  font-family: Consolas, Monaco, monospace;
+  font-size: 12px;
+  user-select: none;
+}
+.ra4-music-player.is-collapsed { padding: 6px 12px; }
+.ra4-app-shell:has(.ra4-gameplay-hud) .ra4-music-player { display: none; }
+@media (max-width: 768px) {
+  .ra4-music-player { display: none; }
+}
+
+/* Gameplay HUD visual pass — dense, faction-led command console. */
+.ra4-gameplay-hud {
+  text-shadow: 0 1px 2px #000;
+}
+.ra4-gameplay-hud .ra4-metal-panel {
+  background:
+    linear-gradient(180deg, rgba(var(--accent-rgb), .09), transparent 28%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0 1px, transparent 1px 6px),
+    linear-gradient(145deg, rgba(8,10,11,.96), rgba(2,3,4,.94));
+  box-shadow: 0 0 0 1px rgba(0,0,0,.9), inset 0 0 26px rgba(var(--accent-rgb),.08), 0 5px 20px rgba(0,0,0,.62);
+}
+.ra4-commander-chip {
+  border-left-width: 3px;
+}
+.ra4-commander-chip > div:nth-child(2) { min-width: 0; flex: 1; }
+.ra4-commander-chip > .ra4-icon { flex: 0 0 auto; color: var(--accent-bright); opacity: .72; }
+.ra4-commander-avatar {
+  position: relative;
+  overflow: hidden;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px #090a0b, 0 0 0 4px var(--accent), 0 0 15px rgba(var(--accent-rgb),.45);
+  background: radial-gradient(circle at 52% 30%, #bd8568 0 12%, #503328 13% 21%, transparent 22%), linear-gradient(120deg, var(--metal), #08090a 72%);
+}
+.ra4-commander-avatar::before {
+  content: '';
+  position: absolute;
+  left: 29%; top: 24%; width: 42%; height: 39%;
+  border-radius: 45% 45% 38% 38%;
+  background: linear-gradient(90deg, transparent 0 18%, #19110e 19% 23%, transparent 24% 70%, #19110e 71% 75%, transparent 76%), linear-gradient(#bd8568, #80503c);
+}
+.ra4-commander-avatar span { position: absolute; left: 17%; right: 17%; bottom: -5%; height: 44%; clip-path: polygon(18% 0,82% 0,100% 100%,0 100%); background: linear-gradient(90deg,#121416,var(--metal),#111214); }
+.ra4-objectives-panel > div { margin: 7px 2px; color: #c7beb4; font-size: 12px; }
+.ra4-objectives-panel > div i { display: inline-block; width: 12px; height: 12px; margin-right: 7px; border: 1px solid var(--accent-bright); box-shadow: inset 0 0 5px rgba(var(--accent-rgb),.3); vertical-align: -1px; }
+.ra4-resource-bar { backdrop-filter: blur(8px); }
+.ra4-resource { height: 26px; }
+.ra4-resource span { letter-spacing: .055em; }
+
+.ra4-minimap-shell { overflow: visible; }
+.ra4-minimap-shell canvas { opacity: 0; }
+.ra4-minimap-terrain {
+  clip-path: none;
+  border: 1px solid rgba(var(--accent-rgb),.7);
+  background:
+    radial-gradient(circle at 67% 27%, #151d1c 0 7%, transparent 8%),
+    radial-gradient(circle at 27% 72%, #131b19 0 9%, transparent 10%),
+    repeating-radial-gradient(ellipse at 50% 48%, transparent 0 17px, rgba(177,190,174,.065) 18px 19px),
+    linear-gradient(145deg, #222a29 0 17%, #0c1412 18% 35%, #25302d 36% 49%, #0b1110 50% 65%, #1c2724 66% 79%, #08100e 80%);
+  box-shadow: inset 0 0 40px #000, inset 0 0 0 4px rgba(0,0,0,.72);
+}
+.ra4-minimap-terrain::before {
+  content: '';
+  position: absolute;
+  inset: 5%;
+  opacity: .72;
+  background: repeating-linear-gradient(38deg, transparent 0 27px, rgba(185,194,184,.11) 28px 29px), repeating-linear-gradient(126deg, transparent 0 43px, rgba(185,194,184,.08) 44px 45px);
+  clip-path: polygon(8% 17%,31% 5%,49% 17%,72% 3%,96% 24%,84% 49%,95% 76%,64% 95%,43% 80%,17% 96%,4% 63%);
+}
+.ra4-minimap-road { position: absolute; z-index: 2; left: 5%; width: 92%; height: 2px; background: rgba(189,198,191,.28); transform: rotate(29deg); }
+.ra4-minimap-road.road-one { top: 44%; }
+.ra4-minimap-road.road-two { top: 58%; transform: rotate(-37deg); }
+.ra4-minimap-terrain i { z-index: 4; width: 5px; height: 5px; border-radius: 50%; }
+.ra4-minimap-terrain i:nth-of-type(1) { left: 31%; top: 64%; }
+.ra4-minimap-terrain i:nth-of-type(2) { left: 36%; top: 69%; }
+.ra4-minimap-terrain i:nth-of-type(3) { left: 42%; top: 62%; }
+.ra4-minimap-terrain i:nth-of-type(4) { left: 47%; top: 71%; }
+.ra4-minimap-terrain i:nth-of-type(5) { left: 24%; top: 58%; }
+.ra4-minimap-terrain i:nth-of-type(6) { left: 39%; top: 53%; }
+.ra4-minimap-terrain i:nth-of-type(7) { left: 73%; top: 22%; background: #f24532; }
+.ra4-minimap-terrain i:nth-of-type(8) { left: 69%; top: 29%; background: #f24532; }
+.ra4-minimap-terrain i:nth-of-type(9) { left: 79%; top: 31%; background: #f24532; }
+.ra4-minimap-terrain i:nth-of-type(10) { left: 65%; top: 18%; background: #f24532; }
+.ra4-minimap-terrain i:nth-of-type(11) { left: 62%; top: 35%; background: #f24532; }
+.ra4-minimap-terrain i:nth-of-type(12) { left: 54%; top: 29%; background: #f24532; }
+.ra4-minimap-terrain i:nth-of-type(n+13) { width: 3px; height: 3px; opacity: .7; }
+.ra4-minimap-terrain b { z-index: 5; border-color: var(--accent-bright); box-shadow: 0 0 8px rgba(var(--accent-rgb),.45); }
+
+.ra4-production-shell nav button { letter-spacing: .06em; }
+.ra4-production-grid > button {
+  background: radial-gradient(ellipse at 50% 35%, rgba(var(--accent-rgb),.2), transparent 55%), linear-gradient(145deg,#101416,#050606 70%);
+}
+.ra4-production-grid > button::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-top: 1px solid rgba(255,255,255,.055);
+  pointer-events: none;
+}
+.ra4-product-visual { position: absolute; inset: 5% 8% 28%; filter: drop-shadow(0 4px 3px #000) drop-shadow(0 0 5px rgba(var(--accent-rgb),.4)); }
+.ra4-product-visual i { position: absolute; display: block; }
+.ra4-product-shadow { left: 10%; right: 10%; bottom: 1%; height: 16%; border-radius: 50%; background: #000; filter: blur(3px); opacity: .75; }
+.ra4-product-body { z-index: 2; left: 12%; right: 12%; bottom: 10%; height: 45%; clip-path: polygon(7% 55%,20% 20%,77% 12%,96% 47%,88% 87%,12% 92%); background: linear-gradient(155deg,#8f9697 0 13%,#333b3d 14% 50%,#111617 51% 72%,var(--accent-dim)); border-bottom: 2px solid var(--accent); }
+.ra4-product-detail { z-index: 3; left: 38%; bottom: 43%; width: 36%; height: 23%; clip-path: polygon(9% 38%,31% 8%,85% 22%,96% 73%,18% 91%); background: linear-gradient(145deg,#aeb4b3,#22292b 55%,var(--accent)); }
+.ra4-product-visual.variant-1 { transform: scale(.9) rotateY(180deg); }
+.ra4-product-visual.variant-2 .ra4-product-body { height: 56%; clip-path: polygon(4% 46%,23% 13%,76% 8%,98% 48%,82% 92%,11% 86%); }
+.ra4-product-visual.variant-3 .ra4-product-detail { left: 17%; width: 66%; height: 14%; }
+.ra4-product-visual.is-buildings .ra4-product-body { left: 20%; right: 20%; height: 64%; clip-path: polygon(10% 30%,30% 18%,36% 4%,64% 4%,70% 18%,91% 31%,94% 94%,7% 94%); background: linear-gradient(120deg,#71797a,#252b2c 45%,#0d1112 72%,var(--accent-dim)); }
+.ra4-product-visual.is-buildings .ra4-product-detail { left: 42%; bottom: 58%; width: 18%; height: 38%; clip-path: polygon(35% 0,65% 0,82% 100%,18% 100%); background: linear-gradient(90deg,#202627,#a0a6a4 48%,#171c1d); box-shadow: 0 0 7px var(--accent); }
+.ra4-product-visual.is-infantry .ra4-product-body { left: 42%; right: auto; width: 18%; height: 48%; clip-path: polygon(30% 0,70% 0,83% 35%,72% 62%,96% 100%,62% 100%,50% 70%,38% 100%,4% 100%,28% 62%,17% 35%); }
+.ra4-product-visual.is-infantry .ra4-product-detail { left: 44%; bottom: 56%; width: 14%; height: 18%; border-radius: 50%; clip-path: none; }
+.ra4-product-visual.is-air .ra4-product-body { left: 5%; right: 5%; bottom: 18%; height: 48%; clip-path: polygon(0 54%,38% 40%,46% 2%,55% 2%,63% 40%,100% 55%,62% 69%,55% 98%,45% 98%,38% 69%); }
+.ra4-product-visual.is-air .ra4-product-detail { left: 45%; bottom: 49%; width: 11%; height: 28%; border-radius: 55% 55% 20% 20%; clip-path: none; }
+.ra4-product-visual.is-naval .ra4-product-body { left: 4%; right: 4%; bottom: 9%; height: 38%; clip-path: polygon(0 35%,82% 12%,100% 45%,76% 93%,12% 88%); }
+.ra4-product-visual.is-naval .ra4-product-detail { left: 34%; bottom: 39%; width: 40%; height: 25%; }
+.ra4-production-empty { grid-column: 1 / -1; display: grid; place-content: center; justify-items: center; gap: 8px; min-height: 120px; color: var(--text-dim); font-size: 10px; letter-spacing: .1em; }
+.ra4-selected-render .ra4-product-visual { inset: 10%; }
+.ra4-production-tools button:disabled, .ra4-command-panel button:disabled { opacity: .42; }
+
+/* The lobby uses the same dense red military frame as the reference screen. */
+.ra4-skirmish {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(126,20,12,.22), transparent 24%),
+    repeating-linear-gradient(125deg, transparent 0 75px, rgba(151,30,20,.025) 76px 77px),
+    linear-gradient(145deg,#0b0a09,#020303 70%);
+}
+.ra4-skirmish::before { content: ''; position: absolute; inset: 9px; border: 1px solid #59150f; clip-path: var(--bevel); box-shadow: inset 0 0 55px #000; }
+.ra4-skirmish > header { background: linear-gradient(90deg,rgba(44,9,7,.72),rgba(4,4,4,.86),rgba(44,9,7,.72)); }
+.ra4-skirmish .ra4-wordmark { color: #8e867d; font-size: 12px; letter-spacing: .16em; }
+.ra4-skirmish .ra4-wordmark b { display: block; color: #a52920; font-family: 'Russo One'; font-size: clamp(24px,3vw,48px); line-height: .9; text-shadow: 0 2px #2d0806,0 0 20px rgba(204,43,29,.35); }
+.ra4-lobby-left, .ra4-lobby-roster, .ra4-lobby-right { backdrop-filter: blur(9px); }
+.ra4-lobby-left .ra4-emblem { filter: drop-shadow(0 0 19px rgba(225,51,31,.38)); }
+.ra4-roster-row { background: linear-gradient(90deg,rgba(255,255,255,.018),transparent); }
+.ra4-roster-row:hover { background: rgba(126,27,18,.12); }
+.ra4-lobby-chat { background: rgba(1,2,2,.7); }
+.ra4-map-preview { overflow: hidden; box-shadow: inset 0 0 35px #000; }
+.ra4-map-preview::before { content: ''; position: absolute; inset: 6%; clip-path: polygon(4% 29%,16% 9%,38% 6%,52% 20%,75% 7%,96% 24%,89% 49%,98% 72%,75% 94%,52% 85%,30% 96%,8% 72%); background: radial-gradient(circle at 22% 26%,#d6e0e5 0 3%,transparent 4%),radial-gradient(circle at 72% 68%,#9daaae 0 3%,transparent 4%),repeating-linear-gradient(35deg,transparent 0 17px,rgba(255,255,255,.08) 18px),linear-gradient(145deg,#53626a,#182127 58%,#35434a); box-shadow: 0 0 18px #000; }
+.ra4-lobby-actions .ra4-military-button { box-shadow: 0 0 24px rgba(217,43,28,.22), inset 0 0 22px rgba(142,26,18,.22); }

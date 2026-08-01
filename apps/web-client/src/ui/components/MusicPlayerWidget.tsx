@@ -30,27 +30,7 @@ export const MusicPlayerWidget: React.FC = () => {
   if (!currentTrack) return null;
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: '16px',
-        right: '16px',
-        zIndex: 9999,
-        background: 'rgba(10, 10, 15, 0.85)',
-        border: '1px solid #ff2400',
-        borderRadius: '6px',
-        padding: isCollapsed ? '6px 12px' : '10px 16px',
-        color: '#fff',
-        fontFamily: 'Consolas, Monaco, monospace',
-        fontSize: '12px',
-        boxShadow: '0 4px 15px rgba(255, 36, 0, 0.25)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '10px',
-        backdropFilter: 'blur(8px)',
-        userSelect: 'none',
-      }}
-    >
+    <div className={`ra4-music-player${isCollapsed ? ' is-collapsed' : ''}`}>
       <span style={{ color: '#ff2400', fontWeight: 'bold', fontSize: '14px' }}>🎵</span>
       {!isCollapsed && (
         <div style={{ display: 'flex', flexDirection: 'column' }}>

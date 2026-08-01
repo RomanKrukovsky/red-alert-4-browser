@@ -25,13 +25,11 @@ export class RTSCamera {
     this.camera.lowerBetaLimit = 0.3;
     this.camera.upperBetaLimit = Math.PI / 2.5;
 
-    // Attach wheel zoom
-    this.camera.inputs.addMouseWheel();
-
     // Key listeners for WASD
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('keyup', this.handleKeyUp);
     window.addEventListener('mousemove', this.handleMouseMove);
+    canvas.addEventListener('wheel', this.handleWheel, { passive: false });
 
     // Disable default browser context menu on canvas
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -62,6 +60,11 @@ export class RTSCamera {
 
     if (e.clientY > h - margin) this.keysPressed.add('edge_down');
     else this.keysPressed.delete('edge_down');
+  };
+
+  private handleWheel = (e: WheelEvent) => {
+    e.preventDefault();
+    this.camera.radius = Math.max(this.camera.lowerRadiusLimit ?? 12, Math.min(this.camera.upperRadiusLimit ?? 75, this.camera.radius + e.deltaY * .035));
   };
 
   public setFreeCameraMode(enabled: boolean): void {
@@ -127,9 +130,15 @@ export class RTSCamera {
     this.camera.target.z = Math.max(this.mapMinZ, Math.min(this.mapMaxZ, z));
   }
 
+  public pan(deltaX: number, deltaZ: number): void {
+    this.camera.target.x = Math.max(this.mapMinX, Math.min(this.mapMaxX, this.camera.target.x + deltaX));
+    this.camera.target.z = Math.max(this.mapMinZ, Math.min(this.mapMaxZ, this.camera.target.z + deltaZ));
+  }
+
   public dispose(): void {
     window.removeEventListener('keydown', this.handleKeyDown);
     window.removeEventListener('keyup', this.handleKeyUp);
     window.removeEventListener('mousemove', this.handleMouseMove);
+    this.camera.getScene().getEngine().getRenderingCanvas()?.removeEventListener('wheel', this.handleWheel);
   }
 }

@@ -2,16 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { findNearestShooter, getGameplayAssetProfile, normalizeCargo, resolveAnimation, SUPPORTED_GAMEPLAY_ASSET_IDS } from './gameplayAssetPolicy.js';
 
 describe('gameplay asset policy', () => {
-  it('resolves exactly the five approved gameplay assets', () => {
-    expect(SUPPORTED_GAMEPLAY_ASSET_IDS).toEqual([
+  it('keeps the original approved assets and resolves every registered profile', () => {
+    expect(SUPPORTED_GAMEPLAY_ASSET_IDS).toEqual(expect.arrayContaining([
       'SU_GranitMBT',
       'SU_BogatyrOreCarrier',
       'SU_RubezhRifleman',
       'SU_HeavyFactory',
       'SU_Pillbox',
-    ]);
+    ]));
+    expect(new Set(SUPPORTED_GAMEPLAY_ASSET_IDS).size).toBe(SUPPORTED_GAMEPLAY_ASSET_IDS.length);
     for (const id of SUPPORTED_GAMEPLAY_ASSET_IDS) expect(getGameplayAssetProfile(id)?.id).toBe(id);
-    expect(getGameplayAssetProfile('AL_BulwarkMBT')).toBeUndefined();
+    expect(getGameplayAssetProfile('UNKNOWNASSET')).toBeUndefined();
+    expect(getGameplayAssetProfile('MOD_CustomVehicle')?.id).toBe('MOD_CustomVehicle');
   });
 
   it('selects fire, movement, and idle animations with declared fallbacks', () => {

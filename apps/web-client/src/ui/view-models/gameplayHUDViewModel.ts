@@ -1,4 +1,5 @@
-import { EntityStateSnapshot, WorldSnapshot } from '@ra4/shared-types';
+import { EntityStateSnapshot, UnitCategory, WorldSnapshot } from '@ra4/shared-types';
+import { OFFICIAL_BUILDINGS } from '@ra4/content-runtime';
 
 export interface HUDSelectionViewModel {
   id: number;
@@ -55,11 +56,17 @@ const toSelection = (entity: EntityStateSnapshot | undefined): HUDSelectionViewM
   hasMoveTarget: Boolean(entity.moveTarget),
 } : null;
 
-export const createGameplayHUDViewModel = (snapshot: WorldSnapshot | null, selectedEntityIds: number[]): GameplayHUDViewModel => {
+export const createGameplayHUDViewModel = (snapshot: WorldSnapshot | null, selectedEntityIds: number[], producerCategory?: UnitCategory): GameplayHUDViewModel => {
   const player = snapshot?.players[0] ?? fallbackPlayer;
   const ownedEntities = snapshot?.entities.filter((entity) => entity.playerIndex === 0) ?? [];
   const selectedEntity = snapshot?.entities.find((entity) => selectedEntityIds.includes(entity.id)) ?? ownedEntities.find((entity) => entity.isBuilding) ?? ownedEntities[0];
-  const producer = ownedEntities.find((entity) => entity.isBuilding);
+  const selectedProducer = selectedEntity?.isBuilding
+    ? OFFICIAL_BUILDINGS.find((building) => building.id === selectedEntity.specId)?.producesCategory === producerCategory ? selectedEntity : undefined
+    : undefined;
+  const producer = selectedProducer ?? ownedEntities.find((entity) => {
+    if (!producerCategory || !entity.isBuilding) return !producerCategory;
+    return OFFICIAL_BUILDINGS.find((building) => building.id === entity.specId)?.producesCategory === producerCategory;
+  });
   const queue = ownedEntities.flatMap((entity) => entity.productionQueue.map((item) => ({
     id: item.id,
     specId: item.specId,

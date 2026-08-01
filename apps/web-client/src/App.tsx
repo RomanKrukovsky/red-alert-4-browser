@@ -10,6 +10,7 @@ import { BriefingScreen, CampaignSelectScreen, CommandCenterScreen, FactionCampa
 import { LoadingScreen, SkirmishSetupScreen } from './ui/screens/SkirmishScreens.js';
 import { FrontendScreen, LoadingStage, MatchSetup } from './ui/types.js';
 import { MusicManager } from './audio/musicManager.js';
+import { VoiceManager } from './audio/voiceManager.js';
 import { MusicPlayerWidget } from './ui/components/MusicPlayerWidget.js';
 import { AssetGalleryView } from './ui/AssetGalleryView.js';
 import './ui/ra4-ui.css';
@@ -70,10 +71,15 @@ export const App: React.FC = () => {
     rendererRef.current = renderer;
     await renderer.ready;
     if (rendererRef.current !== renderer) return;
+    renderer.rtsCamera.focusOnPosition(8, 8);
+    renderer.rtsCamera.camera.radius = 28;
     setLoadingStages((stages) => stages.map((stage) => stage.id === 'renderer' ? { ...stage, status: 'complete', progress: 38 } : stage.id === 'simulation' ? { ...stage, status: 'active', progress: 50 } : stage));
 
     const manager = new MatchLifecycleManager();
     managerRef.current = manager;
+    useUIStore.getState().setActiveFaction(matchSetup.faction);
+    useUIStore.getState().setActivePlayerIndex(0);
+    useUIStore.getState().setSelectedEntityIds([]);
     manager.initialize({
       seed: Math.floor(Math.random() * 1_000_000),
       tickRate: matchSetup.gameSpeed === 'FAST' ? 36 : matchSetup.gameSpeed === 'SLOW' ? 24 : 30,
@@ -89,16 +95,63 @@ export const App: React.FC = () => {
     inputManagerRef.current = inputManager;
     setLoadingStages((stages) => stages.map((stage) => stage.id === 'input' ? { ...stage, status: 'complete', progress: 82 } : stage.id === 'snapshot' ? { ...stage, status: 'active', progress: 90 } : stage));
 
+    let prevEntities = new Map<number, { hp: number; isBuilding: boolean; specId: string; playerIndex: number }>();
+
     const handleSnapshot = (nextSnapshot: WorldSnapshot) => {
       renderer.updateScene(nextSnapshot);
       useUIStore.getState().setSnapshot(nextSnapshot);
+
+      const activePlayerIdx = useUIStore.getState().activePlayerIndex;
+      const currentEntities = new Map<number, { hp: number; isBuilding: boolean; specId: string; playerIndex: number }>();
+
+      for (const ent of nextSnapshot.entities) {
+        currentEntities.set(ent.id, { hp: ent.hp, isBuilding: ent.isBuilding, specId: ent.specId, playerIndex: ent.playerIndex });
+
+        if (prevEntities.size > 0 && !prevEntities.has(ent.id)) {
+          // Newly created entity for player
+          if (ent.playerIndex === activePlayerIdx) {
+            if (ent.isBuilding) {
+              VoiceManager.getInstance().playEVAMessage('BUILDING_COMPLETE');
+            } else {
+              VoiceManager.getInstance().playEVAMessage('UNIT_READY');
+            }
+          }
+        } else if (prevEntities.has(ent.id)) {
+          const prev = prevEntities.get(ent.id)!;
+          if (ent.playerIndex === activePlayerIdx && ent.hp < prev.hp - 15) {
+            if (ent.isBuilding) {
+              VoiceManager.getInstance().playEVAMessage('BASE_UNDER_ATTACK', undefined, 8000);
+            } else {
+              VoiceManager.getInstance().playUnitBark(ent.specId, 'Damaged');
+            }
+          }
+        }
+      }
+
+      // Check for destroyed entities
+      if (prevEntities.size > 0) {
+        for (const [id, prev] of prevEntities.entries()) {
+          if (!currentEntities.has(id) && prev.playerIndex === activePlayerIdx) {
+            if (!prev.isBuilding) {
+              VoiceManager.getInstance().playUnitBark(prev.specId, 'Death');
+              VoiceManager.getInstance().playEVAMessage('UNIT_LOST', undefined, 4000);
+            }
+          }
+        }
+      }
+
+      prevEntities = currentEntities;
+
       if (manager.sim?.matchState === MatchState.FINISHED) {
         manager.stop();
-        navigate(manager.sim.winnerTeam === 0 ? 'VICTORY' : 'DEFEAT', manager.sim.winnerTeam === 0 ? '#/victory' : '#/defeat');
+        const isVictory = manager.sim.winnerTeam === 0;
+        VoiceManager.getInstance().playEVAMessage(isVictory ? 'VICTORY' : 'DEFEAT');
+        navigate(isVictory ? 'VICTORY' : 'DEFEAT', isVictory ? '#/victory' : '#/defeat');
         return;
       }
       if (!hasReceivedSnapshotRef.current) {
         hasReceivedSnapshotRef.current = true;
+        VoiceManager.getInstance().playEVAMessage('MATCH_START');
         setLoadingStages((stages) => stages.map((stage) => ({ ...stage, status: 'complete', progress: 100 })));
         window.requestAnimationFrame(() => navigate('MATCH', `#/hud/${matchSetup.faction === FactionId.ALLIANCE ? 'allies' : matchSetup.faction === FactionId.ORIENTAL_COALITION ? 'coalition' : matchSetup.faction === FactionId.CHRONOLEGION ? 'chronolegion' : 'soviet'}`));
       }
@@ -155,6 +208,7 @@ export const App: React.FC = () => {
   useEffect(() => disposeMatch, [disposeMatch]);
 
   const issueCommand = (command: PlayerCommand) => managerRef.current?.commandBus.dispatch(command);
+  const beginBuildingPlacement = (structureId: string) => inputManagerRef.current?.beginBuildingPlacement(structureId);
   const pauseMatch = () => {
     managerRef.current?.pause();
     setPaused(true);
@@ -184,7 +238,7 @@ export const App: React.FC = () => {
       {currentScreen === 'TRANSMISSION' && <TransmissionScreen onBack={() => navigate('BRIEFING', '#/briefing')} onContinue={() => startMatch(setup)} />}
       {currentScreen === 'SKIRMISH_SETUP' && <SkirmishSetupScreen onBack={() => navigate('MAIN_MENU', '#/menu')} onStart={startMatch} />}
       {currentScreen === 'LOADING' && <LoadingScreen setup={setup} stages={loadingStages} />}
-      {currentScreen === 'MATCH' && <GameplayHUD faction={setup.faction} snapshot={snapshot} selectedEntityIds={selectedEntityIds} onIssueCommand={issueCommand} onPause={pauseMatch} />}
+      {currentScreen === 'MATCH' && <GameplayHUD faction={setup.faction} snapshot={snapshot} selectedEntityIds={selectedEntityIds} onIssueCommand={issueCommand} onBeginBuildingPlacement={beginBuildingPlacement} onPause={pauseMatch} />}
       {currentScreen === 'MATCH' && paused && <PauseOverlay onResume={resumeMatch} onExit={returnToMenu} />}
       {currentScreen === 'VICTORY' && <MatchResultScreen result="victory" onMenu={returnToMenu} onRetry={() => startMatch(setup)} />}
       {currentScreen === 'DEFEAT' && <MatchResultScreen result="defeat" onMenu={returnToMenu} onRetry={() => startMatch(setup)} />}

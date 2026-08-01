@@ -54,7 +54,7 @@ export const MetalPanel: React.FC<React.HTMLAttributes<HTMLDivElement> & { title
   <div className={`ra4-metal-panel ${className}`} {...props}>
     <span className="ra4-corner ra4-corner-tl" />
     <span className="ra4-corner ra4-corner-br" />
-    {title && <div className="ra4-panel-title">{title}</div>}
+    {title && <div className="ra4-panel-title" role="heading" aria-level={2}>{title}</div>}
     {children}
   </div>
 );
@@ -72,4 +72,3 @@ export const Resource: React.FC<{ icon: IconName; value: string; warning?: boole
     <span>{value}</span>
   </div>
 );
-

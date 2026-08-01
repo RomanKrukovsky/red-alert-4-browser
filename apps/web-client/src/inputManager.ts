@@ -1,7 +1,9 @@
 import { AbstractMesh, Scene, Vector3, Matrix, PointerEventTypes, PointerInfo } from '@babylonjs/core';
 import { RTSRenderer } from './renderer.js';
 import { CommandType, PlayerCommand } from '@ra4/shared-types';
+import { OFFICIAL_BUILDINGS } from '@ra4/content-runtime';
 import { useUIStore, AdminConsoleService } from '@ra4/ui';
+import { VoiceManager } from './audio/voiceManager.js';
 
 const getPickedEntityId = (mesh: AbstractMesh): number | undefined => {
   const metadataId = mesh.metadata?.entityId;
@@ -26,10 +28,12 @@ export class InputManager {
   // Mode states
   private isSpaceHeld: boolean = false;
   private isRmbHeld: boolean = false;
+  private isMmbHeld: boolean = false;
   private prevMouseX: number = 0;
   private prevMouseY: number = 0;
   private controlledEntityId: number | null = null;
   private lastDirectMoveTick: number = 0;
+  private placementStructureId: string | null = null;
 
   constructor(renderer: RTSRenderer, canvas: HTMLCanvasElement, onCommandDispatch: (cmd: PlayerCommand) => void) {
     this.renderer = renderer;
@@ -64,6 +68,8 @@ export class InputManager {
           if (pointerInfo.event.button === 0) { // Left Click Down
             if (mode === 'DirectUnitControl') {
               this.handleDirectFire(pointerInfo.event);
+            } else if (this.placementStructureId) {
+              this.updatePlacementPreview(pointerInfo.event);
             } else if (mode === 'RTS') {
               this.isDragging = true;
               this.dragStartX = pointerInfo.event.clientX;
@@ -83,6 +89,10 @@ export class InputManager {
               useUIStore.getState().setInputMode('FreeCamera');
               this.renderer.rtsCamera.setFreeCameraMode(true);
             }
+          } else if (pointerInfo.event.button === 1) {
+            this.isMmbHeld = true;
+            this.prevMouseX = pointerInfo.event.clientX;
+            this.prevMouseY = pointerInfo.event.clientY;
           }
           break;
         }
@@ -96,6 +106,12 @@ export class InputManager {
             this.renderer.rtsCamera.rotateFree(dx, dy);
             this.prevMouseX = currentX;
             this.prevMouseY = currentY;
+          } else if (this.isMmbHeld) {
+            this.renderer.rtsCamera.pan(-((currentX - this.prevMouseX) * .045), (currentY - this.prevMouseY) * .045);
+            this.prevMouseX = currentX;
+            this.prevMouseY = currentY;
+          } else if (this.placementStructureId) {
+            this.updatePlacementPreview(pointerInfo.event);
           } else if (this.isDragging && mode === 'RTS') {
             const left = Math.min(this.dragStartX, currentX);
             const top = Math.min(this.dragStartY, currentY);
@@ -110,7 +126,9 @@ export class InputManager {
           break;
         }
         case PointerEventTypes.POINTERUP: {
-          if (pointerInfo.event.button === 0 && this.isDragging && mode === 'RTS') { // Left Click Up
+          if (pointerInfo.event.button === 0 && this.placementStructureId) {
+            this.placeStructure(pointerInfo.event);
+          } else if (pointerInfo.event.button === 0 && this.isDragging && mode === 'RTS') { // Left Click Up
             this.isDragging = false;
             this.selectionBoxElement.style.display = 'none';
 
@@ -130,6 +148,8 @@ export class InputManager {
             } else if (mode === 'RTS') {
               this.handleRightClick(pointerInfo.event);
             }
+          } else if (pointerInfo.event.button === 1) {
+            this.isMmbHeld = false;
           }
           break;
         }
@@ -146,10 +166,56 @@ export class InputManager {
       const entityId = getPickedEntityId(pickResult.pickedMesh);
       if (entityId !== undefined) {
         useUIStore.getState().setSelectedEntityIds([entityId]);
+        const snapshot = useUIStore.getState().snapshot;
+        const playerIdx = useUIStore.getState().activePlayerIndex;
+        const unit = snapshot?.entities.find((e) => e.id === entityId && e.playerIndex === playerIdx);
+        if (unit) {
+          VoiceManager.getInstance().playUnitBark(unit.specId, 'Selected');
+        }
         return;
       }
     }
     useUIStore.getState().setSelectedEntityIds([]);
+  }
+
+  public beginBuildingPlacement(structureId: string): void {
+    const structure = OFFICIAL_BUILDINGS.find((item) => item.id === structureId);
+    if (!structure) return;
+    this.placementStructureId = structure.id;
+    this.renderer.setPlacementGhost(true, structure.gridWidth, structure.gridHeight);
+    useUIStore.getState().addEvaLog(`Размещение: ${structure.name}. Кликните по полю или нажмите Escape.`, 'INFO');
+  }
+
+  private updatePlacementPreview(evt: { clientX: number; clientY: number }): void {
+    if (!this.placementStructureId) return;
+    const pickResult = this.renderer.scene.pick(evt.clientX, evt.clientY);
+    if (!pickResult?.pickedPoint) return;
+    const gridX = Math.round(pickResult.pickedPoint.x);
+    const gridY = Math.round(pickResult.pickedPoint.z);
+    const isValid = gridX > 1 && gridX < 63 && gridY > 1 && gridY < 63;
+    this.renderer.updateGhostPosition(gridX, gridY, isValid);
+  }
+
+  private placeStructure(evt: { clientX: number; clientY: number }): void {
+    if (!this.placementStructureId) return;
+    const pickResult = this.renderer.scene.pick(evt.clientX, evt.clientY);
+    if (!pickResult?.pickedPoint) return;
+    const snapshot = useUIStore.getState().snapshot;
+    this.onCommandDispatch({
+      type: CommandType.BUILD_STRUCTURE,
+      structureId: this.placementStructureId,
+      gridX: Math.round(pickResult.pickedPoint.x),
+      gridY: Math.round(pickResult.pickedPoint.z),
+      entityIds: [],
+      playerIndex: useUIStore.getState().activePlayerIndex,
+      tick: (snapshot?.tick ?? 0) + 1,
+    });
+    this.cancelBuildingPlacement();
+  }
+
+  private cancelBuildingPlacement(): void {
+    this.placementStructureId = null;
+    this.renderer.setPlacementGhost(false);
   }
 
   private handleBoxSelect(x1: number, y1: number, x2: number, y2: number): void {
@@ -180,6 +246,13 @@ export class InputManager {
     }
 
     useUIStore.getState().setSelectedEntityIds(selectedIds);
+
+    if (selectedIds.length > 0 && snapshot) {
+      const leadUnit = snapshot.entities.find((e) => e.id === selectedIds[0]);
+      if (leadUnit) {
+        VoiceManager.getInstance().playUnitBark(leadUnit.specId, 'Selected');
+      }
+    }
   }
 
   private handleRightClick(evt: { clientX: number; clientY: number }): void {
@@ -192,10 +265,12 @@ export class InputManager {
     const snapshot = useUIStore.getState().snapshot;
     const playerIdx = useUIStore.getState().activePlayerIndex;
 
+    const leadUnit = snapshot?.entities.find((e) => e.id === selectedIds[0] && e.playerIndex === playerIdx);
+
     const pickedEntityId = pickResult.pickedMesh ? getPickedEntityId(pickResult.pickedMesh) : undefined;
     if (pickedEntityId !== undefined) {
       const targetId = pickedEntityId;
-      const targetEntity = snapshot?.entities.find(e => e.id === targetId);
+      const targetEntity = snapshot?.entities.find((e) => e.id === targetId);
 
       if (targetEntity && targetEntity.playerIndex !== playerIdx) {
         this.onCommandDispatch({
@@ -203,8 +278,11 @@ export class InputManager {
           entityIds: selectedIds,
           targetEntityId: targetId,
           playerIndex: playerIdx,
-          tick: snapshot?.tick ?? 0
+          tick: snapshot?.tick ?? 0,
         });
+        if (leadUnit) {
+          VoiceManager.getInstance().playUnitBark(leadUnit.specId, 'Attack');
+        }
         return;
       }
     }
@@ -219,8 +297,12 @@ export class InputManager {
         targetX,
         targetY,
         playerIndex: playerIdx,
-        tick: snapshot?.tick ?? 0
+        tick: snapshot?.tick ?? 0,
       });
+
+      if (leadUnit) {
+        VoiceManager.getInstance().playUnitBark(leadUnit.specId, 'Move');
+      }
     }
   }
 
@@ -232,6 +314,7 @@ export class InputManager {
 
     const snapshot = useUIStore.getState().snapshot;
     const playerIdx = useUIStore.getState().activePlayerIndex;
+    const unit = snapshot?.entities.find((e) => e.id === this.controlledEntityId);
 
     const pickedEntityId = pickResult.pickedMesh ? getPickedEntityId(pickResult.pickedMesh) : undefined;
     if (pickedEntityId !== undefined) {
@@ -241,8 +324,11 @@ export class InputManager {
         entityIds: [this.controlledEntityId],
         targetEntityId: targetId,
         playerIndex: playerIdx,
-        tick: snapshot?.tick ?? 0
+        tick: snapshot?.tick ?? 0,
       });
+      if (unit) {
+        VoiceManager.getInstance().playUnitBark(unit.specId, 'Attack');
+      }
     } else if (pickResult.pickedPoint) {
       const targetX = Math.round(pickResult.pickedPoint.x * 1000);
       const targetY = Math.round(pickResult.pickedPoint.z * 1000);
@@ -252,8 +338,11 @@ export class InputManager {
         targetX,
         targetY,
         playerIndex: playerIdx,
-        tick: snapshot?.tick ?? 0
+        tick: snapshot?.tick ?? 0,
       });
+      if (unit) {
+        VoiceManager.getInstance().playUnitBark(unit.specId, 'Move');
+      }
     }
   }
 
@@ -290,18 +379,21 @@ export class InputManager {
       } else if (selected.length > 0) {
         const playerIdx = useUIStore.getState().activePlayerIndex;
         const snapshot = useUIStore.getState().snapshot;
-        const ownedUnit = snapshot?.entities.find(ent => ent.id === selected[0] && ent.playerIndex === playerIdx && !ent.isBuilding);
+        const ownedUnit = snapshot?.entities.find((ent) => ent.id === selected[0] && ent.playerIndex === playerIdx && !ent.isBuilding);
 
         if (ownedUnit) {
           this.controlledEntityId = ownedUnit.id;
           useUIStore.getState().setInputMode('DirectUnitControl');
-          useUIStore.getState().addEvaLog(`Прямое управление объектом #${ownedUnit.id} [WASD / Стрельба LMB].`, 'INFO');
+          VoiceManager.getInstance().playEVAMessage('DIRECT_CONTROL');
+          VoiceManager.getInstance().playUnitBark(ownedUnit.specId, 'Elite', true);
         } else {
           useUIStore.getState().addEvaLog('Прямое управление доступно только для собственных юнитов.', 'WARN');
         }
       }
     } else if (e.key === 'Escape') {
-      if (mode === 'DirectUnitControl') {
+      if (this.placementStructureId) {
+        this.cancelBuildingPlacement();
+      } else if (mode === 'DirectUnitControl') {
         useUIStore.getState().setInputMode('RTS');
         this.controlledEntityId = null;
       } else {
@@ -350,6 +442,7 @@ export class InputManager {
   }
 
   public dispose(): void {
+    this.cancelBuildingPlacement();
     if (this.selectionBoxElement.parentNode) {
       this.selectionBoxElement.parentNode.removeChild(this.selectionBoxElement);
     }
