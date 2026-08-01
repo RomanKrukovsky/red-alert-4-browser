@@ -1,0 +1,99 @@
+- generic [ref=f1e3]:
+  - generic:
+    - generic [ref=f1e260]:
+      - generic [ref=f1e261]: ТОВАРИЩ КОМАНДИР
+      - generic [ref=f1e262]: СОВЕТСКИЙ СОЮЗ
+    - generic [ref=f1e263]:
+      - 'generic "Кредиты: 10 000" [ref=f1e266]': 10 000
+      - 'generic "Энергия: 0 / 100" [ref=f1e270]': 0 / 100
+      - 'generic "Ресурс фракции: 0" [ref=f1e274]': "0"
+      - 'generic "Командный лимит: 4 / 50" [ref=f1e278]': 4 / 50
+      - button "Открыть меню" [ref=f1e282] [cursor=pointer]
+    - generic [ref=f1e286]:
+      - generic [ref=f1e289]: ОСНОВНЫЕ ЗАДАЧИ
+      - generic [ref=f1e290]: Уничтожить базу противника
+      - generic [ref=f1e292]: Захватить хранилище ресурсов
+      - heading "ДОПОЛНИТЕЛЬНЫЕ ЗАДАЧИ" [level=4] [ref=f1e294]
+      - generic [ref=f1e295]: Сохранить командный центр
+    - generic [ref=f1e297]: БОЕВАЯ ОБСТАНОВКАОбнаружены силы противника
+    - generic [ref=f1e302]:
+      - generic "Тактическая миникарта" [ref=f1e305]
+      - generic [ref=f1e313]:
+        - button "Режим миникарты" [ref=f1e314]
+        - button "Режим миникарты" [ref=f1e319]
+        - button "Режим миникарты" [ref=f1e322]
+        - button "Режим миникарты" [ref=f1e325]
+    - generic [ref=f1e328]:
+      - navigation [ref=f1e331]:
+        - button "СТРОИТЬ" [ref=f1e332]
+        - button "ПЕХОТА" [ref=f1e333]
+        - button "ТЕХНИКА" [ref=f1e334]
+        - button "АВИАЦИЯ" [ref=f1e335]
+        - button "ФЛОТ" [ref=f1e336]
+      - generic [ref=f1e337]:
+        - banner [ref=f1e338]:
+          - generic [ref=f1e339]: ЗДАНИЯ
+          - generic [ref=f1e340]: ТЕХНОЛОГИЧЕСКИЙ УРОВЕНЬ 1
+        - generic [ref=f1e341]:
+          - button "Красный штаб 5000" [ref=f1e342] [cursor=pointer]:
+            - generic [ref=f1e344]: Красный штаб
+            - generic [ref=f1e345]: "5000"
+          - button "Тепловая электростанция 800 ГОТОВО" [ref=f1e348] [cursor=pointer]:
+            - generic [ref=f1e350]: Тепловая электростанция
+            - generic [ref=f1e351]: "800"
+            - emphasis [ref=f1e354]: ГОТОВО
+          - button "Рудный комбинат 2400" [ref=f1e355] [cursor=pointer]:
+            - generic [ref=f1e357]: Рудный комбинат
+            - generic [ref=f1e358]: "2400"
+          - button "Казарма мобилизации 700" [ref=f1e361] [cursor=pointer]:
+            - generic [ref=f1e363]: Казарма мобилизации
+            - generic [ref=f1e364]: "700"
+          - button "Тяжёлый завод 2300" [ref=f1e367] [cursor=pointer]:
+            - generic [ref=f1e369]: Тяжёлый завод
+            - generic [ref=f1e370]: "2300"
+          - button "Командный радар 1500" [ref=f1e373] [cursor=pointer]:
+            - generic [ref=f1e375]: Командный радар
+            - generic [ref=f1e376]: "1500"
+          - button "Пулемётный дот 700" [ref=f1e379] [cursor=pointer]:
+            - generic [ref=f1e381]: Пулемётный дот
+            - generic [ref=f1e382]: "700"
+      - generic [ref=f1e385]:
+        - button [ref=f1e386]
+        - button [ref=f1e389]
+        - button [ref=f1e392]
+        - button [ref=f1e395]
+        - button [ref=f1e398]
+    - generic [ref=f1e408]:
+      - heading "SU_BogatyrOreCarrier" [level=3] [ref=f1e409]
+      - text: БОЕВАЯ ЕДИНИЦА
+      - progressbar [ref=f1e410]
+      - generic [ref=f1e411]: 650 / 1600
+      - paragraph [ref=f1e412]: ОЖИДАЕТ ПРИКАЗОВ
+    - generic [ref=f1e416]:
+      - generic [ref=f1e419]: ОЧЕРЕДЬ ПРОИЗВОДСТВА
+      - paragraph [ref=f1e422]: ОЧЕРЕДЬ СВОБОДНА
+    - generic [ref=f1e423]:
+      - button "ДВИЖЕНИЕ" [ref=f1e426] [cursor=pointer]:
+        - generic [ref=f1e429]: Д
+      - button "АТАКА" [ref=f1e430] [cursor=pointer]:
+        - generic [ref=f1e435]: А
+      - button "ОХРАНА" [ref=f1e436] [cursor=pointer]:
+        - generic [ref=f1e439]: О
+      - button "СТОП" [ref=f1e440] [cursor=pointer]:
+        - generic [ref=f1e443]: С
+      - button "РЕМОНТ" [ref=f1e444] [cursor=pointer]:
+        - generic [ref=f1e447]: Р
+      - button "СПОСОБНОСТЬ" [ref=f1e448] [cursor=pointer]:
+        - generic [ref=f1e451]: С
+    - generic [ref=f1e452]:
+      - text: "ЭНЕРГИЯ: 100"
+      - progressbar [ref=f1e453]
+      - generic [ref=f1e454]: "ВРЕМЯ: 02:20"
+  - generic [ref=f1e49]:
+    - generic [ref=f1e50]: 🎵
+    - generic [ref=f1e51]:
+      - generic [ref=f1e52]: СУНДТРЕК — RED ALERT 4
+      - generic [ref=f1e53]: March of Steel
+    - button "⏭️" [ref=f1e54] [cursor=pointer]
+    - button "🔊" [ref=f1e55] [cursor=pointer]
+    - button "▼" [ref=f1e56] [cursor=pointer]

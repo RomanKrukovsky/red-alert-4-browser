@@ -1,4 +1,4 @@
-import { AnimationGroup, Matrix, Mesh, MeshBuilder, Node, Scene, StandardMaterial, TransformNode, Vector3, Color3 } from '@babylonjs/core';
+import { AnimationGroup, Color3, Matrix, Mesh, MeshBuilder, Node, PBRMaterial, Scene, StandardMaterial, TransformNode, Vector3 } from '@babylonjs/core';
 import { EntityStateSnapshot } from '@ra4/shared-types';
 import { RuntimeAssetInstance } from '../assets/RuntimeAssetRegistry.js';
 import { GameplayAssetProfile, normalizeCargo, resolveAnimation } from './gameplayAssetPolicy.js';
@@ -34,9 +34,23 @@ export class GameplayAssetPresenter {
     this.root = instance.root;
     this.selectionDiameter = profile.selectionDiameter;
     this.root.scaling.setAll(profile.scale);
-    for (const mesh of instance.visibleMeshes) mesh.metadata = { ...(mesh.metadata ?? {}), entityId, specId: profile.id };
+    this.root.metadata = { ...(this.root.metadata ?? {}), entityId, specId: profile.id };
+    for (const child of this.root.getDescendants(false)) {
+      child.metadata = { ...(child.metadata ?? {}), entityId, specId: profile.id };
+    }
+    for (const mesh of instance.visibleMeshes) {
+      this.normalizeMaterialGlow(mesh);
+    }
     this.createCargoFeedback();
     this.createFactoryFeedback();
+  }
+
+  private normalizeMaterialGlow(mesh: Mesh): void {
+    const material = mesh.material;
+    if (!(material instanceof PBRMaterial || material instanceof StandardMaterial)) return;
+    const brightestChannel = Math.max(material.emissiveColor.r, material.emissiveColor.g, material.emissiveColor.b);
+    if (brightestChannel <= .2) return;
+    material.emissiveColor.scaleInPlace(.2 / brightestChannel);
   }
 
   public update(entity: EntityStateSnapshot, update: PresentationUpdate): void {

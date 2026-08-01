@@ -2,10 +2,10 @@
 :root {
   /* Font Families */
   --font-family-logo: 'Russo One', sans-serif;
-  --font-family-header: 'Russo One', sans-serif;
-  --font-family-ui: 'Russo One', sans-serif;
+  --font-family-header: 'Exo 2', sans-serif;
+  --font-family-ui: 'Exo 2', sans-serif;
   --font-family-condensed: 'Russo One', sans-serif;
-  --font-family-mono: 'Share Tech Mono', monospace;
+  --font-family-mono: 'Roboto Mono', monospace;
 
   /* Font Sizes */
   --font-size-xs: 11px;
@@ -16,6 +16,13 @@
   --font-size-2xl: 28px;
   --font-size-3xl: 36px;
   --font-size-logo: 54px;
+
+  /* Semantic Sizes */
+  --font-h1: 36px;
+  --font-h2: 28px;
+  --font-body: 15px;
+  --font-hud: 13px;
+  --font-counter: 22px;
 
   /* Font Weights */
   --font-weight-regular: 600;
@@ -72,4 +79,12 @@
 
 .ra4-text-glow-gold {
   text-shadow: 0 0 10px rgba(236, 182, 70, 0.7), 0 0 20px rgba(236, 182, 70, 0.4);
+}
+
+.ra4-text-glow-coalition {
+  text-shadow: 0 0 10px rgba(0, 204, 102, 0.7), 0 0 20px rgba(0, 204, 102, 0.4);
+}
+
+.ra4-text-glow-chronolegion {
+  text-shadow: 0 0 10px rgba(138, 43, 226, 0.7), 0 0 20px rgba(138, 43, 226, 0.4);
 }

@@ -52,7 +52,7 @@ export const SkirmishSetupScreen: React.FC<{ onBack: () => void; onStart: (setup
         <div className="ra4-settings-form"><label>СЛОЖНОСТЬ<select value={difficulty} onChange={(event) => setDifficulty(event.target.value as MatchSetup['difficulty'])}><option value="EASY">ЛЕГКО</option><option value="NORMAL">НОРМАЛЬНО</option><option value="HARD">ВЕТЕРАН</option></select></label><label>НАЧАЛЬНЫЕ РЕСУРСЫ<select value={credits} onChange={(event) => setCredits(Number(event.target.value))}><option value="5000">5 000</option><option value="10000">10 000</option><option value="20000">20 000</option></select></label><label>СКОРОСТЬ ИГРЫ<select value={gameSpeed} onChange={(event) => setGameSpeed(event.target.value as MatchSetup['gameSpeed'])}><option value="SLOW">НИЗКАЯ</option><option value="NORMAL">НОРМАЛЬНАЯ</option><option value="FAST">ВЫСОКАЯ</option></select></label></div>
         <p>ИГРОК: <b>{labelForFaction(faction)}</b></p><p>ПРОТИВНИК: <b>{labelForFaction(opponent)}</b></p>
       </MetalPanel>
-      <div className="ra4-lobby-actions"><MilitaryButton tone="primary" icon="play" onClick={() => onStart({ faction, opponentFaction: opponent, mapName, difficulty, startingCredits: credits, gameSpeed })}>НАЧАТЬ БИТВУ</MilitaryButton></div>
+      <div className="ra4-lobby-actions"><MilitaryButton tone="primary" icon="play" className="ra4-glow-pulse" onClick={() => onStart({ faction, opponentFaction: opponent, mapName, difficulty, startingCredits: credits, gameSpeed })}>НАЧАТЬ БИТВУ</MilitaryButton></div>
     </main>
   );
 };
@@ -61,12 +61,12 @@ export const LoadingScreen: React.FC<{ setup: MatchSetup; stages: LoadingStage[]
   const progress = Math.max(0, Math.min(100, stages.reduce((max, stage) => Math.max(max, stage.progress), 0)));
   const currentStage = stages.find((stage) => stage.status === 'active') ?? stages.at(-1);
   return (
-    <main className="ra4-screen ra4-loading theme-soviet">
+    <main className="ra4-screen ra4-loading theme-soviet ra4-scanline-overlay">
       <div className="ra4-loading-sky" /><div className="ra4-loading-city" /><div className="ra4-loading-aircraft" />
       <header><div className="ra4-wordmark">COMMAND &amp; CONQUER <b>RED ALERT 4</b></div><div><h1>ЗАГРУЗКА МИССИИ</h1><span>{setup.mapName}</span></div><Emblem compact /></header>
       <MetalPanel className="ra4-loading-summary" title="СВОДКА"><p>Противник укрепил позиции. Разверните базу, обеспечьте энергоснабжение и уничтожьте командный центр вражеской армии.</p><h3>ЦЕЛИ</h3>{['Развернуть командный центр', 'Установить контроль над ресурсами', 'Уничтожить базу противника'].map((goal) => <span key={goal}><RA4Icon name="star" size={15} />{goal}</span>)}</MetalPanel>
       <div className="ra4-loading-emblem"><Emblem /></div>
-      <section className="ra4-loading-progress" aria-live="polite"><div className="ra4-progress-track"><span style={{ transform: `scaleX(${progress / 100})` }} /></div><b>{Math.round(progress)}%</b><p>{currentStage?.label ?? 'ПОДГОТОВКА КОМАНДНОЙ СЕТИ'}</p><div className="ra4-stage-list">{stages.map((stage) => <span className={`is-${stage.status}`} key={stage.id}>{stage.label}</span>)}</div></section>
+      <section className="ra4-loading-progress" aria-live="polite"><div className="ra4-progress-track ra4-segmented-bar"><div className="ra4-segmented-bar-fill" style={{ width: `${progress}%` }} /></div><b>{Math.round(progress)}%</b><p>{currentStage?.label ?? 'ПОДГОТОВКА КОМАНДНОЙ СЕТИ'}</p><div className="ra4-stage-list">{stages.map((stage) => <span className={`is-${stage.status}`} key={stage.id}>{stage.label}</span>)}</div></section>
       <footer><b>ПОДСКАЗКА:</b> Инженеры могут захватывать нейтральные и вражеские здания.</footer>
     </main>
   );

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const vitest_1 = require("vitest");
-const matchRuntime_js_1 = require("../matches/matchRuntime.js");
+const matchRuntime_1 = require("../matches/matchRuntime");
 const shared_types_1 = require("@ra4/shared-types");
 (0, vitest_1.describe)('Authoritative Match Runtime & Anti-Cheat Suite', () => {
     let runtime = null;
@@ -12,7 +12,7 @@ const shared_types_1 = require("@ra4/shared-types");
         }
     });
     (0, vitest_1.it)('should initialize 30 Hz authoritative simulation and start tick loop', () => {
-        runtime = new matchRuntime_js_1.AuthoritativeMatchRuntime('map_red_square_duel', [
+        runtime = new matchRuntime_1.AuthoritativeMatchRuntime('map_red_square_duel', [
             { playerIndex: 0, name: 'Player 1', factionId: shared_types_1.FactionId.USSR, team: 0, type: shared_types_1.PlayerType.HUMAN, ws: null, isConnected: true, lastAckTick: 0, reconnectToken: 'token-0' },
             { playerIndex: 1, name: 'Player 2', factionId: shared_types_1.FactionId.ALLIANCE, team: 1, type: shared_types_1.PlayerType.AI_MEDIUM, ws: null, isConnected: true, lastAckTick: 0, reconnectToken: 'token-1' },
         ]);
@@ -22,7 +22,7 @@ const shared_types_1 = require("@ra4/shared-types");
         (0, vitest_1.expect)(runtime.sim).toBeDefined();
     });
     (0, vitest_1.it)('should reject player command spoofing attempt (playerIndex mismatch)', () => {
-        runtime = new matchRuntime_js_1.AuthoritativeMatchRuntime('map_red_square_duel', [
+        runtime = new matchRuntime_1.AuthoritativeMatchRuntime('map_red_square_duel', [
             { playerIndex: 0, name: 'Player 1', factionId: shared_types_1.FactionId.USSR, team: 0, type: shared_types_1.PlayerType.HUMAN, ws: null, isConnected: true, lastAckTick: 0, reconnectToken: 'token-0' },
         ]);
         const spoofCmd = {
@@ -37,7 +37,7 @@ const shared_types_1 = require("@ra4/shared-types");
         (0, vitest_1.expect)(res.reason).toContain('spoofing');
     });
     (0, vitest_1.it)('should reject building structures out of map bounds or with insufficient credits', () => {
-        runtime = new matchRuntime_js_1.AuthoritativeMatchRuntime('map_red_square_duel', [
+        runtime = new matchRuntime_1.AuthoritativeMatchRuntime('map_red_square_duel', [
             { playerIndex: 0, name: 'Player 1', factionId: shared_types_1.FactionId.USSR, team: 0, type: shared_types_1.PlayerType.HUMAN, ws: null, isConnected: true, lastAckTick: 0, reconnectToken: 'token-0' },
         ]);
         runtime.sim.players[0].credits = 0;
@@ -53,7 +53,7 @@ const shared_types_1 = require("@ra4/shared-types");
         (0, vitest_1.expect)(res.reason).toContain('credits');
     });
     (0, vitest_1.it)('should generate replay export with header and recorded tick frames', () => {
-        runtime = new matchRuntime_js_1.AuthoritativeMatchRuntime('map_red_square_duel', [
+        runtime = new matchRuntime_1.AuthoritativeMatchRuntime('map_red_square_duel', [
             { playerIndex: 0, name: 'Player 1', factionId: shared_types_1.FactionId.USSR, team: 0, type: shared_types_1.PlayerType.HUMAN, ws: null, isConnected: true, lastAckTick: 0, reconnectToken: 'token-0' },
         ]);
         const replayJson = runtime.replayRecorder.exportJSON();

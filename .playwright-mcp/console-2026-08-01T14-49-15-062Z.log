@@ -1,0 +1,52 @@
+[     599ms] [LOG] BJS - [17:49:15]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:4180/assets/index-brSM9biI.js:54
+[  161353ms] [LOG] BJS - [17:51:56]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:4180/assets/index-DtUjU1e6.js:54
+[  161547ms] [WARNING] [RuntimeAssetRegistry] Failed to load SU_TeslaTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/SU_TeslaTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at d (http://127.0.0.1:4180/assets/index-DtUjU1e6.js:1460:226053)
+    at O (http://127.0.0.1:4180/assets/index-DtUjU1e6.js:1460:221979)
+    at http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22522:46978 @ http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22523
+[  161577ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22521
+[  161577ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22521
+[  161579ms] [WARNING] [RuntimeAssetRegistry] Failed to load AL_PrismTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/AL_PrismTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at d (http://127.0.0.1:4180/assets/index-DtUjU1e6.js:1460:226053)
+    at O (http://127.0.0.1:4180/assets/index-DtUjU1e6.js:1460:221979)
+    at http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22522:46978 @ http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22523
+[  355005ms] [LOG] BJS - [17:55:10]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:4180/assets/index-DtUjU1e6.js:54
+[  355077ms] [WARNING] [RuntimeAssetRegistry] Failed to load SU_TeslaTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/SU_TeslaTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at d (http://127.0.0.1:4180/assets/index-DtUjU1e6.js:1460:226053)
+    at O (http://127.0.0.1:4180/assets/index-DtUjU1e6.js:1460:221979)
+    at http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22522:46978 @ http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22523
+[  355083ms] [WARNING] [RuntimeAssetRegistry] Failed to load AL_PrismTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/AL_PrismTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at d (http://127.0.0.1:4180/assets/index-DtUjU1e6.js:1460:226053)
+    at O (http://127.0.0.1:4180/assets/index-DtUjU1e6.js:1460:221979)
+    at http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22522:46978 @ http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22523
+[  355295ms] [WARNING] Audio playback waiting for user interaction: AbortError: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22 @ http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22523
+[  392837ms] [LOG] BJS - [17:55:47]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:4180/assets/index-DtUjU1e6.js:54
+[  392996ms] [WARNING] [RuntimeAssetRegistry] Failed to load SU_TeslaTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/SU_TeslaTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at d (http://127.0.0.1:4180/assets/index-DtUjU1e6.js:1460:226053)
+    at O (http://127.0.0.1:4180/assets/index-DtUjU1e6.js:1460:221979)
+    at http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22522:46978 @ http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22523
+[  393004ms] [WARNING] [RuntimeAssetRegistry] Failed to load AL_PrismTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/AL_PrismTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at d (http://127.0.0.1:4180/assets/index-DtUjU1e6.js:1460:226053)
+    at O (http://127.0.0.1:4180/assets/index-DtUjU1e6.js:1460:221979)
+    at http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22522:46978 @ http://127.0.0.1:4180/assets/index-DtUjU1e6.js:22523
+[  464094ms] [LOG] BJS - [17:56:59]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:4180/assets/index-DoEHRq1s.js:54
+[  464281ms] [WARNING] [RuntimeAssetRegistry] Failed to load SU_TeslaTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/SU_TeslaTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at d (http://127.0.0.1:4180/assets/index-DoEHRq1s.js:1460:226053)
+    at O (http://127.0.0.1:4180/assets/index-DoEHRq1s.js:1460:221979)
+    at http://127.0.0.1:4180/assets/index-DoEHRq1s.js:22522:47458 @ http://127.0.0.1:4180/assets/index-DoEHRq1s.js:22523
+[  464286ms] [WARNING] [RuntimeAssetRegistry] Failed to load AL_PrismTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/AL_PrismTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at d (http://127.0.0.1:4180/assets/index-DoEHRq1s.js:1460:226053)
+    at O (http://127.0.0.1:4180/assets/index-DoEHRq1s.js:1460:221979)
+    at http://127.0.0.1:4180/assets/index-DoEHRq1s.js:22522:47458 @ http://127.0.0.1:4180/assets/index-DoEHRq1s.js:22523
+[  464305ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://127.0.0.1:4180/assets/index-DoEHRq1s.js:22521
+[  464305ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://127.0.0.1:4180/assets/index-DoEHRq1s.js:22521
+[  511810ms] [LOG] BJS - [17:57:46]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:4180/assets/index-DoEHRq1s.js:54
+[  511939ms] [WARNING] [RuntimeAssetRegistry] Failed to load SU_TeslaTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/SU_TeslaTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at d (http://127.0.0.1:4180/assets/index-DoEHRq1s.js:1460:226053)
+    at O (http://127.0.0.1:4180/assets/index-DoEHRq1s.js:1460:221979)
+    at http://127.0.0.1:4180/assets/index-DoEHRq1s.js:22522:47458 @ http://127.0.0.1:4180/assets/index-DoEHRq1s.js:22523
+[  511947ms] [WARNING] [RuntimeAssetRegistry] Failed to load AL_PrismTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/AL_PrismTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at d (http://127.0.0.1:4180/assets/index-DoEHRq1s.js:1460:226053)
+    at O (http://127.0.0.1:4180/assets/index-DoEHRq1s.js:1460:221979)
+    at http://127.0.0.1:4180/assets/index-DoEHRq1s.js:22522:47458 @ http://127.0.0.1:4180/assets/index-DoEHRq1s.js:22523
+[  512117ms] [WARNING] Audio playback waiting for user interaction: AbortError: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22 @ http://127.0.0.1:4180/assets/index-DoEHRq1s.js:22523

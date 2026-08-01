@@ -1,5 +1,28 @@
 import { ArcRotateCamera, Scene, Vector3 } from '@babylonjs/core';
 
+/**
+ * Pure helper: computes the XZ move delta for one frame given the current key state.
+ *
+ * The camera sits at alpha = -PI/4, which means it is offset in the +X / -Z quadrant.
+ * Screen-right therefore corresponds to world (-X, -Z) and screen-left to (+X, +Z).
+ * Consequently, A (left) must increase world X and D (right) must decrease it.
+ */
+export function computeMoveDelta(
+  keysPressed: Set<string>,
+  baseSpeed: number
+): { x: number; z: number } {
+  const speed = keysPressed.has('shift') ? baseSpeed * 2.0 : baseSpeed;
+  let x = 0;
+  let z = 0;
+
+  if (keysPressed.has('w') || keysPressed.has('arrowup') || keysPressed.has('edge_up'))     z += speed;
+  if (keysPressed.has('s') || keysPressed.has('arrowdown') || keysPressed.has('edge_down'))  z -= speed;
+  if (keysPressed.has('a') || keysPressed.has('arrowleft') || keysPressed.has('edge_left'))  x += speed; // +X = screen-left at alpha=-PI/4
+  if (keysPressed.has('d') || keysPressed.has('arrowright') || keysPressed.has('edge_right')) x -= speed; // -X = screen-right at alpha=-PI/4
+
+  return { x, z };
+}
+
 export class RTSCamera {
   public camera: ArcRotateCamera;
   private moveSpeed: number = 0.8;
@@ -103,25 +126,10 @@ export class RTSCamera {
   }
 
   public update(): void {
-    const move = new Vector3(0, 0, 0);
-    const speed = this.keysPressed.has('shift') ? this.moveSpeed * 2.0 : this.moveSpeed;
-
-    if (this.keysPressed.has('w') || this.keysPressed.has('arrowup') || this.keysPressed.has('edge_up')) {
-      move.z += speed;
-    }
-    if (this.keysPressed.has('s') || this.keysPressed.has('arrowdown') || this.keysPressed.has('edge_down')) {
-      move.z -= speed;
-    }
-    if (this.keysPressed.has('a') || this.keysPressed.has('arrowleft') || this.keysPressed.has('edge_left')) {
-      move.x -= speed;
-    }
-    if (this.keysPressed.has('d') || this.keysPressed.has('arrowright') || this.keysPressed.has('edge_right')) {
-      move.x += speed;
-    }
-
-    if (move.lengthSquared() > 0) {
-      this.camera.target.x = Math.max(this.mapMinX, Math.min(this.mapMaxX, this.camera.target.x + move.x));
-      this.camera.target.z = Math.max(this.mapMinZ, Math.min(this.mapMaxZ, this.camera.target.z + move.z));
+    const { x, z } = computeMoveDelta(this.keysPressed, this.moveSpeed);
+    if (x !== 0 || z !== 0) {
+      this.camera.target.x = Math.max(this.mapMinX, Math.min(this.mapMaxX, this.camera.target.x + x));
+      this.camera.target.z = Math.max(this.mapMinZ, Math.min(this.mapMaxZ, this.camera.target.z + z));
     }
   }
 

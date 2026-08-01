@@ -1,0 +1,2 @@
+[      22ms] [LOG] BJS - [16:00:35]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[      70ms] [WARNING] BJS - [16:00:35]: camera input of type mousewheel already exists on camera @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44

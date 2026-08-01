@@ -1,0 +1,343 @@
+/* 
+  RA4 HUD Reconstruction CSS
+  Overrides basic flat styles with AAA industrial design, bevels, inner shadows, and metallic gradients.
+*/
+
+/* 
+  1. Base Panel Styling (AAA Metal)
+  We use a heavily textured background and inset shadows to simulate a physical panel.
+*/
+.ra4-gameplay-hud .ra4-metal-panel {
+  background: 
+    linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.4) 100%),
+    radial-gradient(circle at top left, rgba(var(--accent-rgb), 0.15), transparent 70%),
+    var(--panel) !important;
+  border: 1px solid rgba(var(--accent-rgb), 0.6) !important;
+  box-shadow: 
+    inset 0 0 15px rgba(0, 0, 0, 0.8),
+    inset 1px 1px 2px rgba(255, 255, 255, 0.1),
+    0 5px 15px rgba(0, 0, 0, 0.5) !important;
+  position: absolute;
+}
+
+/* Add custom clip-paths based on the theme. For Soviet (default), aggressive bevels */
+.ra4-gameplay-hud.theme-soviet .ra4-metal-panel {
+  clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px) !important;
+  border-left: 2px solid rgba(255, 60, 60, 0.4) !important;
+  border-top: 2px solid rgba(255, 60, 60, 0.4) !important;
+}
+
+/* Commander Chip */
+.ra4-gameplay-hud .ra4-commander-chip {
+  padding: 10px 20px !important;
+  background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(var(--accent-rgb), 0.2) 100%) !important;
+  border-right: 3px solid var(--accent-bright) !important;
+}
+.ra4-gameplay-hud .ra4-commander-avatar {
+  border: 2px solid var(--accent-bright) !important;
+  box-shadow: 0 0 10px var(--accent-bright) !important;
+}
+
+/* Resource Bar */
+.ra4-gameplay-hud .ra4-resource-bar {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 15px 100%, 0 calc(100% - 15px)) !important;
+  background: linear-gradient(270deg, rgba(0,0,0,0.8) 0%, rgba(var(--accent-rgb), 0.2) 100%) !important;
+}
+.ra4-resource {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  text-shadow: 0 0 5px var(--accent-bright);
+}
+
+/* 
+  2. Minimap Overhaul 
+*/
+.ra4-gameplay-hud .ra4-minimap-shell {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px)) !important;
+  border: 2px solid rgba(var(--accent-rgb), 0.8) !important;
+  box-shadow: 
+    inset 0 0 30px rgba(var(--accent-rgb), 0.3),
+    0 0 15px rgba(0,0,0,0.6) !important;
+  background: #040806 !important;
+}
+.ra4-gameplay-hud .ra4-minimap-shell canvas {
+  border: 1px solid var(--accent-bright) !important;
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5) !important;
+  /* Topographic grid overlay */
+  background: 
+    linear-gradient(rgba(var(--accent-rgb), 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.1) 1px, transparent 1px),
+    #020403 !important;
+  background-size: 20px 20px !important;
+}
+.ra4-minimap-terrain b {
+  border: 2px solid #28b949 !important;
+  box-shadow: 0 0 8px #28b949, inset 0 0 8px #28b949 !important;
+  background: rgba(40, 185, 73, 0.1) !important;
+}
+
+/* Minimap Controls */
+.ra4-minimap-controls button {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%) !important;
+  border-top: 1px solid rgba(255,255,255,0.1) !important;
+  box-shadow: inset 0 2px 2px rgba(255,255,255,0.05) !important;
+  transition: all 0.2s;
+}
+.ra4-minimap-controls button:hover {
+  background: linear-gradient(180deg, #2a2a2a 0%, #151515 100%) !important;
+  color: #fff !important;
+  box-shadow: inset 0 0 10px rgba(var(--accent-rgb), 0.5) !important;
+}
+
+/* 
+  3. Production Grid Overhaul 
+*/
+.ra4-gameplay-hud .ra4-production-shell {
+  clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%, 0 20px) !important;
+  background: rgba(10, 10, 10, 0.95) !important;
+  border: 1px solid rgba(var(--accent-rgb), 0.6) !important;
+}
+.ra4-production-shell nav button {
+  background: linear-gradient(180deg, #222 0%, #111 100%) !important;
+  border: 1px solid #333 !important;
+  text-shadow: 0 1px 2px #000;
+  clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 100%, 0 100%) !important;
+  margin: 0 1px !important;
+}
+.ra4-production-shell nav button.is-active {
+  background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.6) 0%, rgba(var(--accent-rgb), 0.2) 100%) !important;
+  border-color: var(--accent-bright) !important;
+  box-shadow: inset 0 5px 10px rgba(255,255,255,0.1) !important;
+  color: #fff !important;
+  font-weight: bold;
+}
+.ra4-production-grid > button {
+  background: 
+    linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(0,0,0,0.5) 100%),
+    var(--panel) !important;
+  border: 1px solid rgba(var(--accent-rgb), 0.4) !important;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.8) !important;
+  border-radius: 2px;
+}
+.ra4-production-grid > button b {
+  font-size: 10px !important;
+  font-family: 'Share Tech Mono', monospace;
+  background: rgba(0,0,0,0.7) !important;
+  padding: 2px !important;
+  bottom: 18px !important;
+  text-align: center;
+}
+.ra4-production-grid > button > span {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px !important;
+  background: rgba(0,0,0,0.7) !important;
+  padding: 1px 4px !important;
+  border-radius: 2px;
+}
+/* Ready State */
+.ra4-production-grid .is-ready {
+  border-color: var(--accent-bright) !important;
+  animation: ra4-ready-pulse 2s infinite;
+}
+@keyframes ra4-ready-pulse {
+  0% { box-shadow: inset 0 0 15px rgba(var(--accent-rgb), 0.2), 0 0 5px rgba(var(--accent-rgb), 0.2) !important; }
+  50% { box-shadow: inset 0 0 25px rgba(var(--accent-rgb), 0.8), 0 0 15px rgba(var(--accent-rgb), 0.8) !important; }
+  100% { box-shadow: inset 0 0 15px rgba(var(--accent-rgb), 0.2), 0 0 5px rgba(var(--accent-rgb), 0.2) !important; }
+}
+.ra4-production-grid em {
+  background: rgba(var(--accent-rgb), 0.8) !important;
+  color: #fff !important;
+  text-shadow: 0 0 5px #fff !important;
+  font-size: 14px !important;
+  letter-spacing: 2px;
+  backdrop-filter: blur(2px);
+}
+
+/* 
+  4. Selection Card & Bottom Panels
+*/
+.ra4-gameplay-hud .ra4-selection-card {
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%) !important;
+  border-right: 2px solid var(--accent-bright) !important;
+}
+.ra4-gameplay-hud .ra4-selected-render {
+  background: 
+    radial-gradient(circle at center, rgba(var(--accent-rgb), 0.4) 0%, transparent 70%),
+    linear-gradient(180deg, #111 0%, #000 100%) !important;
+  border: 1px solid var(--accent) !important;
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.8) !important;
+}
+/* Targeting Bracket */
+.ra4-gameplay-hud .ra4-selected-render::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(var(--accent-rgb), 0.5);
+  clip-path: polygon(
+    0 0, 10px 0, 10px 1px, 1px 1px, 1px 10px, 0 10px,
+    0 100%, 0 calc(100% - 10px), 1px calc(100% - 10px), 1px calc(100% - 1px), 10px calc(100% - 1px), 10px 100%, 0 100%,
+    100% 100%, calc(100% - 10px) 100%, calc(100% - 10px) calc(100% - 1px), calc(100% - 1px) calc(100% - 1px), calc(100% - 1px) calc(100% - 10px), 100% calc(100% - 10px),
+    100% 0, 100% 10px, calc(100% - 1px) 10px, calc(100% - 1px) 1px, calc(100% - 10px) 1px, calc(100% - 10px) 0
+  );
+}
+.ra4-selection-copy h3 {
+  font-size: 18px !important;
+  text-shadow: 0 0 5px rgba(255,255,255,0.3);
+}
+
+/* Group Selection */
+.ra4-group-selection {
+  padding: 10px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.ra4-group-selection h3 {
+  font-size: 14px;
+  margin-bottom: 10px;
+  color: var(--accent-bright);
+}
+.ra4-group-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  flex: 1;
+  overflow-y: auto;
+}
+.ra4-group-unit {
+  position: relative;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(var(--accent-rgb), 0.5);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.ra4-group-unit svg {
+  width: 100%;
+  height: auto;
+}
+.ra4-group-hp {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: #28b949;
+}
+
+/* Custom Segmented Bar */
+.ra4-segmented-bar,
+.ra4-energy-bar,
+.ra4-shield-bar {
+  width: 100%;
+  height: 12px;
+  background: #111;
+  border: 1px solid #333;
+  margin-top: 10px;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+  overflow: hidden;
+}
+.ra4-shield-bar {
+  margin-top: 4px;
+}
+/* Segments via background grid */
+.ra4-segmented-bar::after,
+.ra4-shield-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, transparent, transparent 15px, rgba(0,0,0,0.8) 15px, rgba(0,0,0,0.8) 17px);
+}
+.ra4-segmented-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff3c3c 0%, #ffc107 50%, #28b949 100%);
+  box-shadow: 0 0 10px rgba(40, 185, 73, 0.5);
+  transition: width 0.2s ease;
+}
+.ra4-shield-fill {
+  height: 100%;
+  background: #0088ff;
+  box-shadow: 0 0 10px #0088ff;
+  transition: width 0.2s ease;
+}
+.ra4-shield-bar small {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 9px;
+  color: white;
+  z-index: 1;
+}
+.ra4-energy-fill {
+  height: 100%;
+  background: #00d2ff;
+  box-shadow: 0 0 10px #00d2ff;
+  transition: width 0.2s ease;
+}
+
+/* Command Panel */
+.ra4-gameplay-hud .ra4-command-panel {
+  clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 0 100%, 0 15px) !important;
+  border-top: 2px solid var(--accent-bright) !important;
+  background: rgba(15,15,15,0.95) !important;
+}
+.ra4-command-panel button {
+  background: linear-gradient(135deg, #2a2a2a 0%, #111 100%) !important;
+  border: 1px solid #444 !important;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1) !important;
+  transition: all 0.1s;
+}
+.ra4-command-panel button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #3a3a3a 0%, #222 100%) !important;
+  border-color: var(--accent-bright) !important;
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5), inset 0 1px 1px rgba(255,255,255,0.2) !important;
+}
+.ra4-command-panel button:active:not(:disabled) {
+  background: #000 !important;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.8) !important;
+  transform: translateY(1px);
+}
+.ra4-command-panel kbd {
+  background: rgba(0,0,0,0.8) !important;
+  padding: 1px 4px !important;
+  border-radius: 2px;
+  border: 1px solid #555 !important;
+  color: #aaa !important;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px !important;
+  box-shadow: 0 1px 0 #000 !important;
+}
+
+/* Queue Panel */
+.ra4-gameplay-hud .ra4-queue-panel {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 15px 100%, 0 calc(100% - 15px)) !important;
+}
+.ra4-queue-row {
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, transparent 100%) !important;
+  border-left: 2px solid var(--accent-bright) !important;
+  position: relative;
+}
+.ra4-queue-progress {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(var(--accent-rgb), 0.5);
+  overflow: hidden;
+}
+/* We apply conic gradient to the progress fill using inline style in React, 
+   but we'll setup the base style here */
+.ra4-queue-progress-fill {
+  width: 100%;
+  height: 100%;
+  background: conic-gradient(var(--accent-bright) var(--progress, 0%), transparent 0);
+  border-radius: 50%;
+  transform-origin: center;
+}

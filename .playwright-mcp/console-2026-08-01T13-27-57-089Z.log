@@ -1,0 +1,10 @@
+[       4ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5173/?token=-70METqK9snB' failed:  @ http://127.0.0.1:5173/@vite/client:801
+[      67ms] [LOG] BJS - [16:27:57]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[      70ms] [WARNING] BJS - [16:27:57]: camera input of type mousewheel already exists on camera @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[      94ms] [LOG] BJS - [16:27:57]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[      96ms] [WARNING] BJS - [16:27:57]: camera input of type mousewheel already exists on camera @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[     181ms] [INFO] [vite] Direct websocket connection fallback. Check out https://vite.dev/config/server-options.html#server-hmr to remove the previous connection error. @ http://127.0.0.1:5173/@vite/client:822
+[  101822ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:5173/@vite/client:963
+[  101919ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-WJHFZ4MN.js?v=ab67a546:21608
+[  101947ms] [LOG] BJS - [16:29:39]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[  101973ms] [LOG] BJS - [16:29:39]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44

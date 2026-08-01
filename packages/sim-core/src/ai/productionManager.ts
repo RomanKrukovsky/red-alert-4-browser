@@ -1,7 +1,8 @@
 import { GameSimulation } from '../simulation.js';
-import { PlayerCommand, CommandType, FactionId } from '@ra4/shared-types';
+import { PlayerCommand, CommandType } from '@ra4/shared-types';
 import { DEFAULT_DATABASE } from '@ra4/content-runtime';
 import { AIBlackboard } from './aiBlackboard.js';
+import { getFactionPlan } from './factionPlan.js';
 
 export class AIProductionManager {
   public update(sim: GameSimulation, bb: AIBlackboard): PlayerCommand[] {
@@ -9,11 +10,13 @@ export class AIProductionManager {
     const p = sim.players[bb.playerIndex];
     if (!p) return commands;
 
+    const plan = getFactionPlan(bb.factionId);
+
     const myEntities = Array.from(sim.entities.values()).filter(e => e.playerIndex === bb.playerIndex);
     const myBuildings = myEntities.filter(e => e.isBuilding);
-    const barracks = myBuildings.filter(b => b.specId.includes('Barracks'));
-    const factories = myBuildings.filter(b => b.specId.includes('Factory') || b.specId.includes('Works'));
-    const hasTech = myBuildings.some(b => b.specId.includes('Radar') || b.specId.includes('Intel'));
+    const barracks = myBuildings.filter((building) => building.specId === plan.barracksBuildingId);
+    const factories = myBuildings.filter((building) => building.specId === plan.factoryBuildingId);
+    const hasTech = myBuildings.some((building) => building.specId === plan.techBuildingId);
 
     if (barracks.length === 0 && factories.length === 0) return commands;
 
@@ -24,9 +27,7 @@ export class AIProductionManager {
     for (const infantryProducer of barracks) {
       if (infantryProducer.productionQueue.length >= 2) continue;
 
-      const unitId = enemyTanks.length > 0
-        ? (bb.factionId === FactionId.ALLIANCE ? 'AL_LancerTeam' : 'SU_ZaslonAATeam')
-        : (bb.factionId === FactionId.ALLIANCE ? 'AL_SentinelRifleman' : 'SU_RubezhRifleman');
+      const unitId = enemyTanks.length > 0 ? plan.antiTankUnitId : plan.infantryUnitId;
       const cost = DEFAULT_DATABASE.units.find(unit => unit.id === unitId)?.cost;
       if (cost !== undefined && p.credits >= cost) {
         commands.push({
@@ -43,12 +44,10 @@ export class AIProductionManager {
     for (const factory of factories) {
       if (factory.productionQueue.length >= 2) continue;
 
-      let unitId = hasTech
-        ? (bb.factionId === FactionId.ALLIANCE ? 'AL_BulwarkMBT' : 'SU_GranitMBT')
-        : (bb.factionId === FactionId.ALLIANCE ? 'AL_KestrelScout' : 'SU_RysScout');
+      let unitId = hasTech ? plan.tankUnitId : plan.scoutUnitId;
 
       if (hasTech && enemyTanks.length === 0 && sim.prng.nextRange(1, 100) > 70) {
-        unitId = bb.factionId === FactionId.ALLIANCE ? 'AL_KestrelScout' : 'SU_RysScout';
+        unitId = plan.scoutUnitId;
       }
 
       const cost = DEFAULT_DATABASE.units.find(unit => unit.id === unitId)?.cost;

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useUIStore } from '../store.js';
 
 export interface AdminConsoleProps {
-  onExecuteCommand: (cmd: string) => { command: string; output: string; status: 'SUCCESS' | 'ERROR' | 'INFO' };
+  onExecuteCommand: (cmd: string) => Promise<{ command: string; output: string; status: 'SUCCESS' | 'ERROR' | 'INFO' }>;
   onGetAutocomplete: (prefix: string) => string[];
   onClose: () => void;
 }
@@ -31,15 +31,34 @@ export const AdminConsole: React.FC<AdminConsoleProps> = ({ onExecuteCommand, on
 
   if (!consoleOpen) return null;
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       if (!inputVal.trim()) return;
-      const res = onExecuteCommand(inputVal);
-      setLogHistory(prev => [...prev, { id: Math.random().toString(), timestamp: new Date().toLocaleTimeString(), command: res.command, output: res.output, status: res.status }]);
-      setCommandHistory(prev => [...prev, inputVal]);
+      const cmdToRun = inputVal;
+      
+      // Add a loading entry immediately
+      const loadingId = Math.random().toString();
+      setLogHistory(prev => [...prev, { id: loadingId, timestamp: new Date().toLocaleTimeString(), command: cmdToRun, output: 'Ожидание ответа...', status: 'INFO' }]);
+      setCommandHistory(prev => [...prev, cmdToRun]);
       setHistoryIndex(-1);
       setInputVal('');
       setSuggestions([]);
+
+      try {
+        const res = await onExecuteCommand(cmdToRun);
+        // Replace the loading entry with the actual result
+        setLogHistory(prev => prev.map(log => log.id === loadingId ? {
+          ...log,
+          output: res.output,
+          status: res.status
+        } : log));
+      } catch (err) {
+        setLogHistory(prev => prev.map(log => log.id === loadingId ? {
+          ...log,
+          output: 'Ошибка выполнения команды',
+          status: 'ERROR'
+        } : log));
+      }
     } else if (e.key === 'Tab') {
       e.preventDefault();
       const options = onGetAutocomplete(inputVal);

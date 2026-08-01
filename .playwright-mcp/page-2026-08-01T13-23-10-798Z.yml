@@ -1,0 +1,80 @@
+- generic [ref=f1e3]:
+  - main "Поле боя":
+    - generic [ref=f1e543]:
+      - generic [ref=f1e544]: ТОВАРИЩ КОМАНДИР
+      - generic [ref=f1e545]: СОВЕТСКИЙ СОЮЗ
+    - generic [ref=f1e546]:
+      - 'generic "Кредиты: 10 000" [ref=f1e549]': 10 000
+      - 'generic "Энергия: 0 / 100" [ref=f1e553]': 0 / 100
+      - 'generic "Ресурс фракции: 0" [ref=f1e557]': "0"
+      - 'generic "Командный лимит: 4 / 50" [ref=f1e561]': 4 / 50
+      - button "Открыть меню" [ref=f1e565] [cursor=pointer]
+    - generic [ref=f1e569]:
+      - generic "Тактическая миникарта" [ref=f1e572]
+      - generic [ref=f1e595]:
+        - button "Цели на миникарте" [ref=f1e596]
+        - button "Оборона на миникарте" [ref=f1e601]
+        - button "Ремонт на миникарте" [ref=f1e604]
+        - button "Особые цели на миникарте" [ref=f1e607]
+    - generic [ref=f1e610]:
+      - tablist "Категории производства" [ref=f1e613]:
+        - tab "СТРОИТЬ" [selected] [ref=f1e614]
+        - tab "ПЕХОТА" [ref=f1e615]
+        - tab "ТЕХНИКА" [ref=f1e616]
+        - tab "АВИАЦИЯ" [ref=f1e617]
+        - tab "ФЛОТ" [ref=f1e618]
+      - generic [ref=f1e619]:
+        - generic [ref=f1e620]:
+          - generic [ref=f1e621]: ЗДАНИЯ
+          - generic [ref=f1e622]: ТЕХНОЛОГИЧЕСКИЙ УРОВЕНЬ 1
+        - generic [ref=f1e623]:
+          - button "Красный штаб, 5000 кредитов. Строительство зданий пока недоступно" [disabled] [ref=f1e624] [cursor=pointer]:
+            - generic [ref=f1e629]: Красный штаб
+            - generic [ref=f1e630]: "5000"
+          - button "Тепловая электростанция, 800 кредитов. Строительство зданий пока недоступно" [disabled] [ref=f1e633] [cursor=pointer]:
+            - generic [ref=f1e638]: Тепловая электростанция
+            - generic [ref=f1e639]: "800"
+          - button "Рудный комбинат, 2400 кредитов. Строительство зданий пока недоступно" [disabled] [ref=f1e642] [cursor=pointer]:
+            - generic [ref=f1e647]: Рудный комбинат
+            - generic [ref=f1e648]: "2400"
+          - button "Казарма мобилизации, 700 кредитов. Строительство зданий пока недоступно" [disabled] [ref=f1e651] [cursor=pointer]:
+            - generic [ref=f1e656]: Казарма мобилизации
+            - generic [ref=f1e657]: "700"
+          - button "Тяжёлый завод, 2300 кредитов. Строительство зданий пока недоступно" [disabled] [ref=f1e660] [cursor=pointer]:
+            - generic [ref=f1e665]: Тяжёлый завод
+            - generic [ref=f1e666]: "2300"
+          - button "Командный радар, 1500 кредитов. Строительство зданий пока недоступно" [disabled] [ref=f1e669] [cursor=pointer]:
+            - generic [ref=f1e674]: Командный радар
+            - generic [ref=f1e675]: "1500"
+          - button "Пулемётный дот, 700 кредитов. Строительство зданий пока недоступно" [disabled] [ref=f1e678] [cursor=pointer]:
+            - generic [ref=f1e683]: Пулемётный дот
+            - generic [ref=f1e684]: "700"
+      - generic [ref=f1e687]:
+        - button "Ремонт — пока недоступно" [disabled] [ref=f1e688]
+        - button "Продажа — пока недоступно" [disabled] [ref=f1e691]
+        - button "Оборона — пока недоступно" [disabled] [ref=f1e694]
+        - button "Энергия — пока недоступно" [disabled] [ref=f1e697]
+        - button "Точка сбора — пока недоступно" [disabled] [ref=f1e700]
+    - generic [ref=f1e713]:
+      - heading "Горнорудная машина ГРМ-8 «Богатырь»" [level=3] [ref=f1e714]
+      - text: БОЕВАЯ ЕДИНИЦА
+      - progressbar "Прочность" [ref=f1e715]
+      - generic [ref=f1e716]: 642 / 1600
+      - paragraph [ref=f1e717]: ОЖИДАЕТ ПРИКАЗОВ
+    - generic [ref=f1e721]:
+      - button "ДВИЖЕНИЕ — пока недоступно" [disabled] [ref=f1e724]:
+        - generic [ref=f1e727]: Д
+      - button "АТАКА — пока недоступно" [disabled] [ref=f1e728]:
+        - generic [ref=f1e733]: А
+      - button "ОХРАНА — пока недоступно" [disabled] [ref=f1e734]:
+        - generic [ref=f1e737]: О
+      - button "СТОП" [ref=f1e738] [cursor=pointer]:
+        - generic [ref=f1e741]: С
+      - button "РЕМОНТ — пока недоступно" [disabled] [ref=f1e742]:
+        - generic [ref=f1e745]: Р
+      - button "СПОСОБНОСТЬ — пока недоступно" [disabled] [ref=f1e746]:
+        - generic [ref=f1e749]: С
+    - generic [ref=f1e750]:
+      - text: "ЭНЕРГИЯ: 100"
+      - progressbar [ref=f1e751]
+      - generic [ref=f1e752]: "ВРЕМЯ: 02:19"

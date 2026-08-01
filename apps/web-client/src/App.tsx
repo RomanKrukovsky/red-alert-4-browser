@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MatchLifecycleManager } from '@ra4/sim-core';
-import { FactionId, MatchState, PlayerCommand, PlayerType, WorldSnapshot } from '@ra4/shared-types';
+import { CommandType, FactionId, MatchState, PlayerCommand, PlayerType, WorldSnapshot } from '@ra4/shared-types';
 import { useUIStore, AdminConsole, AdminConsoleService } from '@ra4/ui';
 import { InputManager } from './inputManager.js';
 import { RTSRenderer } from './renderer.js';
@@ -14,7 +14,7 @@ import { VoiceManager } from './audio/voiceManager.js';
 import { MusicPlayerWidget } from './ui/components/MusicPlayerWidget.js';
 import { AssetGalleryView } from './ui/AssetGalleryView.js';
 import './ui/ra4-ui.css';
-
+import './ui/ra4-hud-reconstruction.css';
 const defaultSetup: MatchSetup = {
   faction: FactionId.USSR,
   opponentFaction: FactionId.ALLIANCE,
@@ -71,8 +71,10 @@ export const App: React.FC = () => {
     rendererRef.current = renderer;
     await renderer.ready;
     if (rendererRef.current !== renderer) return;
-    renderer.rtsCamera.focusOnPosition(8, 8);
-    renderer.rtsCamera.camera.radius = 28;
+    // Start camera at player spawn (10,10), pulled back enough to see the base
+    renderer.rtsCamera.focusOnPosition(10, 10);
+    renderer.rtsCamera.camera.radius = 40;
+    renderer.rtsCamera.camera.beta = Math.PI / 3.5; // ~51° — shows more of the map
     setLoadingStages((stages) => stages.map((stage) => stage.id === 'renderer' ? { ...stage, status: 'complete', progress: 38 } : stage.id === 'simulation' ? { ...stage, status: 'active', progress: 50 } : stage));
 
     const manager = new MatchLifecycleManager();
@@ -209,6 +211,7 @@ export const App: React.FC = () => {
 
   const issueCommand = (command: PlayerCommand) => managerRef.current?.commandBus.dispatch(command);
   const beginBuildingPlacement = (structureId: string) => inputManagerRef.current?.beginBuildingPlacement(structureId);
+  const beginCommandMode = (mode: CommandType.MOVE | CommandType.ATTACK) => inputManagerRef.current?.beginCommandMode(mode);
   const pauseMatch = () => {
     managerRef.current?.pause();
     setPaused(true);
@@ -238,7 +241,7 @@ export const App: React.FC = () => {
       {currentScreen === 'TRANSMISSION' && <TransmissionScreen onBack={() => navigate('BRIEFING', '#/briefing')} onContinue={() => startMatch(setup)} />}
       {currentScreen === 'SKIRMISH_SETUP' && <SkirmishSetupScreen onBack={() => navigate('MAIN_MENU', '#/menu')} onStart={startMatch} />}
       {currentScreen === 'LOADING' && <LoadingScreen setup={setup} stages={loadingStages} />}
-      {currentScreen === 'MATCH' && <GameplayHUD faction={setup.faction} snapshot={snapshot} selectedEntityIds={selectedEntityIds} onIssueCommand={issueCommand} onBeginBuildingPlacement={beginBuildingPlacement} onPause={pauseMatch} />}
+      {currentScreen === 'MATCH' && <GameplayHUD faction={setup.faction} snapshot={snapshot} selectedEntityIds={selectedEntityIds} onIssueCommand={issueCommand} onBeginBuildingPlacement={beginBuildingPlacement} onBeginCommandMode={beginCommandMode} onPause={pauseMatch} onMinimapClick={(x, y) => inputManagerRef.current?.focusCamera(x, y)} />}
       {currentScreen === 'MATCH' && paused && <PauseOverlay onResume={resumeMatch} onExit={returnToMenu} />}
       {currentScreen === 'VICTORY' && <MatchResultScreen result="victory" onMenu={returnToMenu} onRetry={() => startMatch(setup)} />}
       {currentScreen === 'DEFEAT' && <MatchResultScreen result="defeat" onMenu={returnToMenu} onRetry={() => startMatch(setup)} />}

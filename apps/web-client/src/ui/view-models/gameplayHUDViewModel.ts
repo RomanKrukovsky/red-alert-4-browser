@@ -7,8 +7,14 @@ export interface HUDSelectionViewModel {
   isBuilding: boolean;
   hp: number;
   maxHp: number;
+  shield: number;
+  maxShield: number;
+  veterancy: number;
   isDisabled: boolean;
   hasMoveTarget: boolean;
+  hasAttackTarget: boolean;
+  currentOre: number;
+  maxOre: number;
 }
 
 export interface HUDQueueItemViewModel {
@@ -19,8 +25,16 @@ export interface HUDQueueItemViewModel {
   producerEntityId: number;
 }
 
+export interface MinimapPoint {
+  x: number;
+  y: number;
+  isBuilding: boolean;
+  isFriendly: boolean;
+}
+
 export interface GameplayHUDViewModel {
   tick: number;
+  matchTimeSeconds: number;
   credits: number;
   powerProduced: number;
   powerConsumed: number;
@@ -30,9 +44,11 @@ export interface GameplayHUDViewModel {
   factionResource: number;
   techTier: number;
   selected: HUDSelectionViewModel | null;
+  selectedEntities: HUDSelectionViewModel[];
   producerEntityId: number | null;
   queue: HUDQueueItemViewModel[];
   elapsed: string;
+  minimapPoints: MinimapPoint[];
 }
 
 const fallbackPlayer = {
@@ -52,9 +68,31 @@ const toSelection = (entity: EntityStateSnapshot | undefined): HUDSelectionViewM
   isBuilding: entity.isBuilding,
   hp: entity.hp,
   maxHp: entity.maxHp,
+  shield: entity.shield,
+  maxShield: entity.maxShield,
+  veterancy: entity.veterancy,
   isDisabled: entity.isDisabled,
   hasMoveTarget: Boolean(entity.moveTarget),
+  hasAttackTarget: entity.targetEntityId !== undefined,
+  currentOre: entity.currentOre,
+  maxOre: entity.maxOre,
 } : null;
+
+const toSelectionNonNull = (entity: EntityStateSnapshot): HUDSelectionViewModel => ({
+  id: entity.id,
+  specId: entity.specId,
+  isBuilding: entity.isBuilding,
+  hp: entity.hp,
+  maxHp: entity.maxHp,
+  shield: entity.shield,
+  maxShield: entity.maxShield,
+  veterancy: entity.veterancy,
+  isDisabled: entity.isDisabled,
+  hasMoveTarget: Boolean(entity.moveTarget),
+  hasAttackTarget: entity.targetEntityId !== undefined,
+  currentOre: entity.currentOre,
+  maxOre: entity.maxOre,
+});
 
 export const createGameplayHUDViewModel = (snapshot: WorldSnapshot | null, selectedEntityIds: number[], producerCategory?: UnitCategory): GameplayHUDViewModel => {
   const player = snapshot?.players[0] ?? fallbackPlayer;
@@ -76,8 +114,23 @@ export const createGameplayHUDViewModel = (snapshot: WorldSnapshot | null, selec
   }))).slice(0, 4);
   const elapsedSeconds = Math.floor((snapshot?.tick ?? 0) / 30);
 
+  // Build selectedEntities array for group display
+  const selectedEntities: HUDSelectionViewModel[] = selectedEntityIds.length > 1
+    ? (snapshot?.entities ?? []).filter((entity) => selectedEntityIds.includes(entity.id)).map(toSelectionNonNull)
+    : [];
+
+  // Build minimap points from all visible entities
+  const MAP_MAX = 64_000;
+  const minimapPoints: MinimapPoint[] = (snapshot?.entities ?? []).map((entity) => ({
+    x: entity.position.x / MAP_MAX,
+    y: entity.position.y / MAP_MAX,
+    isBuilding: entity.isBuilding,
+    isFriendly: entity.playerIndex === 0,
+  }));
+
   return {
     tick: snapshot?.tick ?? 0,
+    matchTimeSeconds: elapsedSeconds,
     credits: player.credits,
     powerProduced: player.powerProduced,
     powerConsumed: player.powerConsumed,
@@ -87,9 +140,11 @@ export const createGameplayHUDViewModel = (snapshot: WorldSnapshot | null, selec
     factionResource: player.factionResource,
     techTier: player.techTier,
     selected: toSelection(selectedEntity),
+    selectedEntities,
     producerEntityId: producer?.id ?? null,
     queue,
     elapsed: `${String(Math.floor(elapsedSeconds / 60)).padStart(2, '0')}:${String(elapsedSeconds % 60).padStart(2, '0')}`,
+    minimapPoints,
   };
 };
 

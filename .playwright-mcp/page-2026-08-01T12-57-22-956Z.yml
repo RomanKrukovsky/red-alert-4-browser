@@ -1,0 +1,34 @@
+- generic [ref=e3]:
+  - main [ref=e5]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - text: COMMAND & CONQUER
+        - generic [ref=e10]: RED ALERT 4
+      - generic [ref=e11]:
+        - heading "ЗАГРУЗКА МИССИИ" [level=1] [ref=e12]
+        - text: КИЕВ — КРАСНЫЙ РУБЕЖ
+    - generic [ref=e17]:
+      - generic [ref=e20]: СВОДКА
+      - paragraph [ref=e21]: Противник укрепил позиции. Разверните базу, обеспечьте энергоснабжение и уничтожьте командный центр вражеской армии.
+      - heading "ЦЕЛИ" [level=3] [ref=e22]
+      - generic [ref=e23]: Развернуть командный центр
+      - generic [ref=e26]: Установить контроль над ресурсами
+      - generic [ref=e29]: Уничтожить базу противника
+    - generic [ref=e37]:
+      - generic [ref=e40]: 28%
+      - paragraph [ref=e41]: BABYLON PRESENTATION LAYER
+      - generic [ref=e42]:
+        - generic [ref=e43]: ПРОВЕРКА МАНИФЕСТА РЕСУРСОВ
+        - generic [ref=e44]: BABYLON PRESENTATION LAYER
+        - generic [ref=e45]: ИНИЦИАЛИЗАЦИЯ SIM-CORE
+        - generic [ref=e46]: КОМАНДНЫЙ ПРОТОКОЛ И HUD
+        - generic [ref=e47]: ПЕРВЫЙ СНИМОК МИРА
+    - generic [ref=e48]: "ПОДСКАЗКА: Инженеры могут захватывать нейтральные и вражеские здания."
+  - generic [ref=e49]:
+    - generic [ref=e50]: 🎵
+    - generic [ref=e51]:
+      - generic [ref=e52]: СУНДТРЕК — RED ALERT 4
+      - generic [ref=e53]: Tesla Overdrive
+    - button "⏭️" [ref=e54] [cursor=pointer]
+    - button "🔊" [ref=e55] [cursor=pointer]
+    - button "▼" [ref=e56] [cursor=pointer]

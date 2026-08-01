@@ -17,6 +17,9 @@ export class RTSRenderer {
   public rtsCamera: RTSCamera;
   public entityMeshes: Map<number, TransformNode> = new Map();
   public selectionRings: Map<number, Mesh> = new Map();
+  public healthBars: Map<number, { bg: Mesh, fill: Mesh }> = new Map();
+  public moveIndicator: Mesh | null = null;
+  private moveIndicatorAlphaDir: number = 1;
   public shadowGenerator: ShadowGenerator | null = null;
   public pipeline: DefaultRenderingPipeline | null = null;
   public ready: Promise<void>;
@@ -31,23 +34,23 @@ export class RTSRenderer {
   constructor(canvas: HTMLCanvasElement) {
     this.engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
     this.scene = new Scene(this.engine);
-    this.scene.clearColor = new Color4(0.04, 0.06, 0.1, 1);
+    this.scene.clearColor = new Color4(.018, .022, .025, 1);
 
     // RTS Camera
     this.rtsCamera = new RTSCamera(this.scene, canvas);
 
     // Dynamic Directional Sunlight with Cascaded Soft Shadows
     const hemiLight = new HemisphericLight('hemi', new Vector3(0, 1, 0), this.scene);
-    hemiLight.intensity = 0.45;
-    hemiLight.groundColor = new Color3(0.08, 0.1, 0.14);
+    hemiLight.intensity = .45;
+    hemiLight.groundColor = new Color3(.05, .03, .08);
 
-    const dirLight = new DirectionalLight('dir', new Vector3(-1.4, -2.8, -1.2), this.scene);
-    dirLight.position = new Vector3(60, 100, 60);
-    dirLight.intensity = 1.6;
+    const dirLight = new DirectionalLight('dir', new Vector3(-1.2, -2.5, -1.0), this.scene);
+    dirLight.position = new Vector3(50, 90, 50);
+    dirLight.intensity = 1.35;
 
     this.shadowGenerator = new ShadowGenerator(2048, dirLight);
     this.shadowGenerator.useBlurExponentialShadowMap = true;
-    this.shadowGenerator.blurKernel = 16;
+    this.shadowGenerator.blurKernel = 24;
     this.assetRegistry = new RuntimeAssetRegistry(this.scene, this.shadowGenerator);
 
     // AAA Post-Processing Pipeline
@@ -60,10 +63,27 @@ export class RTSRenderer {
     this.engine.runRenderLoop(() => {
       this.rtsCamera.update();
       
+      // Camera bounds and elevation clamping
+      this.camera.target.x = Math.max(0, Math.min(64, this.camera.target.x));
+      this.camera.target.z = Math.max(0, Math.min(64, this.camera.target.z));
+      if (this.camera.position.y < 5) {
+        this.camera.setPosition(new Vector3(this.camera.position.x, 5, this.camera.position.z));
+      }
+
       // Rotate selection rings
       for (const ring of this.selectionRings.values()) {
         if (ring.isVisible) {
           ring.rotation.y += 0.02;
+        }
+      }
+
+      // Pulsate move indicator
+      if (this.moveIndicator && this.moveIndicator.isVisible) {
+        const mat = this.moveIndicator.material as StandardMaterial;
+        if (mat) {
+          mat.alpha += 0.02 * this.moveIndicatorAlphaDir;
+          if (mat.alpha >= 0.8) this.moveIndicatorAlphaDir = -1;
+          else if (mat.alpha <= 0.3) this.moveIndicatorAlphaDir = 1;
         }
       }
 
@@ -81,13 +101,23 @@ export class RTSRenderer {
 
   private initPostProcessing(): void {
     try {
+      this.scene.imageProcessingConfiguration.toneMappingEnabled = true;
+      this.scene.imageProcessingConfiguration.exposure = .68;
+      this.scene.imageProcessingConfiguration.contrast = 1.18;
       this.pipeline = new DefaultRenderingPipeline('ra4Pipeline', true, this.scene, [this.camera]);
       this.pipeline.bloomEnabled = true;
-      this.pipeline.bloomThreshold = 0.82;
-      this.pipeline.bloomWeight = 0.16;
+      this.pipeline.bloomThreshold = .94;
+      this.pipeline.bloomWeight = .08;
       this.pipeline.bloomKernel = 24;
       this.pipeline.fxaaEnabled = true;
       this.pipeline.chromaticAberrationEnabled = false;
+      this.pipeline.imageProcessingEnabled = true;
+      this.pipeline.imageProcessing.toneMappingEnabled = true;
+      this.pipeline.imageProcessing.vignetteEnabled = true;
+      this.pipeline.imageProcessing.exposure = .68;
+      this.pipeline.imageProcessing.contrast = 1.18;
+      this.pipeline.imageProcessing.vignetteWeight = .72;
+      this.pipeline.imageProcessing.vignetteColor = new Color4(0.02, 0.01, 0.04, 0.8);
     } catch (e) {
       console.warn('[RTSRenderer] Post-processing pipeline initialization warning:', e);
     }
@@ -97,73 +127,114 @@ export class RTSRenderer {
     const createStdMat = (name: string, color: Color3, glow: Color3) => {
       const mat = new StandardMaterial(name, this.scene);
       mat.diffuseColor = color;
-      mat.specularColor = new Color3(0.4, 0.4, 0.4);
+      mat.specularColor = new Color3(0.6, 0.6, 0.6);
       mat.emissiveColor = glow;
       this.materials.set(name, mat);
     };
 
     createStdMat('mat_SU', new Color3(0.68, 0.12, 0.1), new Color3(0.035, 0.006, 0.005));
     createStdMat('mat_AL', new Color3(0.12, 0.4, 0.72), new Color3(0.005, 0.014, 0.035));
-    createStdMat('mat_CO', new Color3(0.12, 0.58, 0.28), new Color3(0.005, 0.028, 0.012));
-    createStdMat('mat_CH', new Color3(0.52, 0.16, 0.72), new Color3(0.024, 0.005, 0.035));
+    createStdMat('mat_CO', new Color3(0.75, 0.55, 0.1), new Color3(0.04, 0.028, 0.005));
+    createStdMat('mat_CH', new Color3(0.65, 0.15, 0.9), new Color3(0.2, 0.05, 0.35));
 
     const ringMat = new StandardMaterial('mat_ring', this.scene);
-    ringMat.diffuseColor = new Color3(0.0, 1.0, 0.8);
-    ringMat.emissiveColor = new Color3(0.0, 0.6, 0.5);
+    ringMat.diffuseColor = new Color3(0.6, 0.15, 1.0);
+    ringMat.emissiveColor = new Color3(0.8, 0.2, 1.0);
     this.materials.set('mat_ring', ringMat);
 
     const validMat = new StandardMaterial('mat_ghost_valid', this.scene);
-    validMat.diffuseColor = new Color3(0, 1, 0.4);
-    validMat.alpha = 0.55;
+    validMat.diffuseColor = new Color3(0.6, 0.1, 1.0);
+    validMat.emissiveColor = new Color3(0.7, 0.2, 1.0);
+    validMat.alpha = 0.65;
     this.materials.set('mat_ghost_valid', validMat);
 
     const invalidMat = new StandardMaterial('mat_ghost_invalid', this.scene);
     invalidMat.diffuseColor = new Color3(1, 0.1, 0.1);
-    invalidMat.alpha = 0.55;
+    invalidMat.alpha = 0.65;
     this.materials.set('mat_ghost_invalid', invalidMat);
   }
 
   private createTacticalTerrain(): void {
+    const terrainSkirt = MeshBuilder.CreateGround('terrain-skirt', { width: 180, height: 180, subdivisions: 32 }, this.scene);
+    terrainSkirt.position = new Vector3(32, -.04, 32);
+    terrainSkirt.receiveShadows = true;
+    const terrainSkirtMaterial = new StandardMaterial('terrain-skirt-material', this.scene);
+    terrainSkirtMaterial.diffuseColor = new Color3(.06, .05, .09);
+    terrainSkirtMaterial.ambientColor = new Color3(.02, .015, .03);
+    terrainSkirtMaterial.diffuseTexture = this.createTerrainTexture('/assets/textures/terrain/brown_mud_02_diff_1k.jpg', 28);
+    terrainSkirtMaterial.bumpTexture = this.createTerrainTexture('/assets/textures/terrain/brown_mud_02_nor_gl_1k.jpg', 28);
+    terrainSkirtMaterial.emissiveColor = new Color3(.015, .01, .025);
+    terrainSkirtMaterial.specularColor = new Color3(.06, .05, .08);
+    terrainSkirt.material = terrainSkirtMaterial;
+    this.tacticalMeshes.push(terrainSkirt);
+
     const ground = MeshBuilder.CreateGround('ground', { width: 64, height: 64, subdivisions: 64 }, this.scene);
     ground.position = new Vector3(32, 0, 32);
     ground.receiveShadows = true;
 
     const groundMaterial = new StandardMaterial('ground-material', this.scene);
-    groundMaterial.diffuseColor = new Color3(.23, .21, .16);
+    groundMaterial.diffuseColor = new Color3(.08, .07, .12);
+    groundMaterial.ambientColor = new Color3(.025, .02, .04);
     groundMaterial.diffuseTexture = this.createTerrainTexture('/assets/textures/terrain/brown_mud_02_diff_1k.jpg', 14);
     groundMaterial.bumpTexture = this.createTerrainTexture('/assets/textures/terrain/brown_mud_02_nor_gl_1k.jpg', 14);
-    groundMaterial.specularColor = new Color3(.08, .08, .08);
+    groundMaterial.emissiveColor = new Color3(.02, .012, .035);
+    groundMaterial.specularColor = new Color3(.12, .1, .15);
     ground.material = groundMaterial;
 
-    const road = MeshBuilder.CreateGround('asphalt-road', { width: 12, height: 64 }, this.scene);
+    const road = MeshBuilder.CreateGround('asphalt-road', { width: 10, height: 64 }, this.scene);
     road.position = new Vector3(31, .018, 32);
     road.receiveShadows = true;
     const roadMaterial = new StandardMaterial('road-material', this.scene);
-    roadMaterial.diffuseColor = new Color3(.12, .13, .13);
+    roadMaterial.diffuseColor = new Color3(.06, .06, .09);
     roadMaterial.diffuseTexture = this.createTerrainTexture('/assets/textures/terrain/asphalt_01_diff_1k.jpg', 8);
     roadMaterial.bumpTexture = this.createTerrainTexture('/assets/textures/terrain/asphalt_01_nor_gl_1k.jpg', 8);
-    roadMaterial.specularColor = new Color3(.05, .05, .05);
+    roadMaterial.emissiveColor = new Color3(.015, .01, .025);
+    roadMaterial.specularColor = new Color3(.08, .08, .12);
     road.material = roadMaterial;
 
-    for (const [index, position] of [[12, 12], [50, 50]].entries()) {
-      const pad = MeshBuilder.CreateGround(`concrete-pad-${index}`, { width: 13, height: 13 }, this.scene);
+    const crossRoad = MeshBuilder.CreateGround('asphalt-cross-road', { width: 64, height: 10 }, this.scene);
+    crossRoad.position = new Vector3(32, .02, 31);
+    crossRoad.receiveShadows = true;
+    crossRoad.material = roadMaterial;
+    this.tacticalMeshes.push(crossRoad);
+
+    const laneMaterial = new StandardMaterial('lane-marking-material', this.scene);
+    laneMaterial.diffuseColor = new Color3(.65, .2, .95);
+    laneMaterial.emissiveColor = new Color3(.4, .08, .75);
+    for (let index = 0; index < 11; index += 1) {
+      const verticalMark = MeshBuilder.CreateBox(`vertical-lane-mark-${index}`, { width: .14, height: .025, depth: 2.6 }, this.scene);
+      verticalMark.position.set(31, .055, 3.5 + index * 5.7);
+      verticalMark.material = laneMaterial;
+      verticalMark.isPickable = false;
+      this.tacticalMeshes.push(verticalMark);
+
+      const horizontalMark = MeshBuilder.CreateBox(`horizontal-lane-mark-${index}`, { width: 2.6, height: .025, depth: .14 }, this.scene);
+      horizontalMark.position.set(3.5 + index * 5.7, .057, 31);
+      horizontalMark.material = laneMaterial;
+      horizontalMark.isPickable = false;
+      this.tacticalMeshes.push(horizontalMark);
+    }
+
+    for (const [index, position] of [[10, 10], [54, 54]].entries()) {
+      const pad = MeshBuilder.CreateGround(`concrete-pad-${index}`, { width: 22, height: 22 }, this.scene);
       pad.position = new Vector3(position[0], .026, position[1]);
       pad.receiveShadows = true;
       const material = new StandardMaterial(`concrete-material-${index}`, this.scene);
-      material.diffuseColor = new Color3(.38, .39, .37);
+      material.diffuseColor = new Color3(.12, .11, .16);
       material.diffuseTexture = this.createTerrainTexture('/assets/textures/terrain/concrete_floor_01_diff_1k.jpg', 3);
       material.bumpTexture = this.createTerrainTexture('/assets/textures/terrain/concrete_floor_01_nor_gl_1k.jpg', 3);
-      material.specularColor = new Color3(.1, .1, .1);
+      material.emissiveColor = new Color3(.03, .015, .05);
+      material.specularColor = new Color3(.15, .15, .2);
       pad.material = material;
       this.tacticalMeshes.push(pad);
     }
 
-    const water = MeshBuilder.CreateGround('central-river', { width: 64, height: 8 }, this.scene);
+    const water = MeshBuilder.CreateGround('central-river', { width: 64, height: 3.2 }, this.scene);
     water.position = new Vector3(32, .035, 32);
     const waterMaterial = new StandardMaterial('central-river-material', this.scene);
-    waterMaterial.diffuseColor = new Color3(.015, .08, .13);
-    waterMaterial.emissiveColor = new Color3(.004, .018, .03);
-    waterMaterial.alpha = 1;
+    waterMaterial.diffuseColor = new Color3(.012, .026, .03);
+    waterMaterial.emissiveColor = new Color3(.002, .006, .008);
+    waterMaterial.alpha = .92;
     water.material = waterMaterial;
     this.tacticalMeshes.push(water);
 
@@ -180,12 +251,12 @@ export class RTSRenderer {
     }
 
     const oreMaterial = new StandardMaterial('ore-field-material', this.scene);
-    oreMaterial.diffuseColor = new Color3(.68, .32, .06);
-    oreMaterial.emissiveColor = new Color3(.3, .08, .01);
-    oreMaterial.alpha = .72;
+    oreMaterial.diffuseColor = new Color3(.26, .15, .04);
+    oreMaterial.emissiveColor = new Color3(.025, .012, .002);
+    oreMaterial.alpha = .58;
     const crystalMaterial = new StandardMaterial('ore-crystal-material', this.scene);
-    crystalMaterial.diffuseColor = new Color3(1, .52, .08);
-    crystalMaterial.emissiveColor = new Color3(.75, .16, .015);
+    crystalMaterial.diffuseColor = new Color3(.62, .36, .10);
+    crystalMaterial.emissiveColor = new Color3(.09, .028, .004);
     for (const [index, [x, z]] of [[14, 14], [50, 50], [50, 14], [14, 50], [32, 32]].entries()) {
       const field = MeshBuilder.CreateCylinder(`ore-field-${index}`, { diameter: index === 4 ? 7 : 5, height: .06, tessellation: 32 }, this.scene);
       field.position = new Vector3(x, .08, z);
@@ -219,23 +290,64 @@ export class RTSRenderer {
     return texture;
   }
 
+  private createBuildingFallback(entityId: number, specId: string, factionId: string): TransformNode {
+    const root = new TransformNode(`entity_${entityId}`, this.scene);
+
+    // Base box — looks like a solid building placeholder
+    const box = MeshBuilder.CreateBox(`entity_${entityId}_box`, { width: 3.2, height: 1.8, depth: 3.2 }, this.scene);
+    box.position.y = 0.9;
+    const boxMat = new StandardMaterial(`fallback_box_${entityId}`, this.scene);
+    const emissive = factionId === 'CH' ? new Color3(0.3, 0.05, 0.55)
+      : factionId === 'CO' ? new Color3(0.1, 0.35, 0.04)
+      : factionId === 'AL' ? new Color3(0.04, 0.18, 0.45)
+      : new Color3(0.45, 0.04, 0.04);
+    boxMat.diffuseColor = emissive.scale(1.4);
+    boxMat.emissiveColor = emissive;
+    boxMat.alpha = 0.82;
+    box.material = boxMat;
+    box.parent = root;
+    box.metadata = { entityId, specId };
+    box.isPickable = true;
+
+    // Thin base plate so it reads clearly against the terrain
+    const plate = MeshBuilder.CreateBox(`entity_${entityId}_plate`, { width: 4.2, height: 0.08, depth: 4.2 }, this.scene);
+    plate.position.y = 0.04;
+    const plateMat = new StandardMaterial(`fallback_plate_${entityId}`, this.scene);
+    plateMat.diffuseColor = emissive.scale(0.6);
+    plateMat.emissiveColor = emissive.scale(0.4);
+    plate.material = plateMat;
+    plate.parent = root;
+    plate.isPickable = false;
+
+    return root;
+  }
+
   private async initializeAssets(): Promise<void> {
     const environment = new HDRCubeTexture('/assets/environments/industrial_sunset_puresky_1k.hdr', this.scene, 128, false, true, false, true);
     this.scene.environmentTexture = environment;
-    this.scene.environmentIntensity = .35;
+    this.scene.environmentIntensity = .24;
     this.scene.fogMode = Scene.FOGMODE_EXP2;
     this.scene.fogDensity = .005;
-    this.scene.fogColor = new Color3(.12, .15, .18);
-    await this.assetRegistry.preloadCritical();
+    this.scene.fogColor = new Color3(.035, .041, .044);
+    // Preload all assets in the background; synchronously await the HQ buildings
+    // and basic infantry for all four factions so the first frame already shows models.
+    const criticalIds = [
+      'SU_RedHQ', 'AL_CommandHQ', 'CO_DynastyHQ', 'CH_TemporalHQ',
+      'SU_ConYard', 'AL_ConYard', 'CO_ConYard', 'CH_ConYard',
+      'SU_ThermalPower', 'SU_PowerPlant', 'AL_PowerPlant', 'CO_PowerPlant', 'CH_PowerPlant',
+      'SU_Conscript', 'SU_HammerTank', 'AL_Peacekeeper', 'AL_Guardian',
+      'CO_TigerTank', 'CO_Patriot', 'CH_TimeAgentAlpha',
+    ];
+    await this.assetRegistry.preloadCritical(criticalIds);
     this.spawnEnvironmentDecor();
   }
 
   private spawnEnvironmentDecor(): void {
     const layouts: Array<{ assetId: string; points: Array<[number, number, number]> }> = [
-      { assetId: 'ENV_PineTree01', points: [[8, 9, .1], [12, 7, 1.3], [10, 16, 2.5], [52, 11, 3.2], [55, 16, 4.1], [51, 52, 5.2], [9, 53, 5.8]] },
-      { assetId: 'ENV_CoastRocks01', points: [[4, 30, .4], [59, 31, 1.7], [30, 4, 3.1], [33, 59, 4.8]] },
-      { assetId: 'PROP_ConcreteBarrier', points: [[24, 26, 0], [27, 26, 0], [36, 39, 3.14], [39, 39, 3.14]] },
-      { assetId: 'PROP_MilitaryCrate', points: [[16, 15, .3], [17.3, 15.4, 1.1], [46, 49, 2.4]] },
+      { assetId: 'ENV_PineTree01', points: [[2, 4, .1], [4, 2, 1.3], [15, 2, 2.5], [20, 4, 3.2], [3, 18, 4.1], [18, 20, 5.2], [24, 7, 5.8], [7, 24, 1.9], [40, 5, .4], [48, 8, 2.4], [57, 15, 3.3], [58, 45, 4.1], [46, 58, 5.4], [16, 58, .8], [4, 45, 2.9]] },
+      { assetId: 'ENV_CoastRocks01', points: [[2, 27, .4], [61, 31, 1.7], [29, 2, 3.1], [34, 61, 4.8], [18, 4, 2.1], [4, 20, .9], [59, 49, 3.8]] },
+      { assetId: 'PROP_ConcreteBarrier', points: [[17, 17, 0], [20, 17, 0], [17, 20, 1.57], [26, 27, 0], [29, 27, 0], [35, 38, 3.14], [38, 38, 3.14], [47, 47, 3.14]] },
+      { assetId: 'PROP_MilitaryCrate', points: [[15, 14, .3], [16.3, 14.4, 1.1], [13.8, 16.2, 2.1], [47, 49, 2.4], [49, 47, .6]] },
     ];
     for (const layout of layouts) {
       layout.points.forEach(([x, z, rotation], index) => {
@@ -275,14 +387,16 @@ export class RTSRenderer {
 
       if (!node) {
         const profile = getGameplayAssetProfile(e.specId);
+        this.assetRegistry.ensureLoaded(e.specId);
         const asset = profile ? this.assetRegistry.instantiate(e.specId, `entity_${e.id}`) : null;
-        if (asset && profile) {
+        if (asset && profile && asset.visibleMeshes.length > 0) {
           const presenter = new GameplayAssetPresenter(this.scene, e.id, profile, asset);
           node = presenter.root;
           this.entityPresenters.set(e.id, presenter);
         } else {
+          if (asset) asset.dispose();
           if (e.isBuilding) {
-            node = MeshBuilder.CreateBox(`entity_${e.id}`, { width: 3, height: 2, depth: 3 }, this.scene);
+            node = this.createBuildingFallback(e.id, e.specId, e.factionId);
           } else {
             node = MeshBuilder.CreateCylinder(`entity_${e.id}`, { diameter: 1.2, height: 1.0 }, this.scene);
           }
@@ -291,6 +405,18 @@ export class RTSRenderer {
         }
 
         this.entityMeshes.set(e.id, node);
+      } else if (!this.entityPresenters.has(e.id)) {
+        const profile = getGameplayAssetProfile(e.specId);
+        const asset = profile ? this.assetRegistry.instantiate(e.specId, `entity_${e.id}`) : null;
+        if (asset && profile && asset.visibleMeshes.length > 0) {
+          node.dispose(false, true);
+          const presenter = new GameplayAssetPresenter(this.scene, e.id, profile, asset);
+          node = presenter.root;
+          this.entityMeshes.set(e.id, node);
+          this.entityPresenters.set(e.id, presenter);
+        } else if (asset) {
+          asset.dispose();
+        }
       }
 
       const presenter = this.entityPresenters.get(e.id);
@@ -321,6 +447,91 @@ export class RTSRenderer {
       } else if (ring) {
         ring.isVisible = false;
       }
+
+      // Health Bars
+      const maxHp = ('maxHp' in e && typeof e.maxHp === 'number') ? e.maxHp : 100;
+      let hb = this.healthBars.get(e.id);
+      if (e.hp < maxHp) {
+        if (!hb) {
+          const bg = MeshBuilder.CreatePlane(`hb_bg_${e.id}`, { width: 2, height: 0.15 }, this.scene);
+          bg.billboardMode = Mesh.BILLBOARDMODE_ALL;
+          const bgMat = new StandardMaterial(`hb_bg_mat_${e.id}`, this.scene);
+          bgMat.diffuseColor = new Color3(0.1, 0.1, 0.1);
+          bgMat.emissiveColor = new Color3(0.1, 0.1, 0.1);
+          bgMat.disableLighting = true;
+          bg.material = bgMat;
+
+          const fill = MeshBuilder.CreatePlane(`hb_fill_${e.id}`, { width: 2, height: 0.15 }, this.scene);
+          fill.billboardMode = Mesh.BILLBOARDMODE_ALL;
+          fill.position.z = -0.01;
+          const fillMat = new StandardMaterial(`hb_fill_mat_${e.id}`, this.scene);
+          fillMat.disableLighting = true;
+          fill.material = fillMat;
+          fill.parent = bg;
+
+          hb = { bg, fill };
+          this.healthBars.set(e.id, hb);
+        }
+        
+        hb.bg.position.x = wx;
+        hb.bg.position.y = 3;
+        hb.bg.position.z = wz;
+
+        const hpPct = Math.max(0, e.hp / maxHp);
+        hb.fill.scaling.x = hpPct;
+        hb.fill.position.x = -1 + hpPct;
+
+        const fillMat = hb.fill.material as StandardMaterial;
+        if (hpPct > 0.6) {
+          fillMat.emissiveColor = new Color3(0.2, 0.8, 0.2);
+          fillMat.diffuseColor = new Color3(0.2, 0.8, 0.2);
+        } else if (hpPct > 0.3) {
+          fillMat.emissiveColor = new Color3(0.8, 0.8, 0.2);
+          fillMat.diffuseColor = new Color3(0.8, 0.8, 0.2);
+        } else {
+          fillMat.emissiveColor = new Color3(0.8, 0.2, 0.2);
+          fillMat.diffuseColor = new Color3(0.8, 0.2, 0.2);
+        }
+      } else {
+        if (hb) {
+          hb.bg.dispose();
+          hb.fill.dispose();
+          this.healthBars.delete(e.id);
+        }
+      }
+    }
+
+    // Move target indicator
+    let moveTargetPos: Vector3 | null = null;
+    let moveTargetFaction: string = 'AL';
+    for (const e of snapshot.entities) {
+      if (selectedIds.has(e.id) && 'moveTarget' in e && e.moveTarget) {
+        const target = e.moveTarget as { x: number, y: number };
+        moveTargetPos = new Vector3(target.x / 1000, 0.05, target.y / 1000);
+        moveTargetFaction = e.factionId;
+        break;
+      }
+    }
+
+    if (moveTargetPos) {
+      if (!this.moveIndicator) {
+        this.moveIndicator = MeshBuilder.CreateTorus('move_indicator', { diameter: 2, thickness: 0.15, tessellation: 32 }, this.scene);
+        const mat = new StandardMaterial('mat_move_ind', this.scene);
+        mat.alpha = 0.8;
+        this.moveIndicator.material = mat;
+      }
+      this.moveIndicator.position = moveTargetPos;
+      this.moveIndicator.isVisible = true;
+      const mat = this.moveIndicator.material as StandardMaterial;
+      if (moveTargetFaction === 'SU') {
+        mat.emissiveColor = new Color3(0.8, 0.2, 0.2);
+        mat.diffuseColor = new Color3(0.8, 0.2, 0.2);
+      } else {
+        mat.emissiveColor = new Color3(0.2, 0.8, 0.2);
+        mat.diffuseColor = new Color3(0.2, 0.8, 0.2);
+      }
+    } else if (this.moveIndicator) {
+      this.moveIndicator.isVisible = false;
     }
 
     // Render Tracer Lines & Muzzle Light Flashes for Shot FX
@@ -362,6 +573,12 @@ export class RTSRenderer {
           ring.dispose();
           this.selectionRings.delete(id);
         }
+        const hb = this.healthBars.get(id);
+        if (hb) {
+          hb.bg.dispose();
+          hb.fill.dispose();
+          this.healthBars.delete(id);
+        }
       }
     }
     this.previousHp = new Map(snapshot.entities.map((entity) => [entity.id, entity.hp]));
@@ -380,6 +597,7 @@ export class RTSRenderer {
 
     if (!this.ghostMesh) {
       this.ghostMesh = MeshBuilder.CreateBox('placement_ghost', { width, height: 1.8, depth }, this.scene);
+      this.ghostMesh.isPickable = false;
       this.ghostMesh.material = this.materials.get('mat_ghost_valid')!;
     }
   }
@@ -397,6 +615,15 @@ export class RTSRenderer {
     if (this.ghostMesh) {
       this.ghostMesh.dispose();
     }
+    if (this.moveIndicator) {
+      this.moveIndicator.dispose();
+      this.moveIndicator = null;
+    }
+    for (const hb of this.healthBars.values()) {
+      hb.bg.dispose();
+      hb.fill.dispose();
+    }
+    this.healthBars.clear();
     for (const presenter of this.entityPresenters.values()) presenter.dispose();
     this.entityPresenters.clear();
     this.previousHp.clear();

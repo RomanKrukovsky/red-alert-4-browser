@@ -1,0 +1,91 @@
+- generic [ref=f1e3]:
+  - main "Поле боя":
+    - generic [ref=f1e304]:
+      - generic [ref=f1e305]: ТОВАРИЩ КОМАНДИР
+      - generic [ref=f1e306]: СОВЕТСКИЙ СОЮЗ
+    - generic [ref=f1e309]:
+      - 'generic "Кредиты: 10 000" [ref=f1e312]': 10 000
+      - 'generic "Энергия: 0 / 200" [ref=f1e316]': 0 / 200
+      - 'generic "Ресурс фракции: 0" [ref=f1e320]': "0"
+      - 'generic "Командный лимит: 4 / 100" [ref=f1e324]': 4 / 100
+      - button "Открыть меню" [ref=f1e328] [cursor=pointer]
+    - generic [ref=f1e332]:
+      - heading "ОСНОВНЫЕ ЗАДАЧИ" [level=2] [ref=f1e335]
+      - generic [ref=f1e336]: Уничтожить базу противника
+      - generic [ref=f1e338]: Захватить хранилище ресурсов
+      - heading "ДОПОЛНИТЕЛЬНЫЕ ЗАДАЧИ" [level=4] [ref=f1e340]
+      - generic [ref=f1e341]: Сохранить командный центр
+    - status [ref=f1e343]:
+      - generic [ref=f1e344]: БОЕВАЯ ОБСТАНОВКАОбнаружены силы противника
+    - generic [ref=f1e348]:
+      - generic "Тактическая миникарта" [ref=f1e351]
+      - generic [ref=f1e372]:
+        - button "Цели на миникарте" [ref=f1e373]
+        - button "Оборона на миникарте" [ref=f1e378]
+        - button "Ремонт на миникарте" [ref=f1e381]
+        - button "Особые цели на миникарте" [ref=f1e384]
+    - generic [ref=f1e387]:
+      - tablist "Категории производства" [ref=f1e390]:
+        - tab "СТРОИТЬ" [selected] [ref=f1e391]
+        - tab "ПЕХОТА" [ref=f1e392]
+        - tab "ТЕХНИКА" [ref=f1e393]
+        - tab "АВИАЦИЯ" [ref=f1e394]
+        - tab "ФЛОТ" [ref=f1e395]
+      - generic [ref=f1e396]:
+        - generic [ref=f1e397]:
+          - generic [ref=f1e398]: ЗДАНИЯ
+          - generic [ref=f1e399]: ТЕХНОЛОГИЧЕСКИЙ УРОВЕНЬ 1
+        - generic [ref=f1e400]:
+          - button "Красный штаб, 5000 кредитов. Строительство зданий пока недоступно" [disabled] [ref=f1e401] [cursor=pointer]:
+            - generic [ref=f1e402]: Красный штаб
+            - generic [ref=f1e403]: "5000"
+          - button "Тепловая электростанция, 800 кредитов. Строительство зданий пока недоступно" [disabled] [ref=f1e406] [cursor=pointer]:
+            - generic [ref=f1e407]: Тепловая электростанция
+            - generic [ref=f1e408]: "800"
+          - button "Рудный комбинат, 2400 кредитов. Строительство зданий пока недоступно" [disabled] [ref=f1e411] [cursor=pointer]:
+            - generic [ref=f1e412]: Рудный комбинат
+            - generic [ref=f1e413]: "2400"
+          - button "Казарма мобилизации, 700 кредитов. Строительство зданий пока недоступно" [disabled] [ref=f1e416] [cursor=pointer]:
+            - generic [ref=f1e417]: Казарма мобилизации
+            - generic [ref=f1e418]: "700"
+          - button "Тяжёлый завод, 2300 кредитов. Строительство зданий пока недоступно" [disabled] [ref=f1e421] [cursor=pointer]:
+            - generic [ref=f1e422]: Тяжёлый завод
+            - generic [ref=f1e423]: "2300"
+          - button "Командный радар, 1500 кредитов. Строительство зданий пока недоступно" [disabled] [ref=f1e426] [cursor=pointer]:
+            - generic [ref=f1e427]: Командный радар
+            - generic [ref=f1e428]: "1500"
+          - button "Пулемётный дот, 700 кредитов. Строительство зданий пока недоступно" [disabled] [ref=f1e431] [cursor=pointer]:
+            - generic [ref=f1e432]: Пулемётный дот
+            - generic [ref=f1e433]: "700"
+      - generic [ref=f1e436]:
+        - button "Ремонт — пока недоступно" [disabled] [ref=f1e437]
+        - button "Продажа — пока недоступно" [disabled] [ref=f1e440]
+        - button "Оборона — пока недоступно" [disabled] [ref=f1e443]
+        - button "Энергия — пока недоступно" [disabled] [ref=f1e446]
+        - button "Точка сбора — пока недоступно" [disabled] [ref=f1e449]
+    - generic [ref=f1e458]:
+      - heading "Красный штаб" [level=3] [ref=f1e459]
+      - text: ЗДАНИЕ УПРАВЛЕНИЯ
+      - progressbar "Прочность" [ref=f1e460]
+      - generic [ref=f1e461]: 5000 / 5000
+      - paragraph [ref=f1e462]: ОЖИДАЕТ ПРИКАЗОВ
+    - generic [ref=f1e466]:
+      - heading "ОЧЕРЕДЬ ПРОИЗВОДСТВА" [level=2] [ref=f1e469]
+      - paragraph [ref=f1e472]: ОЧЕРЕДЬ СВОБОДНА
+    - generic [ref=f1e473]:
+      - button "ДВИЖЕНИЕ — пока недоступно" [disabled] [ref=f1e476]:
+        - generic [ref=f1e479]: Д
+      - button "АТАКА — пока недоступно" [disabled] [ref=f1e480]:
+        - generic [ref=f1e485]: А
+      - button "ОХРАНА — пока недоступно" [disabled] [ref=f1e486]:
+        - generic [ref=f1e489]: О
+      - button "СТОП" [ref=f1e490] [cursor=pointer]:
+        - generic [ref=f1e493]: С
+      - button "РЕМОНТ — пока недоступно" [disabled] [ref=f1e494]:
+        - generic [ref=f1e497]: Р
+      - button "СПОСОБНОСТЬ — пока недоступно" [disabled] [ref=f1e498]:
+        - generic [ref=f1e501]: С
+    - generic [ref=f1e502]:
+      - text: "ЭНЕРГИЯ: 200"
+      - progressbar [ref=f1e503]
+      - generic [ref=f1e504]: "ВРЕМЯ: 00:03"

@@ -1,5 +1,5 @@
 import { GameSimulation, SimEntity } from './simulation.js';
-import { PlayerCommand, CommandType } from '@ra4/shared-types';
+import { CommandType, FactionId, PlayerCommand } from '@ra4/shared-types';
 
 export interface SuperweaponState {
   id: string;
@@ -13,17 +13,17 @@ export interface SuperweaponState {
 export class SuperweaponManager {
   public superweaponStates: Map<number, SuperweaponState[]> = new Map();
 
-  public initPlayerSuperweapons(playerIndex: number, factionId: string): void {
+  public initPlayerSuperweapons(playerIndex: number, factionId: FactionId): void {
     const swList: SuperweaponState[] = [];
 
-    if (factionId === 'USSR') {
-      swList.push({ id: 'sw_iron_curtain', name: 'Железный Занавес', factionId: 'USSR', cooldownTicksTotal: 3600, cooldownTicksRemaining: 0, isReady: true });
-    } else if (factionId === 'ALLIANCE') {
-      swList.push({ id: 'sw_chronosphere', name: 'Хроносфера', factionId: 'ALLIANCE', cooldownTicksTotal: 3600, cooldownTicksRemaining: 0, isReady: true });
-    } else if (factionId === 'COALITION') {
-      swList.push({ id: 'sw_solar_array', name: 'Орбитальный Солнечный Луч', factionId: 'COALITION', cooldownTicksTotal: 4500, cooldownTicksRemaining: 0, isReady: true });
-    } else if (factionId === 'CHRONO') {
-      swList.push({ id: 'sw_temporal_rift', name: 'Временной Разлом', factionId: 'CHRONO', cooldownTicksTotal: 4500, cooldownTicksRemaining: 0, isReady: true });
+    if (factionId === FactionId.USSR) {
+      swList.push({ id: 'sw_iron_curtain', name: 'Железный Занавес', factionId, cooldownTicksTotal: 3600, cooldownTicksRemaining: 0, isReady: true });
+    } else if (factionId === FactionId.ALLIANCE) {
+      swList.push({ id: 'sw_chronosphere', name: 'Хроносфера', factionId, cooldownTicksTotal: 3600, cooldownTicksRemaining: 0, isReady: true });
+    } else if (factionId === FactionId.ORIENTAL_COALITION) {
+      swList.push({ id: 'sw_solar_array', name: 'Орбитальный Солнечный Луч', factionId, cooldownTicksTotal: 4500, cooldownTicksRemaining: 0, isReady: true });
+    } else if (factionId === FactionId.CHRONOLEGION) {
+      swList.push({ id: 'sw_temporal_rift', name: 'Временной Разлом', factionId, cooldownTicksTotal: 4500, cooldownTicksRemaining: 0, isReady: true });
     }
 
     this.superweaponStates.set(playerIndex, swList);
@@ -104,11 +104,14 @@ export class SuperweaponManager {
             const dy = e.y - ty;
             if (dx * dx + dy * dy <= 225000000) {
               e.isDisabled = true;
+              e.disabledTicksRemaining = 600;
             }
           }
         }
         break;
       }
+      default:
+        return false;
     }
 
     // Reset cooldown

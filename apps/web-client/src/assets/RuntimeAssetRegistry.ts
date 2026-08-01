@@ -29,24 +29,44 @@ const collectMeshes = (nodes: Node[]): Mesh[] => {
 
 export class RuntimeAssetRegistry {
   private loaded = new Map<string, LoadedAsset>();
+  private loading = new Set<string>();
 
   public constructor(private scene: Scene, private shadowGenerator: ShadowGenerator | null) {}
 
-  public async preloadCritical(): Promise<void> {
-    await Promise.all(runtimeAssetManifest.map(async (definition) => {
-      try {
-        await this.load(definition);
-      } catch (error: unknown) {
-        console.warn(`[RuntimeAssetRegistry] Failed to load ${definition.id} from ${definition.url}; gameplay fallback will be used.`, error);
-      }
-    }));
+  public async preloadCritical(priorityIds?: string[]): Promise<void> {
+    // Fire off all background loads first (non-blocking)
+    for (const definition of runtimeAssetManifest) {
+      this.ensureLoaded(definition.id);
+    }
+    // Then await the priority assets so they're ready before the match begins
+    if (priorityIds && priorityIds.length > 0) {
+      const loads = priorityIds.map((id) => {
+        const def = runtimeAssetById.get(id);
+        if (!def) return Promise.resolve();
+        return this.load(def).catch(() => {});
+      });
+      await Promise.all(loads);
+    }
+  }
+
+  public ensureLoaded(assetId: string): void {
+    const definition = runtimeAssetById.get(assetId);
+    if (!definition || this.loaded.has(assetId) || this.loading.has(assetId)) return;
+    void this.load(definition).catch((error: unknown) => {
+      console.warn(`[RuntimeAssetRegistry] Failed to load ${assetId}; fallback will be used.`, error);
+    });
   }
 
   private async load(definition: RuntimeAssetDefinition): Promise<void> {
-    if (this.loaded.has(definition.id)) return;
-    const urls = [definition.url, ...definition.lods.map((lod) => lod.url)];
-    const containers = await Promise.all(urls.map((url) => SceneLoader.LoadAssetContainerAsync('', url, this.scene)));
-    this.loaded.set(definition.id, { definition, containers });
+    if (this.loaded.has(definition.id) || this.loading.has(definition.id)) return;
+    this.loading.add(definition.id);
+    try {
+      const urls = [definition.url, ...definition.lods.map((lod) => lod.url)];
+      const containers = await Promise.all(urls.map((url) => SceneLoader.LoadAssetContainerAsync('', url, this.scene)));
+      this.loaded.set(definition.id, { definition, containers });
+    } finally {
+      this.loading.delete(definition.id);
+    }
   }
 
   public instantiate(assetId: string, instanceName: string): RuntimeAssetInstance | null {
@@ -58,13 +78,13 @@ export class RuntimeAssetRegistry {
 
     const collisionMeshes = instantiated.flatMap((entry) => collectMeshes(entry.rootNodes)).filter((mesh) => mesh.name.includes('CollisionRoot'));
     for (const mesh of collisionMeshes) {
-      mesh.isPickable = false;
-      mesh.setEnabled(false);
+      mesh.isPickable = true;
+      mesh.isVisible = false;
     }
     const baseMeshes = collectMeshes(instantiated[0].rootNodes).filter((mesh) => !mesh.name.includes('CollisionRoot'));
     for (let lodIndex = 1; lodIndex < instantiated.length; lodIndex += 1) {
       const lodMeshes = collectMeshes(instantiated[lodIndex].rootNodes).filter((mesh) => !mesh.name.includes('CollisionRoot'));
-      const distance = loaded.definition.lods[lodIndex - 1].distance ?? 30 + lodIndex * 20;
+      const distance = loaded.definition.lods[lodIndex - 1]?.distance ?? 30 + lodIndex * 20;
       for (let meshIndex = 0; meshIndex < Math.min(baseMeshes.length, lodMeshes.length); meshIndex += 1) {
         const lodMesh = lodMeshes[meshIndex];
         lodMesh.isPickable = false;
@@ -105,5 +125,6 @@ export class RuntimeAssetRegistry {
   public dispose(): void {
     for (const loaded of this.loaded.values()) for (const container of loaded.containers) container.dispose();
     this.loaded.clear();
+    this.loading.clear();
   }
 }

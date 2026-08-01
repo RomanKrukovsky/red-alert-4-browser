@@ -1,0 +1,31 @@
+- generic [ref=f1e3]:
+  - main [ref=f1e5]:
+    - generic [ref=f1e7]:
+      - generic [ref=f1e12]: ОПЕРАЦИЯ ЗАВЕРШЕНА
+      - heading "ПОРАЖЕНИЕ" [level=1] [ref=f1e13]
+      - paragraph [ref=f1e14]: Командный центр потерян. Силы отступают к резервному рубежу.
+    - generic [ref=f1e15]:
+      - heading "ИТОГИ ОПЕРАЦИИ" [level=2] [ref=f1e18]
+      - generic [ref=f1e19]:
+        - generic [ref=f1e20]: ВРЕМЯ БОЯ
+        - generic [ref=f1e21]: 24:17
+      - generic [ref=f1e22]:
+        - generic [ref=f1e23]: УНИЧТОЖЕНО
+        - generic [ref=f1e24]: "47"
+      - generic [ref=f1e25]:
+        - generic [ref=f1e26]: ПОТЕРИ
+        - generic [ref=f1e27]: "12"
+      - generic [ref=f1e28]:
+        - generic [ref=f1e29]: ЭФФЕКТИВНОСТЬ
+        - generic [ref=f1e30]: 34%
+    - generic [ref=f1e31]:
+      - button "ГЛАВНОЕ МЕНЮ" [ref=f1e32] [cursor=pointer]
+      - button "ПОВТОРИТЬ ОПЕРАЦИЮ" [ref=f1e34] [cursor=pointer]
+  - generic [ref=f1e38]:
+    - generic [ref=f1e39]: 🎵
+    - generic [ref=f1e40]:
+      - generic [ref=f1e41]: СУНДТРЕК — RED ALERT 4
+      - generic [ref=f1e42]: Steel Horizon Pact
+    - button "⏭️" [ref=f1e43] [cursor=pointer]
+    - button "🔊" [ref=f1e44] [cursor=pointer]
+    - button "▼" [ref=f1e45] [cursor=pointer]

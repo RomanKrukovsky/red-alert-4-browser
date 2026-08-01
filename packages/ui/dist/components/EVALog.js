@@ -1,15 +1,43 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { jsxs as _jsxs, jsx as _jsx } from "react/jsx-runtime";
+import { useEffect, useRef } from 'react';
+import { useUIStore } from '../store.js';
 export const EVALog = () => {
-    return (_jsxs("div", { className: "ra4-eva-log", style: {
-            width: '350px',
+    const evaLogs = useUIStore((state) => state.evaLogs);
+    const containerRef = useRef(null);
+    useEffect(() => {
+        if (containerRef.current) {
+            containerRef.current.scrollTop = containerRef.current.scrollHeight;
+        }
+    }, [evaLogs]);
+    const getColor = (type) => {
+        switch (type) {
+            case 'DANGER':
+                return '#ff3344';
+            case 'WARN':
+                return '#ffcc00';
+            case 'INFO':
+            default:
+                return '#00ffc8';
+        }
+    };
+    return (_jsx("div", { ref: containerRef, className: "ra4-eva-log", style: {
+            width: '380px',
+            maxHeight: '130px',
+            overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
-            gap: '5px',
+            gap: '4px',
             fontSize: '12px',
-            fontFamily: 'var(--font-family-mono)',
-            letterSpacing: 'var(--letter-spacing-wide)',
+            fontFamily: 'var(--font-family-mono, monospace)',
+            letterSpacing: 'var(--letter-spacing-wide, 0.05em)',
             pointerEvents: 'none',
-            textShadow: '0 1px 2px #000'
-        }, children: [_jsx("div", { style: { color: '#00ff00' }, children: "[EVA] \u0423\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430 \u0441\u0432\u044F\u0437\u0438..." }), _jsx("div", { style: { color: '#00ff00' }, children: "[EVA] \u041A\u043E\u043C\u0430\u043D\u0434\u0438\u0440, \u0434\u043E\u0431\u0440\u043E \u043F\u043E\u0436\u0430\u043B\u043E\u0432\u0430\u0442\u044C." }), _jsx("div", { style: { color: '#ffcc00' }, children: "[\u0421\u0418\u0421\u0422\u0415\u041C\u0410] \u041E\u0431\u043D\u0430\u0440\u0443\u0436\u0435\u043D\u043E \u043F\u0435\u0440\u0435\u0434\u0432\u0438\u0436\u0435\u043D\u0438\u0435 \u043F\u0440\u043E\u0442\u0438\u0432\u043D\u0438\u043A\u0430." }), _jsx("div", { style: { color: '#ff0000' }, children: "[\u0412\u041D\u0418\u041C\u0410\u041D\u0418\u0415] \u041D\u0430\u0448\u0430 \u0431\u0430\u0437\u0430 \u0430\u0442\u0430\u043A\u043E\u0432\u0430\u043D\u0430." })] }));
+            textShadow: '0 1px 3px rgba(0, 0, 0, 0.9)',
+            padding: '6px 10px',
+            background: 'rgba(5, 15, 25, 0.65)',
+            borderLeft: '2px solid #00ffc8',
+            borderRadius: '0 4px 4px 0',
+            boxShadow: '0 0 10px rgba(0, 255, 200, 0.15)',
+            backdropFilter: 'blur(4px)',
+        }, children: evaLogs.map((log) => (_jsxs("div", { style: { color: getColor(log.type), display: 'flex', gap: '8px' }, children: [_jsxs("span", { style: { opacity: 0.6, fontSize: '10px' }, children: ["[", log.timestamp, "]"] }), _jsx("span", { children: log.message })] }, log.id))) }));
 };
 //# sourceMappingURL=EVALog.js.map

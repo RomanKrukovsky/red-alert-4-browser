@@ -1,10 +1,10 @@
 import React from 'react';
 export interface AdminConsoleProps {
-    onExecuteCommand: (cmd: string) => {
+    onExecuteCommand: (cmd: string) => Promise<{
         command: string;
         output: string;
         status: 'SUCCESS' | 'ERROR' | 'INFO';
-    };
+    }>;
     onGetAutocomplete: (prefix: string) => string[];
     onClose: () => void;
 }

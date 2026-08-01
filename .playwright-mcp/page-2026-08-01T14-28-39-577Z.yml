@@ -1,0 +1,91 @@
+- generic [ref=e3]:
+  - main "Поле боя":
+    - generic [ref=e169]:
+      - generic [ref=e170]: ТОВАРИЩ КОМАНДИР
+      - generic [ref=e171]: СОВЕТСКИЙ СОЮЗ
+    - generic [ref=e174]:
+      - 'generic "Кредиты: 11 200" [ref=e177]': 11 200
+      - 'generic "Энергия: 135 / 200" [ref=e181]': 135 / 200
+      - 'generic "Ресурс фракции: 0" [ref=e185]': "0"
+      - 'generic "Командный лимит: 4 / 115" [ref=e189]': 4 / 115
+      - button "Открыть меню" [ref=e193] [cursor=pointer]
+    - generic [ref=e197]:
+      - heading "ОСНОВНЫЕ ЗАДАЧИ" [level=2] [ref=e200]
+      - generic [ref=e201]: Уничтожить базу противника
+      - generic [ref=e203]: Захватить хранилище ресурсов
+      - heading "ДОПОЛНИТЕЛЬНЫЕ ЗАДАЧИ" [level=4] [ref=e205]
+      - generic [ref=e206]: Сохранить командный центр
+    - status [ref=e208]:
+      - generic [ref=e209]: БОЕВАЯ ОБСТАНОВКАОбнаружены силы противника
+    - generic [ref=e213]:
+      - generic "Тактическая миникарта" [ref=e216]
+      - generic [ref=e239]:
+        - button "Цели на миникарте — пока недоступно" [disabled] [ref=e240]
+        - button "Оборона на миникарте — пока недоступно" [disabled] [ref=e245]
+        - button "Ремонт на миникарте — пока недоступно" [disabled] [ref=e248]
+        - button "Особые цели на миникарте — пока недоступно" [disabled] [ref=e251]
+    - generic [ref=e254]:
+      - tablist "Категории производства" [ref=e257]:
+        - tab "СТРОИТЬ" [selected] [ref=e258]
+        - tab "ПЕХОТА" [ref=e259]
+        - tab "ТЕХНИКА" [ref=e260]
+        - tab "АВИАЦИЯ" [ref=e261]
+        - tab "ФЛОТ" [ref=e262]
+      - generic [ref=e263]:
+        - generic [ref=e264]:
+          - generic [ref=e265]: ЗДАНИЯ
+          - generic [ref=e266]: ТЕХНОЛОГИЧЕСКИЙ УРОВЕНЬ 2
+        - generic [ref=e267]:
+          - button "Красный штаб, 5000 кредитов" [ref=e268] [cursor=pointer]:
+            - generic [ref=e273]: Красный штаб
+            - generic [ref=e274]: "5000"
+          - button "Тепловая электростанция, 800 кредитов" [ref=e277] [cursor=pointer]:
+            - generic [ref=e282]: Тепловая электростанция
+            - generic [ref=e283]: "800"
+            - emphasis [ref=e286]: ГОТОВО
+          - button "Рудный комбинат, 2400 кредитов" [ref=e287] [cursor=pointer]:
+            - generic [ref=e292]: Рудный комбинат
+            - generic [ref=e293]: "2400"
+          - button "Казарма мобилизации, 700 кредитов" [ref=e296] [cursor=pointer]:
+            - generic [ref=e301]: Казарма мобилизации
+            - generic [ref=e302]: "700"
+          - button "Тяжёлый завод, 2300 кредитов" [ref=e305] [cursor=pointer]:
+            - generic [ref=e310]: Тяжёлый завод
+            - generic [ref=e311]: "2300"
+          - button "Командный радар, 1500 кредитов" [ref=e314] [cursor=pointer]:
+            - generic [ref=e319]: Командный радар
+            - generic [ref=e320]: "1500"
+          - button "Пулемётный дот, 700 кредитов" [ref=e323] [cursor=pointer]:
+            - generic [ref=e328]: Пулемётный дот
+            - generic [ref=e329]: "700"
+      - generic [ref=e332]:
+        - button "Ремонт — пока недоступно" [disabled] [ref=e333]
+        - button "Продажа — пока недоступно" [disabled] [ref=e336]
+        - button "Оборона — пока недоступно" [disabled] [ref=e339]
+        - button "Энергия — пока недоступно" [disabled] [ref=e342]
+        - button "Точка сбора — пока недоступно" [disabled] [ref=e345]
+    - generic [ref=e358]:
+      - heading "Красный штаб" [level=3] [ref=e359]
+      - text: ЗДАНИЕ УПРАВЛЕНИЯ
+      - generic "Прочность" [ref=e360]
+      - generic [ref=e362]: 5000 / 5000
+      - paragraph [ref=e363]: ОЖИДАЕТ ПРИКАЗОВ
+    - generic [ref=e367]:
+      - heading "ОЧЕРЕДЬ ПРОИЗВОДСТВА" [level=2] [ref=e370]
+      - paragraph [ref=e373]: ОЧЕРЕДЬ СВОБОДНА
+    - generic [ref=e374]:
+      - button "ДВИЖЕНИЕ" [ref=e377] [cursor=pointer]:
+        - generic [ref=e380]: Д
+      - button "АТАКА" [ref=e381] [cursor=pointer]:
+        - generic [ref=e386]: А
+      - button "ОХРАНА — пока недоступно" [disabled] [ref=e387]:
+        - generic [ref=e390]: О
+      - button "СТОП" [ref=e391] [cursor=pointer]:
+        - generic [ref=e394]: С
+      - button "РЕМОНТ — пока недоступно" [disabled] [ref=e395]:
+        - generic [ref=e398]: Р
+      - button "СПОСОБНОСТЬ — пока недоступно" [disabled] [ref=e399]:
+        - generic [ref=e402]: С
+    - generic [ref=e403]:
+      - text: "ЭНЕРГИЯ: 65"
+      - generic [ref=e406]: "ВРЕМЯ: 00:12"

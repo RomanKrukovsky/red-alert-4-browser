@@ -1,0 +1,9 @@
+[     564ms] [LOG] BJS - [17:49:15]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:4180/assets/index-Dkf_UvoB.js:54
+[    1758ms] [WARNING] [RuntimeAssetRegistry] Failed to load SU_TeslaTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/SU_TeslaTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at d (http://127.0.0.1:4180/assets/index-Dkf_UvoB.js:1460:226053)
+    at O (http://127.0.0.1:4180/assets/index-Dkf_UvoB.js:1460:221979)
+    at http://127.0.0.1:4180/assets/index-Dkf_UvoB.js:22522:46978 @ http://127.0.0.1:4180/assets/index-Dkf_UvoB.js:22523
+[    1758ms] [WARNING] [RuntimeAssetRegistry] Failed to load AL_PrismTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/AL_PrismTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at d (http://127.0.0.1:4180/assets/index-Dkf_UvoB.js:1460:226053)
+    at O (http://127.0.0.1:4180/assets/index-Dkf_UvoB.js:1460:221979)
+    at http://127.0.0.1:4180/assets/index-Dkf_UvoB.js:22522:46978 @ http://127.0.0.1:4180/assets/index-Dkf_UvoB.js:22523

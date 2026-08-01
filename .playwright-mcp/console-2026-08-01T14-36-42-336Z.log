@@ -1,0 +1,6 @@
+[     230ms] [LOG] BJS - [17:36:42]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:4180/assets/index-brSM9biI.js:54
+[   28325ms] [LOG] BJS - [17:37:10]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:4180/assets/index-brSM9biI.js:54
+[   28655ms] [WARNING] Audio playback waiting for user interaction: AbortError: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22 @ http://127.0.0.1:4180/assets/index-brSM9biI.js:22523
+[   95581ms] [LOG] BJS - [17:38:17]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:4180/assets/index-brSM9biI.js:54
+[   95845ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://127.0.0.1:4180/assets/index-brSM9biI.js:22521
+[   95846ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://127.0.0.1:4180/assets/index-brSM9biI.js:22521

@@ -1,0 +1,15 @@
+[      27ms] [LOG] BJS - [17:28:27]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:4180/assets/index-B9uBtnS1.js:53
+[     403ms] [WARNING] Audio playback waiting for user interaction: AbortError: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22 @ http://127.0.0.1:4180/assets/index-B9uBtnS1.js:22522
+[     709ms] [WARNING] Audio playback waiting for user interaction: AbortError: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22 @ http://127.0.0.1:4180/assets/index-B9uBtnS1.js:22522
+[     709ms] [WARNING] [.WebGL-0x13c0081d200] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://127.0.0.1:4180/#/hud/soviet:0
+[     709ms] [WARNING] [.WebGL-0x13c0081d200] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://127.0.0.1:4180/#/hud/soviet:0
+[     710ms] [WARNING] [.WebGL-0x13c0081d200] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://127.0.0.1:4180/#/hud/soviet:0
+[     710ms] [WARNING] [.WebGL-0x13c0081d200] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://127.0.0.1:4180/#/hud/soviet:0
+[     710ms] [WARNING] [.WebGL-0x13c0081d200] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://127.0.0.1:4180/#/hud/soviet:0
+[     710ms] [WARNING] [.WebGL-0x13c0081d200] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://127.0.0.1:4180/#/hud/soviet:0
+[     710ms] [WARNING] [.WebGL-0x13c0081d200] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://127.0.0.1:4180/#/hud/soviet:0
+[     710ms] [WARNING] [.WebGL-0x13c0081d200] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://127.0.0.1:4180/#/hud/soviet:0
+[     710ms] [WARNING] [.WebGL-0x13c0081d200] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://127.0.0.1:4180/#/hud/soviet:0
+[     710ms] [WARNING] [.WebGL-0x13c0081d200] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://127.0.0.1:4180/#/hud/soviet:0
+[     710ms] [WARNING] [.WebGL-0x13c0081d200] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://127.0.0.1:4180/#/hud/soviet:0
+[     710ms] [WARNING] [.WebGL-0x13c0081d200] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://127.0.0.1:4180/#/hud/soviet:0

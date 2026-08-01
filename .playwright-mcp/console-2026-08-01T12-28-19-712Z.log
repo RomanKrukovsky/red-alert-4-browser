@@ -1,0 +1,5 @@
+[      22ms] [LOG] BJS - [15:28:19]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[      69ms] [WARNING] BJS - [15:28:19]: camera input of type mousewheel already exists on camera @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[     102ms] [WARNING] Audio playback waiting for user interaction: AbortError: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22 @ http://127.0.0.1:5173/src/audio/musicManager.ts:77
+[  223064ms] [LOG] BJS - [15:32:02]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[  223089ms] [WARNING] BJS - [15:32:02]: camera input of type mousewheel already exists on camera @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44

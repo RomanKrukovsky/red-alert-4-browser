@@ -27,7 +27,7 @@ export class AdminConsoleService {
         }
         return { allowed: true };
     }
-    executeCommand(input) {
+    async executeCommand(input) {
         const trimmed = input.trim();
         if (!trimmed) {
             return { id: Math.random().toString(), timestamp: new Date().toLocaleTimeString(), command: input, output: '', status: 'INFO' };
@@ -66,7 +66,8 @@ export class AdminConsoleService {
                     `win                           - Принудительная победа\n` +
                     `lose                          - Принудительное поражение\n` +
                     `ai <on|off>                   - Включить/выключить ИИ\n` +
-                    `fps                           - Показать FPS и инфо о рендере`;
+                    `fps                           - Показать FPS и инфо о рендере\n` +
+                    `ask <prompt>                  - Обратиться к нейросети (OpenRouter)`;
                 status = 'INFO';
                 break;
             }
@@ -152,9 +153,136 @@ export class AdminConsoleService {
                 status = 'INFO';
                 break;
             }
+            case 'ask':
             default: {
-                output = `Неизвестная команда "${cmdName}". Введите "help" для просмотра списка доступных команд.`;
-                status = 'ERROR';
+                const promptText = cmdName === 'ask' ? args.join(' ') : trimmed;
+                if (!promptText) {
+                    output = `Неизвестная команда "${cmdName}". Введите "help" для просмотра списка команд.`;
+                    status = 'ERROR';
+                    break;
+                }
+                try {
+                    // Generate game state summary
+                    let gameStateStr = "Нет данных о состоянии игры.";
+                    if (snapshot) {
+                        const p = snapshot.players[playerIdx];
+                        const pUnits = snapshot.entities.filter(e => e.playerIndex === playerIdx);
+                        const eUnits = snapshot.entities.filter(e => e.playerIndex !== playerIdx);
+                        gameStateStr = `ВАШ ИГРОК: #${playerIdx} | Кредиты: ${p?.credits} | Энергия: ${p?.powerConsumed}/${p?.powerProduced} | Лимит: ${p?.commandCapUsed}/${p?.commandCapMax}\n`;
+                        gameStateStr += `ВАШИ ЮНИТЫ/ЗДАНИЯ:\n`;
+                        if (pUnits.length === 0)
+                            gameStateStr += `(нет)\n`;
+                        pUnits.forEach(u => {
+                            gameStateStr += `- ID: ${u.id}, Тип: ${u.specId}, Позиция: (${Math.round(u.position.x / 1000)}, ${Math.round(u.position.y / 1000)}), ХП: ${u.hp}\n`;
+                        });
+                        gameStateStr += `ВРАГИ:\n`;
+                        if (eUnits.length === 0)
+                            gameStateStr += `(нет)\n`;
+                        eUnits.forEach(u => {
+                            gameStateStr += `- ID: ${u.id}, Тип: ${u.specId}, Игрок: #${u.playerIndex}, Позиция: (${Math.round(u.position.x / 1000)}, ${Math.round(u.position.y / 1000)}), ХП: ${u.hp}\n`;
+                        });
+                    }
+                    const systemPrompt = `Ты встроенный ИИ-сокомандир (EVA) в игре Red Alert 4 (RTS). Твоя задача — анализировать обстановку и помогать игроку, отвечая коротко и по делу.
+У тебя есть доступ к состоянию игры.
+Если игрок просит тебя что-то сделать (например, атаковать, построить, отвести войска), ты можешь отдать приказ напрямую в движок.
+Для этого, помимо текста ответа, ВЫВЕДИ БЛОК JSON внутри \`\`\`json ... \`\`\` с массивом "commands".
+Поддерживаемые действия в JSON (action):
+- "MOVE": { "action": "MOVE", "entityIds": [id1, id2], "targetX": 30000, "targetY": 30000 }
+- "ATTACK": { "action": "ATTACK", "entityIds": [id1, id2], "targetEntityId": 5 }
+- "SPAWN": { "action": "SPAWN", "specId": "SU_GranitMBT", "x": 30000, "y": 30000 }
+
+Пример ответа:
+Вас поняла, командир. Отправляю танки в атаку.
+\`\`\`json
+{
+  "commands": [
+    { "action": "ATTACK", "entityIds": [42, 43], "targetEntityId": 12 }
+  ]
+}
+\`\`\``;
+                    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer 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',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: 'google/gemini-2.5-flash',
+                            messages: [
+                                { role: 'system', content: systemPrompt },
+                                { role: 'user', content: `ТЕКУЩЕЕ СОСТОЯНИЕ ИГРЫ:\n${gameStateStr}\n\nЗАПРОС ИГРОКА: ${promptText}` }
+                            ]
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.choices && data.choices.length > 0) {
+                        let aiText = data.choices[0].message.content;
+                        status = 'INFO';
+                        // Parse JSON block
+                        const jsonMatch = aiText.match(/```json\s*([\s\S]*?)\s*```/);
+                        let parsedCommands = 0;
+                        if (jsonMatch && this.onDispatchCommand) {
+                            try {
+                                const jsonObj = JSON.parse(jsonMatch[1]);
+                                if (jsonObj.commands && Array.isArray(jsonObj.commands)) {
+                                    for (const cmd of jsonObj.commands) {
+                                        if (cmd.action === 'MOVE') {
+                                            this.onDispatchCommand({
+                                                type: CommandType.MOVE,
+                                                entityIds: cmd.entityIds || [],
+                                                targetX: cmd.targetX || 0,
+                                                targetY: cmd.targetY || 0,
+                                                playerIndex: playerIdx,
+                                                tick: snapshot?.tick ?? 0
+                                            });
+                                            parsedCommands++;
+                                        }
+                                        else if (cmd.action === 'ATTACK') {
+                                            this.onDispatchCommand({
+                                                type: CommandType.ATTACK,
+                                                entityIds: cmd.entityIds || [],
+                                                targetEntityId: cmd.targetEntityId || 0,
+                                                playerIndex: playerIdx,
+                                                tick: snapshot?.tick ?? 0
+                                            });
+                                            parsedCommands++;
+                                        }
+                                        else if (cmd.action === 'SPAWN') {
+                                            this.onDispatchCommand({
+                                                type: CommandType.PRODUCE_UNIT,
+                                                entityIds: [],
+                                                producerEntityId: 1, // dummy
+                                                unitId: cmd.specId || 'SU_GranitMBT',
+                                                playerIndex: playerIdx,
+                                                tick: snapshot?.tick ?? 0
+                                            });
+                                            // Normally SPAWN doesn't support custom coordinates in PRODUCE_UNIT easily via Admin Console without hacking, 
+                                            // but the simulation will spawn it at the producer or a fallback coordinate. 
+                                            // Wait, earlier 'spawn' command just did PRODUCE_UNIT.
+                                            parsedCommands++;
+                                        }
+                                    }
+                                }
+                            }
+                            catch (e) {
+                                console.error('Failed to parse AI JSON commands', e);
+                            }
+                        }
+                        // Remove JSON block from visual output
+                        output = aiText.replace(/```json\s*([\s\S]*?)\s*```/, '').trim();
+                        if (parsedCommands > 0) {
+                            output += `\n[Выполнено приказов ИИ: ${parsedCommands}]`;
+                        }
+                    }
+                    else {
+                        output = `Ошибка API: ${JSON.stringify(data)}`;
+                        status = 'ERROR';
+                    }
+                }
+                catch (err) {
+                    output = `Ошибка подключения к ИИ: ${err.message}`;
+                    status = 'ERROR';
+                }
                 break;
             }
         }
@@ -170,7 +298,7 @@ export class AdminConsoleService {
         return logEntry;
     }
     getAutocompleteSuggestions(prefix) {
-        const commands = ['help', 'spawn', 'give', 'god', 'fog', 'kill', 'teleport', 'win', 'lose', 'ai', 'fps'];
+        const commands = ['help', 'spawn', 'give', 'god', 'fog', 'kill', 'teleport', 'win', 'lose', 'ai', 'fps', 'ask'];
         return commands.filter(c => c.startsWith(prefix.toLowerCase()));
     }
 }

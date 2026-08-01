@@ -9,5 +9,24 @@
   --hud-side-width: 340px;
   --hud-bottom-height: 240px;
   --hud-top-height: 40px;
-  --minimap-size: 320px;
+  --minimap-size: 220px;
+  
+  --ui-scale: 1;
+  --panel-margin: 8px;
+  --hud-height: 48px;
+  --production-panel-width: 280px;
+  --command-bar-height: 100px;
+}
+
+/* Viewport scaling */
+@media (max-width: 1366px) {
+  :root {
+    --ui-scale: 0.9;
+  }
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --ui-scale: 0.8;
+  }
 }

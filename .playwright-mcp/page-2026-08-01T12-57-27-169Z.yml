@@ -1,0 +1,99 @@
+- generic [ref=e3]:
+  - generic:
+    - generic [ref=e61]:
+      - generic [ref=e62]: ТОВАРИЩ КОМАНДИР
+      - generic [ref=e63]: СОВЕТСКИЙ СОЮЗ
+    - generic [ref=e64]:
+      - 'generic "Кредиты: 10 000" [ref=e67]': 10 000
+      - 'generic "Энергия: 0 / 200" [ref=e71]': 0 / 200
+      - 'generic "Ресурс фракции: 0" [ref=e75]': "0"
+      - 'generic "Командный лимит: 4 / 100" [ref=e79]': 4 / 100
+      - button "Открыть меню" [ref=e83] [cursor=pointer]
+    - generic [ref=e87]:
+      - generic [ref=e90]: ОСНОВНЫЕ ЗАДАЧИ
+      - generic [ref=e91]: Уничтожить базу противника
+      - generic [ref=e93]: Захватить хранилище ресурсов
+      - heading "ДОПОЛНИТЕЛЬНЫЕ ЗАДАЧИ" [level=4] [ref=e95]
+      - generic [ref=e96]: Сохранить командный центр
+    - generic [ref=e98]: БОЕВАЯ ОБСТАНОВКАОбнаружены силы противника
+    - generic [ref=e103]:
+      - generic "Тактическая миникарта" [ref=e106]
+      - generic [ref=e114]:
+        - button "Режим миникарты" [ref=e115]
+        - button "Режим миникарты" [ref=e120]
+        - button "Режим миникарты" [ref=e123]
+        - button "Режим миникарты" [ref=e126]
+    - generic [ref=e129]:
+      - navigation [ref=e132]:
+        - button "СТРОИТЬ" [ref=e133]
+        - button "ПЕХОТА" [ref=e134]
+        - button "ТЕХНИКА" [ref=e135]
+        - button "АВИАЦИЯ" [ref=e136]
+        - button "ФЛОТ" [ref=e137]
+      - generic [ref=e138]:
+        - banner [ref=e139]:
+          - generic [ref=e140]: ЗДАНИЯ
+          - generic [ref=e141]: ТЕХНОЛОГИЧЕСКИЙ УРОВЕНЬ 1
+        - generic [ref=e142]:
+          - button "Красный штаб 5000" [ref=e143] [cursor=pointer]:
+            - generic [ref=e145]: Красный штаб
+            - generic [ref=e146]: "5000"
+          - button "Тепловая электростанция 800 ГОТОВО" [ref=e149] [cursor=pointer]:
+            - generic [ref=e151]: Тепловая электростанция
+            - generic [ref=e152]: "800"
+            - emphasis [ref=e155]: ГОТОВО
+          - button "Рудный комбинат 2400" [ref=e156] [cursor=pointer]:
+            - generic [ref=e158]: Рудный комбинат
+            - generic [ref=e159]: "2400"
+          - button "Казарма мобилизации 700" [ref=e162] [cursor=pointer]:
+            - generic [ref=e164]: Казарма мобилизации
+            - generic [ref=e165]: "700"
+          - button "Тяжёлый завод 2300" [ref=e168] [cursor=pointer]:
+            - generic [ref=e170]: Тяжёлый завод
+            - generic [ref=e171]: "2300"
+          - button "Командный радар 1500" [ref=e174] [cursor=pointer]:
+            - generic [ref=e176]: Командный радар
+            - generic [ref=e177]: "1500"
+          - button "Пулемётный дот 700" [ref=e180] [cursor=pointer]:
+            - generic [ref=e182]: Пулемётный дот
+            - generic [ref=e183]: "700"
+      - generic [ref=e186]:
+        - button [ref=e187]
+        - button [ref=e190]
+        - button [ref=e193]
+        - button [ref=e196]
+        - button [ref=e199]
+    - generic [ref=e209]:
+      - heading "SU_RedHQ" [level=3] [ref=e210]
+      - text: ЗДАНИЕ УПРАВЛЕНИЯ
+      - progressbar [ref=e211]
+      - generic [ref=e212]: 5000 / 5000
+      - paragraph [ref=e213]: ОЖИДАЕТ ПРИКАЗОВ
+    - generic [ref=e217]:
+      - generic [ref=e220]: ОЧЕРЕДЬ ПРОИЗВОДСТВА
+      - paragraph [ref=e223]: ОЧЕРЕДЬ СВОБОДНА
+    - generic [ref=e224]:
+      - button "ДВИЖЕНИЕ" [ref=e227] [cursor=pointer]:
+        - generic [ref=e230]: Д
+      - button "АТАКА" [ref=e231] [cursor=pointer]:
+        - generic [ref=e236]: А
+      - button "ОХРАНА" [ref=e237] [cursor=pointer]:
+        - generic [ref=e240]: О
+      - button "СТОП" [ref=e241] [cursor=pointer]:
+        - generic [ref=e244]: С
+      - button "РЕМОНТ" [ref=e245] [cursor=pointer]:
+        - generic [ref=e248]: Р
+      - button "СПОСОБНОСТЬ" [ref=e249] [cursor=pointer]:
+        - generic [ref=e252]: С
+    - generic [ref=e253]:
+      - text: "ЭНЕРГИЯ: 200"
+      - progressbar [ref=e254]
+      - generic [ref=e255]: "ВРЕМЯ: 00:03"
+  - generic [ref=e49]:
+    - generic [ref=e50]: 🎵
+    - generic [ref=e51]:
+      - generic [ref=e52]: СУНДТРЕК — RED ALERT 4
+      - generic [ref=e53]: March of Steel
+    - button "⏭️" [ref=e54] [cursor=pointer]
+    - button "🔊" [ref=e55] [cursor=pointer]
+    - button "▼" [ref=e56] [cursor=pointer]

@@ -1,0 +1,86 @@
+- generic [ref=f1e3]:
+  - main:
+    - generic [ref=f1e758]:
+      - generic [ref=f1e759]: ТОВАРИЩ КОМАНДИР
+      - generic [ref=f1e760]: СОВЕТСКИЙ СОЮЗ
+    - generic [ref=f1e761]:
+      - generic [ref=f1e969]: 10 000
+      - generic [ref=f1e970]: 0 / 100
+      - generic [ref=f1e971]: "0"
+      - generic [ref=f1e972]: 4 / 50
+      - button [ref=f1e973] [cursor=pointer]
+    - button [ref=f1e974]: ЗАДАЧИ
+    - generic [ref=f1e811]:
+      - button [disabled] [ref=f1e976]
+      - button [disabled] [ref=f1e977]
+      - button [disabled] [ref=f1e978]
+      - button [disabled] [ref=f1e979]
+    - generic [ref=f1e826]:
+      - tablist [ref=f1e980]:
+        - tab [selected] [ref=f1e981]: СТРОИТЬ
+        - tab [ref=f1e982]: ПЕХОТА
+        - tab [ref=f1e983]: ТЕХНИКА
+        - tab [ref=f1e984]: АВИАЦИЯ
+        - tab [ref=f1e985]: ФЛОТ
+      - generic [ref=f1e835]:
+        - generic [ref=f1e836]:
+          - generic [ref=f1e837]: ЗДАНИЯ
+          - generic [ref=f1e838]: ТЕХНОЛОГИЧЕСКИЙ УРОВЕНЬ 1
+        - generic [ref=f1e839]:
+          - button [disabled] [ref=f1e986]:
+            - generic [ref=f1e845]: Красный штаб
+            - generic [ref=f1e846]: "5000"
+          - button [disabled] [ref=f1e987]:
+            - generic [ref=f1e854]: Тепловая электростанция
+            - generic [ref=f1e855]: "800"
+          - button [disabled] [ref=f1e988]:
+            - generic [ref=f1e863]: Рудный комбинат
+            - generic [ref=f1e864]: "2400"
+          - button [disabled] [ref=f1e989]:
+            - generic [ref=f1e872]: Казарма мобилизации
+            - generic [ref=f1e873]: "700"
+          - button [disabled] [ref=f1e990]:
+            - generic [ref=f1e881]: Тяжёлый завод
+            - generic [ref=f1e882]: "2300"
+          - button [disabled] [ref=f1e991]:
+            - generic [ref=f1e890]: Командный радар
+            - generic [ref=f1e891]: "1500"
+          - button [disabled] [ref=f1e992]:
+            - generic [ref=f1e899]: Пулемётный дот
+            - generic [ref=f1e900]: "700"
+      - generic [ref=f1e903]:
+        - button [disabled] [ref=f1e993]
+        - button [disabled] [ref=f1e994]
+        - button [disabled] [ref=f1e995]
+        - button [disabled] [ref=f1e996]
+        - button [disabled] [ref=f1e997]
+    - generic [ref=f1e929]:
+      - heading [level=3] [ref=f1e998]: Горнорудная машина ГРМ-8 «Богатырь»
+      - text: БОЕВАЯ ЕДИНИЦА
+      - progressbar [ref=f1e999]
+      - generic [ref=f1e932]: 642 / 1600
+      - paragraph [ref=f1e933]: ОЖИДАЕТ ПРИКАЗОВ
+    - generic [ref=f1e937]:
+      - button [disabled] [ref=f1e1000]:
+        - generic [ref=f1e943]: Д
+      - button [disabled] [ref=f1e1001]:
+        - generic [ref=f1e949]: А
+      - button [disabled] [ref=f1e1002]:
+        - generic [ref=f1e953]: О
+      - button [ref=f1e1003] [cursor=pointer]:
+        - generic [ref=f1e957]: С
+      - button [disabled] [ref=f1e1004]:
+        - generic [ref=f1e961]: Р
+      - button [disabled] [ref=f1e1005]:
+        - generic [ref=f1e965]: С
+    - generic [ref=f1e966]:
+      - text: "ЭНЕРГИЯ: 100"
+      - progressbar [ref=f1e967]
+      - generic [ref=f1e968]: "ВРЕМЯ: 02:19"
+  - dialog [ref=f1e1006]:
+    - generic [ref=f1e1007]:
+      - heading "ИГРА ПРИОСТАНОВЛЕНА" [level=2] [ref=f1e1010]
+      - heading "ПАУЗА" [level=2] [ref=f1e1011]
+      - button "ВЕРНУТЬСЯ В ИГРУ" [active] [ref=f1e1012] [cursor=pointer]
+      - button "НАСТРОЙКИ" [disabled] [ref=f1e1014] [cursor=pointer]
+      - button "ВЫЙТИ В МЕНЮ" [ref=f1e1016] [cursor=pointer]

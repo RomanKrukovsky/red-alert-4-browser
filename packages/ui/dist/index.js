@@ -18,4 +18,7 @@ export * from './screens/MissionBriefingScreen.js';
 export * from './screens/StrategicMapScreen.js';
 export * from './components/AdminConsole.js';
 export * from './adminConsoleService.js';
+export * from './windowStore.js';
+export * from './components/DraggableWindow.js';
+export * from './components/Taskbar.js';
 //# sourceMappingURL=index.js.map

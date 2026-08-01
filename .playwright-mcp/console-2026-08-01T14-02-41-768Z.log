@@ -1,0 +1,14 @@
+[     407ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-WJHFZ4MN.js?v=ab67a546:21608
+[     465ms] [LOG] BJS - [17:02:42]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[     524ms] [LOG] BJS - [17:02:42]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[  113405ms] [LOG] BJS - [17:04:35]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[  138567ms] [LOG] BJS - [17:05:00]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[  182201ms] [LOG] BJS - [17:05:43]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[  200418ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:5173/@vite/client:963
+[  201272ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-WJHFZ4MN.js?v=ab67a546:21608
+[  201309ms] [LOG] BJS - [17:06:03]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[  201330ms] [LOG] BJS - [17:06:03]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[  232972ms] [LOG] BJS - [17:06:34]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[  249331ms] [LOG] BJS - [17:06:51]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[  256643ms] [LOG] BJS - [17:06:58]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44
+[  257468ms] [LOG] BJS - [17:06:59]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=ab67a546:44

@@ -16,7 +16,7 @@ export declare class AdminConsoleService {
         allowed: boolean;
         reason?: string;
     };
-    executeCommand(input: string): CommandLogEntry;
+    executeCommand(input: string): Promise<CommandLogEntry>;
     getAutocompleteSuggestions(prefix: string): string[];
 }
 //# sourceMappingURL=adminConsoleService.d.ts.map
