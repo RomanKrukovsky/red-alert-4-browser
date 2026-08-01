@@ -33,7 +33,15 @@
     "ui:test": "npx tsx tools/ui-pipeline/test.ts",
     "test:ai:scenarios": "pnpm --filter @ra4/testing build && node packages/testing/dist/aiScenarios.test.js",
     "test:ai:selfplay": "pnpm --filter @ra4/testing build && node packages/testing/dist/aiBenchmark.js",
-    "benchmark:ai": "pnpm --filter @ra4/testing build && node packages/testing/dist/aiBenchmark.js"
+    "benchmark:ai": "pnpm --filter @ra4/testing build && node packages/testing/dist/aiBenchmark.js",
+    "game-doctor:audit": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js audit",
+    "game-doctor:play": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js play",
+    "game-doctor:headless": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js headless",
+    "game-doctor:visual": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js visual",
+    "game-doctor:stress": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js stress",
+    "game-doctor:soak": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js soak",
+    "game-doctor:report": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js report",
+    "test:ci": "pnpm build && pnpm lint && pnpm test:determinism && pnpm test:economy && pnpm test:building && pnpm test:ai && pnpm game-doctor:headless"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

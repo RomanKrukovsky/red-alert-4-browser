@@ -369,6 +369,31 @@ importers:
         specifier: ^5.7.3
         version: 5.9.3
 
+  tools/game-doctor:
+    dependencies:
+      '@ra4/content-runtime':
+        specifier: workspace:*
+        version: link:../../packages/content-runtime
+      '@ra4/replay':
+        specifier: workspace:*
+        version: link:../../packages/replay
+      '@ra4/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
+      '@ra4/sim-core':
+        specifier: workspace:*
+        version: link:../../packages/sim-core
+      playwright:
+        specifier: ^1.62.1
+        version: 1.62.1
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.4
+        version: 22.20.1
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+
 packages:
 
   '@babel/code-frame@7.29.7':

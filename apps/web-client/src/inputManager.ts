@@ -565,6 +565,7 @@ export class InputManager {
     if (this.selectionBoxElement.parentNode) {
       this.selectionBoxElement.parentNode.removeChild(this.selectionBoxElement);
     }
+    AdminConsoleService.getInstance().onDispatchCommand = undefined;
     window.removeEventListener('keydown', this.handleKeyDown);
     window.removeEventListener('keyup', this.handleKeyUp);
     window.removeEventListener('mouseup', this.handleWindowMouseUp);

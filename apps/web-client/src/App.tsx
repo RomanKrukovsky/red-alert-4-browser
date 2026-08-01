@@ -60,6 +60,13 @@ export const App: React.FC = () => {
     managerRef.current = null;
     rendererRef.current = null;
     hasReceivedSnapshotRef.current = false;
+    useUIStore.getState().setSnapshot(null as any);
+    useUIStore.getState().setSelectedEntityIds([]);
+    useUIStore.getState().setInputMode('RTS');
+    useUIStore.getState().setConsoleOpen(false);
+    if (typeof window !== 'undefined') {
+      delete (window as any).__RA4_GAME_DOCTOR__;
+    }
   }, []);
 
   const initializeMatch = useCallback(async (matchSetup: MatchSetup) => {
@@ -96,6 +103,29 @@ export const App: React.FC = () => {
     const inputManager = new InputManager(renderer, canvasRef.current, (command) => manager.commandBus.dispatch(command));
     inputManagerRef.current = inputManager;
     setLoadingStages((stages) => stages.map((stage) => stage.id === 'input' ? { ...stage, status: 'complete', progress: 82 } : stage.id === 'snapshot' ? { ...stage, status: 'active', progress: 90 } : stage));
+
+    if (typeof window !== 'undefined') {
+      (window as any).__RA4_GAME_DOCTOR__ = {
+        getSnapshot: () => useUIStore.getState().snapshot,
+        getSelectedEntityIds: () => useUIStore.getState().selectedEntityIds,
+        projectWorldToScreen: (wx: number, wz: number) => rendererRef.current?.projectWorldToScreen(wx, wz) ?? null,
+        getPerformance: () => ({
+          fps: renderer.engine.getFps(),
+          activeMeshes: renderer.scene.getActiveMeshes().length,
+          totalMeshes: renderer.scene.meshes.length,
+          heap: (performance as any).memory?.usedJSHeapSize ?? 0,
+        }),
+        triggerVictory: () => {
+          if (manager.sim) {
+            for (const entity of manager.sim.entities.values()) {
+              if (entity.playerIndex === 1) {
+                entity.hp = 0;
+              }
+            }
+          }
+        },
+      };
+    }
 
     let prevEntities = new Map<number, { hp: number; isBuilding: boolean; specId: string; playerIndex: number }>();
 

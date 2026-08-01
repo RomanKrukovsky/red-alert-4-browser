@@ -572,6 +572,12 @@ export class GameSimulation {
         return this.createSnapshot();
     }
     recalculateEconomy() {
+        // Purge any dead entities (hp <= 0)
+        for (const [id, entity] of Array.from(this.entities.entries())) {
+            if (entity.hp <= 0) {
+                this.entities.delete(id);
+            }
+        }
         for (let pIdx = 0; pIdx < this.players.length; pIdx++) {
             const p = this.players[pIdx];
             let powerProduced = 100;
@@ -581,7 +587,9 @@ export class GameSimulation {
             let hasHQ = false;
             let techTier = TechTier.T1;
             for (const e of this.entities.values()) {
-                if (e.playerIndex === pIdx) {
+                if (e.playerIndex === pIdx && e.hp > 0) {
+                    if (!this.surrenderedPlayers.has(pIdx))
+                        hasHQ = true;
                     if (e.isBuilding) {
                         const spec = DEFAULT_DATABASE.buildings.find(b => b.id === e.specId);
                         if (spec) {
@@ -589,8 +597,6 @@ export class GameSimulation {
                             powerConsumed += spec.powerConsumed;
                             commandCapMax += spec.commandCapGranted;
                             techTier = Math.max(techTier, spec.tier);
-                            if (spec.category === BuildingCategory.HQ && !this.surrenderedPlayers.has(pIdx))
-                                hasHQ = true;
                         }
                     }
                     else {

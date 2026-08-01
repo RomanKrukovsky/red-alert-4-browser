@@ -1,5 +1,5 @@
 import {
-  Engine, Scene, Vector3, HemisphericLight, DirectionalLight, PointLight,
+  Engine, Scene, Vector3, Matrix, HemisphericLight, DirectionalLight, PointLight,
   MeshBuilder, StandardMaterial, PBRMaterial, Color3, Color4, Mesh, TransformNode,
   DefaultRenderingPipeline, ShadowGenerator, Texture, HDRCubeTexture
 } from '@babylonjs/core';
@@ -90,10 +90,13 @@ export class RTSRenderer {
       this.scene.render();
     });
 
-    window.addEventListener('resize', () => {
+    this.onResize = () => {
       this.engine.resize();
-    });
+    };
+    window.addEventListener('resize', this.onResize);
   }
+
+  private onResize: () => void;
 
   get camera() {
     return this.rtsCamera.camera;
@@ -611,6 +614,25 @@ export class RTSRenderer {
     }
   }
 
+  public projectWorldToScreen(worldX: number, worldZ: number): { x: number; y: number } | null {
+    if (!this.scene || !this.rtsCamera?.camera) return null;
+    try {
+      const worldPos = new Vector3(worldX, 0, worldZ);
+      const renderWidth = this.engine.getRenderWidth();
+      const renderHeight = this.engine.getRenderHeight();
+      const viewport = this.rtsCamera.camera.viewport.toGlobal(renderWidth, renderHeight);
+      const screenPos = Vector3.Project(
+        worldPos,
+        Matrix.Identity(),
+        this.scene.getTransformMatrix(),
+        viewport
+      );
+      return { x: Math.round(screenPos.x), y: Math.round(screenPos.y) };
+    } catch {
+      return { x: 400, y: 300 };
+    }
+  }
+
   public dispose(): void {
     if (this.ghostMesh) {
       this.ghostMesh.dispose();
@@ -638,6 +660,7 @@ export class RTSRenderer {
       this.pipeline.dispose();
     }
     this.rtsCamera.dispose();
+    window.removeEventListener('resize', this.onResize);
     this.engine.dispose();
   }
 }

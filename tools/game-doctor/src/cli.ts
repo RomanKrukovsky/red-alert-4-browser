@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+
+import { GameDoctorRunner } from './runner.js';
+import { GameDoctorOptions } from './types.js';
+
+async function main() {
+  const args = process.argv.slice(2);
+  const command = args[0] || 'audit';
+
+  const validModes: GameDoctorOptions['mode'][] = ['audit', 'play', 'headless', 'visual', 'stress', 'soak', 'report'];
+  const mode = validModes.includes(command as any) ? (command as GameDoctorOptions['mode']) : 'audit';
+
+  const isHeadless = !args.includes('--headed');
+
+  console.log(`🏥 ===========================================`);
+  console.log(`🏥 RA4 GAME DOCTOR — Autonomous QA System`);
+  console.log(`🏥 Mode: ${mode}`);
+  console.log(`🏥 ===========================================`);
+
+  const runner = new GameDoctorRunner({
+    mode,
+    headless: isHeadless,
+  });
+
+  const success = await runner.run();
+  process.exit(success ? 0 : 1);
+}
+
+main().catch((err) => {
+  console.error('❌ Fatal error in Game Doctor CLI:', err);
+  process.exit(1);
+});

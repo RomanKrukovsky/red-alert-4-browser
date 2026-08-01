@@ -1,0 +1,25 @@
+{
+  "name": "@ra4/game-doctor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/cli.js",
+  "bin": {
+    "game-doctor": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ra4/content-runtime": "workspace:*",
+    "@ra4/shared-types": "workspace:*",
+    "@ra4/sim-core": "workspace:*",
+    "@ra4/replay": "workspace:*",
+    "playwright": "^1.62.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "typescript": "^5.7.3"
+  }
+}

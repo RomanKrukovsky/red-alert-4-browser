@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-08-01T19:18:32.945Z",
+  "durationSeconds": 16.045,
+  "mode": "play",
+  "passed": false,
+  "issuesFoundCount": 1,
+  "issuesFixedCount": 0,
+  "scenarios": [
+    {
+      "name": "Full E2E Playwright Browser Playtest Match",
+      "passed": false,
+      "durationMs": 16045
+    }
+  ],
+  "screenshots": [
+    "01-main-menu.png",
+    "02-skirmish-setup.png",
+    "03-match-start.png"
+  ],
+  "issues": [
+    {
+      "id": "exception_1785611912740",
+      "severity": "CRITICAL",
+      "title": "Unhandled Exception",
+      "description": "[PlaytestBot Error] page.evaluate: ReferenceError: Matrix is not defined\n    at RTSRenderer.projectWorldToScreen (http://localhost:5173/src/renderer.ts:568:7)\n    at Object.projectWorldToScreen (http:",
+      "category": "LIFE_CYCLE",
+      "status": "CONFIRMED",
+      "evidence": "[PlaytestBot Error] page.evaluate: ReferenceError: Matrix is not defined\n    at RTSRenderer.projectWorldToScreen (http://localhost:5173/src/renderer.ts:568:7)\n    at Object.projectWorldToScreen (http://localhost:5173/src/App.tsx?t=1785611902156:118:64)\n    at eval (eval at evaluate (:311:30), <anonymous>:11:28)\n    at UtilityScript.evaluate (<anonymous>:313:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+    }
+  ],
+  "performance": {
+    "fps": 60,
+    "simTickAvgMs": 0.08,
+    "simTickP95Ms": 0.15,
+    "simTickP99Ms": 0.25,
+    "renderFrameTimeMs": 16.6,
+    "activeMeshes": 42,
+    "totalMeshes": 120,
+    "drawCalls": 18,
+    "reactRenderCount": 5,
+    "jsHeapMb": 45.2,
+    "materialsCount": 14,
+    "texturesCount": 8,
+    "commandsIssued": 15,
+    "commandsRejected": 0,
+    "stuckUnitsCount": 0
+  }
+}
