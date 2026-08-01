@@ -1,5 +1,5 @@
 import { WebSocket } from 'ws';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'node:crypto';
 import { GameSimulation } from '@ra4/sim-core';
 import { validatePlayerCommand } from '@ra4/netcode';
 import { ReplayRecorder } from '@ra4/replay';
@@ -38,7 +38,7 @@ export class AuthoritativeMatchRuntime {
   private readonly tickIntervalMs = 33; // ~33.33ms (30 Hz)
 
   constructor(mapId: string, playerConfigs: MatchPlayerSession[], seed: number = 1337) {
-    this.matchId = uuidv4();
+    this.matchId = crypto.randomUUID();
     this.mapId = mapId;
     this.seed = seed;
 

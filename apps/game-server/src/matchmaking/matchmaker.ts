@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'node:crypto';
 import { FactionId } from '@ra4/shared-types';
 import { cacheDel, cacheGet, cacheSet } from '../persistence/redis.js';
 
@@ -24,7 +24,7 @@ export class Matchmaker {
       return existing;
     }
 
-    const ticketId = uuidv4().slice(0, 8);
+    const ticketId = crypto.randomUUID().slice(0, 8);
     const fullTicket: MatchmakingTicket = {
       ...ticket,
       ticketId,
