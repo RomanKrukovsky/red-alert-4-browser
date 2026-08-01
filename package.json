@@ -23,16 +23,22 @@
     "assets:build": "npx tsx tools/asset-pipeline/build-all-models.ts",
     "assets:report": "npx tsx tools/asset-pipeline/report-assets.ts",
     "ui:references": "npx tsx tools/ui-pipeline/references.ts",
-    "ui:screenshots": "npx tsx tools/ui-pipeline/references.ts",
+    "ui:screenshots": "npx tsx tools/ui-pipeline/screenshots.ts",
     "ui:compare": "npx tsx tools/ui-pipeline/compare.ts",
     "ui:test": "npx tsx tools/ui-pipeline/test.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/pixelmatch": "^5.2.6",
+    "@types/pngjs": "^6.0.5",
+    "eslint": "^9.20.1",
+    "pixelmatch": "^7.2.0",
+    "playwright": "^1.62.1",
+    "pngjs": "^7.0.0",
+    "prettier": "^3.5.1",
     "turbo": "^2.4.0",
     "typescript": "^5.7.3",
-    "vitest": "^3.0.5",
-    "prettier": "^3.5.1",
-    "eslint": "^9.20.1"
+    "vitest": "^3.0.5"
   },
   "engines": {
     "node": ">=20.0.0",

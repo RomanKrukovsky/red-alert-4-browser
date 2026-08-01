@@ -1,13 +1,15 @@
-/* Faction Theme: Allies (Western Alliance) */
+/* RA4 Allies Theme */
 .theme-allies {
-  --faction-primary: #2a8bf2;
-  --faction-glow: rgba(42, 139, 242, 0.4);
-  --faction-bg-accent: rgba(42, 139, 242, 0.12);
-  --faction-border: 1px solid #2a8bf2;
-  --faction-font-header: 'Orbitron', sans-serif;
-}
-
-.theme-allies .ra4-hud-panel {
-  border-color: #2a8bf2;
-  box-shadow: 0 0 20px rgba(42, 139, 242, 0.25), inset 0 0 15px rgba(42, 139, 242, 0.1);
+  --faction-primary: #0055ff;
+  --faction-secondary: #66b3ff;
+  --faction-dark: #001133;
+  --faction-glow: rgba(0, 136, 255, 0.6);
+  --faction-text: #cce6ff;
+  --faction-text-muted: #5588aa;
+  
+  --faction-clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); /* Chamfered modern corners */
+  
+  /* Clean steel border style */
+  --faction-border-style: 1px solid var(--faction-secondary);
+  --faction-box-shadow: inset 0 0 20px rgba(0, 85, 255, 0.15), 0 2px 8px rgba(0, 0, 0, 0.6);
 }

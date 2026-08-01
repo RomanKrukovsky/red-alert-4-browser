@@ -2,6 +2,7 @@ import React from 'react';
 import { useUIStore } from '../store.js';
 import { OFFICIAL_BUILDINGS, OFFICIAL_UNITS } from '@ra4/content-runtime';
 import { FactionId, CommandType } from '@ra4/shared-types';
+import { Frame } from './Frame.js';
 
 interface ProductionPanelProps {
   onIssueCommand?: (cmd: any) => void;
@@ -19,112 +20,74 @@ export const ProductionPanel: React.FC<ProductionPanelProps> = ({ onIssueCommand
   const buildings = OFFICIAL_BUILDINGS.filter(b => b.factionId === playerFaction);
   const units = OFFICIAL_UNITS.filter(u => u.factionId === playerFaction);
 
-  const handleBuildStructure = (structId: string) => {
-    onIssueCommand?.({
-      type: CommandType.BUILD_STRUCTURE,
-      structureId: structId,
-      gridX: 20,
-      gridY: 20,
-      playerIndex: playerIdx,
-      entityIds: [],
-      tick: snapshot?.tick ?? 0
-    });
-  };
-
-  const handleProduceUnit = (unitId: string) => {
-    // Find producing building
-    const producer = snapshot?.entities.find(e => e.playerIndex === playerIdx && e.isBuilding);
-    if (producer) {
-      onIssueCommand?.({
-        type: CommandType.PRODUCE_UNIT,
-        producerEntityId: producer.id,
-        unitId,
-        playerIndex: playerIdx,
-        entityIds: [],
-        tick: snapshot?.tick ?? 0
-      });
-    }
-  };
-
   return (
-    <div style={{
-      width: '260px',
-      background: 'rgba(12, 18, 28, 0.95)',
-      borderLeft: '1px solid rgba(255,255,255,0.15)',
+    <Frame className="ra4-production-panel" style={{
+      width: '320px',
+      height: 'calc(100vh - 80px)',
       display: 'flex',
       flexDirection: 'column',
-      color: '#fff',
-      fontFamily: 'Inter, system-ui, sans-serif'
+      borderRight: 'none',
+      borderBottom: 'none',
+      clipPath: 'polygon(20px 0, 100% 0, 100% 100%, 0 100%, 0 20px)'
     }}>
       {/* Category Tabs */}
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-        {(['BUILDINGS', 'INFANTRY', 'VEHICLES', 'AIR', 'NAVAL'] as const).map(tab => (
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', background: 'rgba(0,0,0,0.5)', marginBottom: '10px' }}>
+        {(['BUILDINGS', 'INFANTRY', 'VEHICLES', 'AIR'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             style={{
-              flex: 1,
-              padding: '8px 2px',
-              fontSize: '10px',
-              fontWeight: 700,
-              background: activeTab === tab ? 'rgba(255,77,77,0.2)' : 'transparent',
-              color: activeTab === tab ? '#ff4d4d' : '#888',
+              padding: '15px 5px',
+              fontSize: '11px',
+              fontWeight: 900,
+              background: activeTab === tab ? 'var(--faction-secondary)' : 'transparent',
+              color: activeTab === tab ? '#000' : 'var(--faction-text)',
               border: 'none',
-              borderBottom: activeTab === tab ? '2px solid #ff4d4d' : 'none',
+              borderBottom: activeTab === tab ? 'none' : '1px solid var(--faction-dark)',
               cursor: 'pointer'
             }}
           >
-            {tab[0]}
+            {tab.substring(0, 3)}
           </button>
         ))}
       </div>
 
       {/* Items Grid */}
-      <div style={{ flex: 1, padding: '10px', overflowY: 'auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+      <div style={{ flex: 1, padding: '10px', overflowY: 'auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', alignContent: 'start' }}>
         {activeTab === 'BUILDINGS' && buildings.map(b => (
-          <button
-            key={b.id}
-            onClick={() => handleBuildStructure(b.id)}
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '4px',
-              padding: '8px',
-              color: '#fff',
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-          >
-            <div style={{ fontSize: '11px', fontWeight: 700, textAlign: 'center' }}>{b.name}</div>
-            <div style={{ fontSize: '10px', color: '#ffd700' }}>{b.cost} ₡</div>
-          </button>
+          <div key={b.id} className="ra4-build-item" style={{
+            background: 'rgba(0,0,0,0.8)',
+            border: '1px solid var(--faction-secondary)',
+            height: '100px',
+            position: 'relative',
+            cursor: 'pointer'
+          }}>
+             <div style={{ position: 'absolute', bottom: 0, width: '100%', background: 'rgba(0,0,0,0.8)', padding: '5px', fontSize: '11px', textAlign: 'center' }}>
+                {b.name}
+             </div>
+             <div style={{ position: 'absolute', top: '5px', right: '5px', color: '#ffd700', fontSize: '11px', fontWeight: 'bold' }}>
+                {b.cost}
+             </div>
+          </div>
         ))}
 
         {activeTab !== 'BUILDINGS' && units.map(u => (
-          <button
-            key={u.id}
-            onClick={() => handleProduceUnit(u.id)}
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '4px',
-              padding: '8px',
-              color: '#fff',
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-          >
-            <div style={{ fontSize: '11px', fontWeight: 700, textAlign: 'center' }}>{u.name}</div>
-            <div style={{ fontSize: '10px', color: '#ffd700' }}>{u.cost} ₡</div>
-          </button>
+          <div key={u.id} className="ra4-build-item" style={{
+            background: 'rgba(0,0,0,0.8)',
+            border: '1px solid var(--faction-secondary)',
+            height: '100px',
+            position: 'relative',
+            cursor: 'pointer'
+          }}>
+             <div style={{ position: 'absolute', bottom: 0, width: '100%', background: 'rgba(0,0,0,0.8)', padding: '5px', fontSize: '11px', textAlign: 'center' }}>
+                {u.name}
+             </div>
+             <div style={{ position: 'absolute', top: '5px', right: '5px', color: '#ffd700', fontSize: '11px', fontWeight: 'bold' }}>
+                {u.cost}
+             </div>
+          </div>
         ))}
       </div>
-    </div>
+    </Frame>
   );
 };

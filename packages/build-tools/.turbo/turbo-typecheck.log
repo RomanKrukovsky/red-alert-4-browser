@@ -1,0 +1,4 @@
+
+> @ra4/build-tools@1.0.0 typecheck /Users/romanmolodyko/Documents/red-alert-4-browser/packages/build-tools
+> tsc --noEmit
+

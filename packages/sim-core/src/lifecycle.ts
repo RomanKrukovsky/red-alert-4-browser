@@ -16,6 +16,7 @@ export interface MatchConfig {
   seed?: number;
   players: { name: string; factionId: FactionId; type: PlayerType; team: number }[];
   tickRate?: number; // default 30 Hz
+  startingCredits?: number;
 }
 
 export class MatchLifecycleManager {
@@ -38,7 +39,7 @@ export class MatchLifecycleManager {
     const seed = config.seed ?? 1337;
     this.tickMs = 1000 / (config.tickRate ?? 30);
     this.sim = new GameSimulation(seed);
-    this.sim.initMatch(config.players);
+    this.sim.initMatch(config.players, config.startingCredits);
 
     this.state = MatchLifecycleState.INITIALIZED;
   }

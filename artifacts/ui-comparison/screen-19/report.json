@@ -1,8 +1,15 @@
 {
   "screenId": "screen-19",
-  "viewport": "1672x941",
-  "scaleFactor": 1.1483,
-  "visualDifferencePercentage": 0.85,
-  "geometryMatchScore": 98.5,
-  "status": "VERIFIED_PIXEL_ACCURATE"
+  "width": 1672,
+  "height": 941,
+  "differentPixels": 381673,
+  "differenceRatio": 0.24258589304872655,
+  "visualDifferencePercentage": 24.259,
+  "uiGeometry": {
+    "method": "edge-presence-in-ui-regions",
+    "comparedEdgePixels": 196313,
+    "differentEdgePixels": 189448,
+    "differenceRatio": 0.9650303342111831,
+    "differencePercentage": 96.503
+  }
 }

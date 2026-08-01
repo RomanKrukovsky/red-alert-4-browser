@@ -1,29 +1,23 @@
-import fs from 'fs';
-import path from 'path';
-
-console.log('=== RA4 UI Pipeline: References Indexer & Dimension Verification ===');
+import fs from 'node:fs';
+import path from 'node:path';
+import { PNG } from 'pngjs';
 
 const rootDir = process.cwd();
-const screenshotsDir = path.join(rootDir, '../red-alert-4/SCREENSHOTS');
+const screenshotsDir = path.join(rootDir, 'SCREENSHOTS');
 const artifactsDir = path.join(rootDir, 'artifacts/ui-comparison');
-
 fs.mkdirSync(artifactsDir, { recursive: true });
 
-const files: string[] = [];
-for (let i = 1; i <= 24; i++) {
-  files.push(`${i}.png`);
-}
-
-const inventory: Array<{ file: string; exists: boolean; path: string }> = [];
-
-for (const file of files) {
+const inventory = Array.from({ length: 24 }, (_, index) => {
+  const file = `${index + 1}.png`;
   const fullPath = path.join(screenshotsDir, file);
-  const exists = fs.existsSync(fullPath);
-  inventory.push({ file, exists, path: fullPath });
-  console.log(`Reference ${file}: ${exists ? '✓ FOUND' : '✗ NOT FOUND'}`);
-}
+  if (!fs.existsSync(fullPath)) return { file, exists: false, width: null, height: null, path: fullPath };
+  const image = PNG.sync.read(fs.readFileSync(fullPath));
+  return { file, exists: true, width: image.width, height: image.height, path: fullPath };
+});
 
-const reportPath = path.join(artifactsDir, 'references-report.json');
-fs.writeFileSync(reportPath, JSON.stringify(inventory, null, 2));
+const missing = inventory.filter((item) => !item.exists);
+fs.writeFileSync(path.join(artifactsDir, 'references-report.json'), JSON.stringify({ generatedAt: new Date().toISOString(), screenshotsDir, inventory }, null, 2));
 
-console.log(`SUCCESS! References index report created at ${reportPath}`);
+for (const item of inventory) console.log(`${item.exists ? '✓' : '✗'} ${item.file}${item.exists ? ` — ${item.width}×${item.height}` : ' — отсутствует'}`);
+if (missing.length > 0) throw new Error(`Не найдены эталоны: ${missing.map((item) => item.file).join(', ')}`);
+console.log(`Каталог экранов: ${path.join(rootDir, 'docs/ui/REFERENCE_SCREEN_CATALOG.md')}`);

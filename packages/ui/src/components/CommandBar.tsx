@@ -1,48 +1,35 @@
 import React from 'react';
-import { CommandType } from '@ra4/shared-types';
+import { Frame } from './Frame.js';
 
-interface CommandBarProps {
-  onCommand?: (type: CommandType) => void;
-}
-
-export const CommandBar: React.FC<CommandBarProps> = ({ onCommand }) => {
-  const cmds = [
-    { type: CommandType.MOVE, label: 'МАРШ' },
-    { type: CommandType.ATTACK, label: 'АТАКА' },
-    { type: CommandType.STOP, label: 'СТОП' },
-    { type: CommandType.HOLD, label: 'ДЕРЖАТЬ' },
-    { type: CommandType.PATROL, label: 'ПАТРУЛЬ' },
-    { type: CommandType.REPAIR_STRUCTURE, label: 'РЕМОНТ' },
-    { type: CommandType.SELL_STRUCTURE, label: 'ПРОДАТЬ' }
-  ];
-
+export const CommandBar: React.FC = () => {
   return (
-    <div style={{
+    <Frame className="ra4-command-bar" style={{
       display: 'flex',
-      gap: '6px',
-      background: 'rgba(12, 18, 28, 0.9)',
-      padding: '6px',
-      borderTop: '1px solid rgba(255,255,255,0.1)',
-      borderRight: '1px solid rgba(255,255,255,0.1)'
+      gap: '10px',
+      padding: '10px 20px',
+      clipPath: 'polygon(20px 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%, 0 20px)',
+      borderBottom: 'none'
     }}>
-      {cmds.map(c => (
-        <button
-          key={c.type}
-          onClick={() => onCommand?.(c.type)}
-          style={{
-            background: 'linear-gradient(180deg, #2a3444 0%, #1a2230 100%)',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '4px',
-            color: '#fff',
-            padding: '6px 12px',
-            fontSize: '10px',
-            fontWeight: 700,
-            cursor: 'pointer'
-          }}
-        >
-          {c.label}
-        </button>
-      ))}
-    </div>
+       {/* Selected Unit Portrait */}
+       <div style={{ width: '80px', height: '80px', border: '1px solid var(--faction-secondary)', background: '#110000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          TNK
+       </div>
+
+       {/* Unit Abilities / Stances */}
+       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '5px' }}>
+          {[1,2,3,4,5,6].map(i => (
+             <button key={i} style={{
+                width: '40px',
+                height: '38px',
+                background: 'rgba(0,0,0,0.5)',
+                border: '1px solid var(--faction-dark)',
+                color: 'var(--faction-text-muted)',
+                cursor: 'pointer'
+             }}>
+                A{i}
+             </button>
+          ))}
+       </div>
+    </Frame>
   );
 };

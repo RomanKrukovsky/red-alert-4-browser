@@ -1,142 +1,65 @@
-@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Orbitron:wght@600;800;900&family=Inter:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&family=Russo+One&family=Share+Tech+Mono&display=swap&subset=cyrillic');
 
 :root {
-  --font-display: 'Orbitron', sans-serif;
-  --font-ui: 'Chakra Petch', 'Inter', sans-serif;
-  --color-neon-cyan: #00ffc8;
-  --color-neon-blue: #00a2ff;
-  --color-soviet-red: #ff2a4b;
-  --color-alliance-blue: #2a8bf2;
-  --color-warning-gold: #ffd700;
-  --bg-dark-glass: rgba(10, 15, 24, 0.85);
-  --bg-dark-heavy: rgba(6, 9, 15, 0.95);
-  --border-neon-cyan: 1px solid rgba(0, 255, 200, 0.35);
-  --border-metal: 1px solid rgba(255, 255, 255, 0.12);
-  --shadow-neon-cyan: 0 0 20px rgba(0, 255, 200, 0.25);
-  --shadow-soviet-red: 0 0 20px rgba(255, 42, 75, 0.3);
+  font-family: 'Rajdhani', 'Oswald', sans-serif;
+  color: #e7dfd3;
+  background: #030507;
+  font-synthesis: none;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
 }
-
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  user-select: none;
 }
 
-body, html, #root {
+html,
+body,
+#root {
   width: 100%;
   height: 100%;
+  margin: 0;
   overflow: hidden;
-  background-color: #05080c;
-  font-family: var(--font-ui);
-  color: #ffffff;
+  background: #030507;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent-bright, #e74835);
+  outline-offset: 2px;
 }
 
 #renderCanvas {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+  opacity: 0;
   touch-action: none;
-  outline: none;
+  transition: opacity 360ms ease;
 }
 
-/* Glassmorphism Panel */
-.ra4-glass-panel {
-  background: var(--bg-dark-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: var(--border-neon-cyan);
-  border-radius: 6px;
-  box-shadow: var(--shadow-neon-cyan), inset 0 0 15px rgba(0, 255, 200, 0.05);
-  position: relative;
+#renderCanvas.is-visible {
+  opacity: 1;
 }
 
-/* Tactical Corner Brackets */
-.ra4-corner-brackets::before,
-.ra4-corner-brackets::after {
-  content: '';
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-color: var(--color-neon-cyan);
-  border-style: solid;
-  pointer-events: none;
-}
-
-.ra4-corner-brackets::before {
-  top: -1px;
-  left: -1px;
-  border-width: 2px 0 0 2px;
-}
-
-.ra4-corner-brackets::after {
-  bottom: -1px;
-  right: -1px;
-  border-width: 0 2px 2px 0;
-}
-
-/* CRT Scanlines Overlay */
-.ra4-crt-scanlines {
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%,
-    rgba(0, 0, 0, 0.25) 50%
-  );
-  background-size: 100% 4px;
-  pointer-events: none;
-}
-
-/* Glowing Neon Button */
-.ra4-btn-cyan {
-  font-family: var(--font-display);
-  background: linear-gradient(135deg, rgba(0, 255, 200, 0.25) 0%, rgba(0, 162, 255, 0.15) 100%);
-  color: var(--color-neon-cyan);
-  border: 1px solid var(--color-neon-cyan);
-  border-radius: 4px;
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  cursor: pointer;
-  box-shadow: 0 0 15px rgba(0, 255, 200, 0.2);
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  text-transform: uppercase;
-}
-
-.ra4-btn-cyan:hover {
-  background: linear-gradient(135deg, rgba(0, 255, 200, 0.5) 0%, rgba(0, 162, 255, 0.3) 100%);
-  box-shadow: 0 0 25px rgba(0, 255, 200, 0.5);
-  transform: translateY(-2px) scale(1.02);
-  color: #ffffff;
-}
-
-.ra4-btn-red {
-  font-family: var(--font-display);
-  background: linear-gradient(135deg, rgba(255, 42, 75, 0.3) 0%, rgba(180, 20, 40, 0.2) 100%);
-  color: #ff6b81;
-  border: 1px solid var(--color-soviet-red);
-  border-radius: 4px;
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  cursor: pointer;
-  box-shadow: 0 0 15px rgba(255, 42, 75, 0.25);
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  text-transform: uppercase;
-}
-
-.ra4-btn-red:hover {
-  background: linear-gradient(135deg, rgba(255, 42, 75, 0.6) 0%, rgba(220, 20, 50, 0.4) 100%);
-  box-shadow: 0 0 30px rgba(255, 42, 75, 0.6);
-  transform: translateY(-2px) scale(1.02);
-  color: #ffffff;
-}
-
-/* Animations */
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.8; box-shadow: 0 0 15px rgba(0, 255, 200, 0.3); }
-  50% { opacity: 1.0; box-shadow: 0 0 30px rgba(0, 255, 200, 0.7); }
-}
-
-.ra4-pulse {
-  animation: pulseGlow 2s infinite ease-in-out;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
 }

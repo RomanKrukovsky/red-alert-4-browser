@@ -1,0 +1,1 @@
+:root { --reference-width: 1672; --reference-height: 941; --ra4-ui-scale: clamp(.78, min(calc(100vw / 1672), calc(100vh / 941)), 1.18); --hud-edge: .7%; --screen-gutter: 1.2%; }

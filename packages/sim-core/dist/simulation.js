@@ -28,9 +28,9 @@ export class GameSimulation {
         this.fogOfWar = new FogOfWarManager(mapWidth, mapHeight);
         this.navigation = new NavigationService(mapWidth, mapHeight);
     }
-    initMatch(playerConfigs) {
+    initMatch(playerConfigs, startingCredits = 10000) {
         this.players = playerConfigs.map(cfg => ({
-            credits: 10000,
+            credits: startingCredits,
             powerProduced: 100,
             powerConsumed: 0,
             powerLow: false,

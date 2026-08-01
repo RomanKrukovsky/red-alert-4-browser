@@ -1,14 +1,15 @@
-/* Faction Theme: Eastern Coalition */
+/* RA4 Eastern Coalition Theme */
 .theme-eastern-coalition {
-  --faction-primary: #26b259;
-  --faction-gold: #ffd700;
-  --faction-glow: rgba(38, 178, 89, 0.4);
-  --faction-bg-accent: rgba(38, 178, 89, 0.12);
-  --faction-border: 1px solid #26b259;
-  --faction-font-header: 'Chakra Petch', sans-serif;
-}
-
-.theme-eastern-coalition .ra4-hud-panel {
-  border-color: #26b259;
-  box-shadow: 0 0 20px rgba(38, 178, 89, 0.25), inset 0 0 15px rgba(255, 215, 0, 0.1);
+  --faction-primary: #2E8B57;
+  --faction-secondary: #FFD700; /* Gold */
+  --faction-dark: #003311;
+  --faction-glow: rgba(255, 215, 0, 0.5); /* Gold glow */
+  --faction-text: #e6ffec;
+  --faction-text-muted: #88aa90;
+  
+  --faction-clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  
+  /* Ornate jade and gold border style */
+  --faction-border-style: 1px solid var(--faction-secondary);
+  --faction-box-shadow: inset 0 0 15px rgba(46, 139, 87, 0.4), 0 4px 10px rgba(0, 0, 0, 0.7);
 }

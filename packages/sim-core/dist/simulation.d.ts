@@ -75,7 +75,7 @@ export declare class GameSimulation {
         factionId: FactionId;
         type: PlayerType;
         team: number;
-    }[]): void;
+    }[], startingCredits?: number): void;
     spawnBuilding(specId: string, playerIndex: number, x: number, y: number): number;
     spawnUnit(specId: string, playerIndex: number, x: number, y: number): number;
     processCommands(commands: PlayerCommand[]): void;

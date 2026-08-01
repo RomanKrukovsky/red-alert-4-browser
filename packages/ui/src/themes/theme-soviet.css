@@ -1,13 +1,15 @@
-/* Faction Theme: USSR (Soviet Union) */
+/* RA4 Soviet Theme */
 .theme-soviet {
-  --faction-primary: #ff2a4b;
-  --faction-glow: rgba(255, 42, 75, 0.4);
-  --faction-bg-accent: rgba(255, 42, 75, 0.12);
-  --faction-border: 1px solid #ff2a4b;
-  --faction-font-header: 'Orbitron', sans-serif;
-}
-
-.theme-soviet .ra4-hud-panel {
-  border-color: #ff2a4b;
-  box-shadow: 0 0 20px rgba(255, 42, 75, 0.25), inset 0 0 15px rgba(255, 42, 75, 0.1);
+  --faction-primary: #8B0000;
+  --faction-secondary: #FF2400;
+  --faction-dark: #3a0000;
+  --faction-glow: rgba(255, 0, 0, 0.6);
+  --faction-text: #ffe0e0;
+  --faction-text-muted: #aa6666;
+  
+  --faction-clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); /* Chunky blocky rectangles */
+  
+  /* Heavy industrial border style */
+  --faction-border-style: 2px solid var(--faction-secondary);
+  --faction-box-shadow: inset 0 0 15px rgba(255, 0, 0, 0.2), 0 4px 6px rgba(0, 0, 0, 0.8);
 }

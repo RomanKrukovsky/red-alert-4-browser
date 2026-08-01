@@ -1,1 +1,1 @@
-{"version":3,"file":"Minimap.d.ts","sourceRoot":"","sources":["../../src/components/Minimap.tsx"],"names":[],"mappings":"AAAA,OAAO,KAA4B,MAAM,OAAO,CAAC;AAGjD,eAAO,MAAM,OAAO,EAAE,KAAK,CAAC,EA+D3B,CAAC"}
+{"version":3,"file":"Minimap.d.ts","sourceRoot":"","sources":["../../src/components/Minimap.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,MAAM,OAAO,CAAC;AAG1B,eAAO,MAAM,OAAO,EAAE,KAAK,CAAC,EAuD3B,CAAC"}

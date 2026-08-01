@@ -12,6 +12,7 @@ export interface UIState {
         type: 'INFO' | 'WARN' | 'DANGER';
     }[];
     isMenuOpen: boolean;
+    theme: string;
     setSnapshot: (snapshot: WorldSnapshot) => void;
     setSelectedEntityIds: (ids: number[]) => void;
     setActivePlayerIndex: (idx: number) => void;
@@ -19,6 +20,7 @@ export interface UIState {
     setActiveCategoryTab: (tab: 'BUILDINGS' | 'INFANTRY' | 'VEHICLES' | 'AIR' | 'NAVAL') => void;
     addEvaLog: (message: string, type?: 'INFO' | 'WARN' | 'DANGER') => void;
     toggleMenu: () => void;
+    setTheme: (theme: string) => void;
 }
 export declare const useUIStore: import("zustand").UseBoundStore<import("zustand").StoreApi<UIState>>;
 //# sourceMappingURL=store.d.ts.map

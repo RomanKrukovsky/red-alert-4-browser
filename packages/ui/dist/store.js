@@ -10,6 +10,7 @@ export const useUIStore = create((set) => ({
         { id: '1', timestamp: '00:00', message: 'Командная сеть развёрнута. Ожидание приказов.', type: 'INFO' }
     ],
     isMenuOpen: false,
+    theme: 'theme-soviet',
     setSnapshot: (snapshot) => set({ snapshot }),
     setSelectedEntityIds: (ids) => set({ selectedEntityIds: ids }),
     setActivePlayerIndex: (idx) => set({ activePlayerIndex: idx }),
@@ -21,6 +22,7 @@ export const useUIStore = create((set) => ({
             { id: Math.random().toString(), timestamp: new Date().toLocaleTimeString(), message, type }
         ]
     })),
-    toggleMenu: () => set((state) => ({ isMenuOpen: !state.isMenuOpen }))
+    toggleMenu: () => set((state) => ({ isMenuOpen: !state.isMenuOpen })),
+    setTheme: (theme) => set({ theme })
 }));
 //# sourceMappingURL=store.js.map

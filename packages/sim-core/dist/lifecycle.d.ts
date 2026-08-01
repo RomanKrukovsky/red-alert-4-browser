@@ -19,6 +19,7 @@ export interface MatchConfig {
         team: number;
     }[];
     tickRate?: number;
+    startingCredits?: number;
 }
 export declare class MatchLifecycleManager {
     state: MatchLifecycleState;

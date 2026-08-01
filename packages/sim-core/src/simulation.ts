@@ -83,9 +83,9 @@ export class GameSimulation {
     this.navigation = new NavigationService(mapWidth, mapHeight);
   }
 
-  public initMatch(playerConfigs: { name: string; factionId: FactionId; type: PlayerType; team: number }[]): void {
+  public initMatch(playerConfigs: { name: string; factionId: FactionId; type: PlayerType; team: number }[], startingCredits: number = 10000): void {
     this.players = playerConfigs.map(cfg => ({
-      credits: 10000,
+      credits: startingCredits,
       powerProduced: 100,
       powerConsumed: 0,
       powerLow: false,

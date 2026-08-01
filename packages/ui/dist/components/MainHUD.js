@@ -4,24 +4,10 @@ import { Minimap } from './Minimap.js';
 import { ProductionPanel } from './ProductionPanel.js';
 import { CommandBar } from './CommandBar.js';
 import { EVALog } from './EVALog.js';
+import './MainHUD.css';
+import { useUIStore } from '../store.js';
 export const MainHUD = ({ onIssueCommand }) => {
-    return (_jsxs("div", { style: {
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            pointerEvents: 'none',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between'
-        }, children: [_jsx("div", { style: { pointerEvents: 'auto' }, children: _jsx(HUDHeader, {}) }), _jsxs("div", { style: { flex: 1, display: 'flex', justifyContent: 'space-between', padding: '60px 20px 20px 20px' }, children: [_jsx(EVALog, {}), _jsx("div", { style: { pointerEvents: 'auto' }, children: _jsx(ProductionPanel, { onIssueCommand: onIssueCommand }) })] }), _jsxs("div", { style: {
-                    display: 'flex',
-                    alignItems: 'flex-end',
-                    justifyContent: 'space-between',
-                    padding: '10px 20px',
-                    pointerEvents: 'auto'
-                }, children: [_jsx(Minimap, {}), _jsx(CommandBar, {})] })] }));
+    const { theme } = useUIStore();
+    return (_jsxs("div", { className: `ra4-hud-container theme-${theme}`, children: [_jsx("div", { className: "ra4-hud-top-bar ra4-hud-interactive", children: _jsx(HUDHeader, {}) }), _jsx("div", { className: "ra4-hud-middle", children: _jsx(EVALog, {}) }), _jsxs("div", { className: "ra4-hud-bottom", children: [_jsx("div", { className: "ra4-hud-interactive", children: _jsx(Minimap, {}) }), _jsx("div", { className: "ra4-hud-interactive", style: { flex: 1, display: 'flex', justifyContent: 'center' }, children: _jsx(CommandBar, {}) }), _jsx("div", { className: "ra4-hud-interactive", children: _jsx(ProductionPanel, { onIssueCommand: onIssueCommand }) })] })] }));
 };
 //# sourceMappingURL=MainHUD.js.map

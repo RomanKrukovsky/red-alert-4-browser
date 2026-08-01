@@ -1,135 +1,187 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { RTSRenderer } from './renderer.js';
-import { InputManager } from './inputManager.js';
-import {
-  MainHUD, SkirmishMenu, AssetGallery, TitleScreen, MainMenuScreen,
-  CampaignSelectScreen, SkirmishSetupScreen, LoadingScreen, MissionBriefingScreen, StrategicMapScreen,
-  useUIStore
-} from '@ra4/ui';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MatchLifecycleManager } from '@ra4/sim-core';
-import { FactionId, PlayerType, PlayerCommand } from '@ra4/shared-types';
+import { FactionId, MatchState, PlayerCommand, PlayerType, WorldSnapshot } from '@ra4/shared-types';
+import { useUIStore } from '@ra4/ui';
+import { InputManager } from './inputManager.js';
+import { RTSRenderer } from './renderer.js';
+import { GameplayHUD, PauseOverlay } from './ui/hud/GameplayHUD.js';
+import { factionByHash, resolveScreen, screenByHash } from './ui/routing.js';
+import { BriefingScreen, CampaignSelectScreen, CommandCenterScreen, FactionCampaignScreen, MainMenuScreen, MatchResultScreen, SplashScreen, StrategicMapScreen, TransmissionScreen } from './ui/screens/FrontEndScreens.js';
+import { LoadingScreen, SkirmishSetupScreen } from './ui/screens/SkirmishScreens.js';
+import { FrontendScreen, LoadingStage, MatchSetup } from './ui/types.js';
+import { MusicManager } from './audio/musicManager.js';
+import { MusicPlayerWidget } from './ui/components/MusicPlayerWidget.js';
+import './ui/ra4-ui.css';
+
+const defaultSetup: MatchSetup = {
+  faction: FactionId.USSR,
+  opponentFaction: FactionId.ALLIANCE,
+  mapName: 'КИЕВ — КРАСНЫЙ РУБЕЖ',
+  difficulty: 'NORMAL',
+  startingCredits: 10000,
+  gameSpeed: 'NORMAL',
+};
+
+const factionCampaignHash: Record<FactionId, string> = {
+  [FactionId.USSR]: '#/campaign/soviet',
+  [FactionId.ALLIANCE]: '#/campaign/allies',
+  [FactionId.ORIENTAL_COALITION]: '#/campaign/coalition',
+  [FactionId.CHRONOLEGION]: '#/campaign/chronolegion',
+  [FactionId.NEUTRAL]: '#/campaign/soviet',
+};
 
 export const App: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<RTSRenderer | null>(null);
   const inputManagerRef = useRef<InputManager | null>(null);
   const managerRef = useRef<MatchLifecycleManager | null>(null);
+  const snapshotHandlerRef = useRef<(snapshot: WorldSnapshot) => void>(() => undefined);
+  const hasReceivedSnapshotRef = useRef(false);
+  const [currentScreen, setCurrentScreen] = useState<FrontendScreen>(() => resolveScreen(window.location.hash));
+  const [setup, setSetup] = useState<MatchSetup>(() => ({ ...defaultSetup, faction: factionByHash[window.location.hash] ?? defaultSetup.faction }));
+  const [loadingStages, setLoadingStages] = useState<LoadingStage[]>([]);
+  const [paused, setPaused] = useState(false);
+  const snapshot = useUIStore((state) => state.snapshot);
+  const selectedEntityIds = useUIStore((state) => state.selectedEntityIds);
 
-  type ScreenType = 'MATCH' | 'TITLE' | 'MAIN_MENU' | 'CAMPAIGN_SELECT' | 'STRATEGIC_MAP' | 'BRIEFING' | 'SKIRMISH_SETUP' | 'LOADING' | 'GALLERY';
-  const [currentScreen, setCurrentScreen] = useState<ScreenType>('MATCH');
-  const [loadProgress, setLoadProgress] = useState(0);
+  const navigate = useCallback((screen: FrontendScreen, hash: string) => {
+    window.location.hash = hash;
+    setCurrentScreen(screen);
+  }, []);
 
-  const initMatch = () => {
+  const disposeMatch = useCallback(() => {
+    inputManagerRef.current?.dispose();
+    managerRef.current?.dispose();
+    rendererRef.current?.dispose();
+    inputManagerRef.current = null;
+    managerRef.current = null;
+    rendererRef.current = null;
+    hasReceivedSnapshotRef.current = false;
+  }, []);
+
+  const initializeMatch = useCallback((matchSetup: MatchSetup) => {
     if (!canvasRef.current) return;
-
-    if (managerRef.current) managerRef.current.dispose();
-    if (rendererRef.current) rendererRef.current.dispose();
+    disposeMatch();
+    setLoadingStages((stages) => stages.map((stage) => stage.id === 'renderer' ? { ...stage, status: 'active', progress: 28 } : stage));
 
     const renderer = new RTSRenderer(canvasRef.current);
     rendererRef.current = renderer;
+    setLoadingStages((stages) => stages.map((stage) => stage.id === 'renderer' ? { ...stage, status: 'complete', progress: 38 } : stage.id === 'simulation' ? { ...stage, status: 'active', progress: 50 } : stage));
 
     const manager = new MatchLifecycleManager();
     managerRef.current = manager;
-
     manager.initialize({
-      seed: Math.floor(Math.random() * 1000000),
-      tickRate: 30,
+      seed: Math.floor(Math.random() * 1_000_000),
+      tickRate: matchSetup.gameSpeed === 'FAST' ? 36 : matchSetup.gameSpeed === 'SLOW' ? 24 : 30,
+      startingCredits: matchSetup.startingCredits,
       players: [
-        { name: 'Игрок (СССР)', factionId: FactionId.USSR, type: PlayerType.HUMAN, team: 0 },
-        { name: 'ИИ-Соперник (Альянс)', factionId: FactionId.ALLIANCE, type: PlayerType.AI_MEDIUM, team: 1 }
-      ]
+        { name: 'Игрок', factionId: matchSetup.faction, type: PlayerType.HUMAN, team: 0 },
+        { name: 'ИИ-Соперник', factionId: matchSetup.opponentFaction, type: matchSetup.difficulty === 'HARD' ? PlayerType.AI_HARD : matchSetup.difficulty === 'EASY' ? PlayerType.AI_EASY : PlayerType.AI_MEDIUM, team: 1 },
+      ],
     });
+    setLoadingStages((stages) => stages.map((stage) => stage.id === 'simulation' ? { ...stage, status: 'complete', progress: 63 } : stage.id === 'input' ? { ...stage, status: 'active', progress: 72 } : stage));
 
-    const handleDispatch = (cmd: PlayerCommand) => {
-      manager.commandBus.dispatch(cmd);
-    };
-
-    const inputManager = new InputManager(renderer, canvasRef.current, handleDispatch);
+    const inputManager = new InputManager(renderer, canvasRef.current, (command) => manager.commandBus.dispatch(command));
     inputManagerRef.current = inputManager;
+    setLoadingStages((stages) => stages.map((stage) => stage.id === 'input' ? { ...stage, status: 'complete', progress: 82 } : stage.id === 'snapshot' ? { ...stage, status: 'active', progress: 90 } : stage));
 
-    manager.start((snapshot) => {
-      renderer.updateScene(snapshot);
-      useUIStore.getState().setSnapshot(snapshot);
-    });
-  };
+    const handleSnapshot = (nextSnapshot: WorldSnapshot) => {
+      renderer.updateScene(nextSnapshot);
+      useUIStore.getState().setSnapshot(nextSnapshot);
+      if (manager.sim?.matchState === MatchState.FINISHED) {
+        manager.stop();
+        navigate(manager.sim.winnerTeam === 0 ? 'VICTORY' : 'DEFEAT', manager.sim.winnerTeam === 0 ? '#/victory' : '#/defeat');
+        return;
+      }
+      if (!hasReceivedSnapshotRef.current) {
+        hasReceivedSnapshotRef.current = true;
+        setLoadingStages((stages) => stages.map((stage) => ({ ...stage, status: 'complete', progress: 100 })));
+        window.requestAnimationFrame(() => navigate('MATCH', `#/hud/${matchSetup.faction === FactionId.ALLIANCE ? 'allies' : matchSetup.faction === FactionId.ORIENTAL_COALITION ? 'coalition' : matchSetup.faction === FactionId.CHRONOLEGION ? 'chronolegion' : 'soviet'}`));
+      }
+    };
+    snapshotHandlerRef.current = handleSnapshot;
+    manager.start(handleSnapshot);
+  }, [disposeMatch, navigate]);
+
+  const startMatch = useCallback((matchSetup: MatchSetup) => {
+    setSetup(matchSetup);
+    setLoadingStages([
+      { id: 'manifest', label: 'ПРОВЕРКА МАНИФЕСТА РЕСУРСОВ', progress: 12, status: 'complete' },
+      { id: 'renderer', label: 'BABYLON PRESENTATION LAYER', progress: 12, status: 'pending' },
+      { id: 'simulation', label: 'ИНИЦИАЛИЗАЦИЯ SIM-CORE', progress: 12, status: 'pending' },
+      { id: 'input', label: 'КОМАНДНЫЙ ПРОТОКОЛ И HUD', progress: 12, status: 'pending' },
+      { id: 'snapshot', label: 'ПЕРВЫЙ СНИМОК МИРА', progress: 12, status: 'pending' },
+    ]);
+    navigate('LOADING', '#/loading');
+    window.requestAnimationFrame(() => initializeMatch(matchSetup));
+  }, [initializeMatch, navigate]);
 
   useEffect(() => {
-    initMatch();
-    return () => {
-      inputManagerRef.current?.dispose();
-      managerRef.current?.dispose();
-      rendererRef.current?.dispose();
+    const onHashChange = () => {
+      const nextScreen = screenByHash[window.location.hash];
+      if (!nextScreen) return;
+      const directFaction = factionByHash[window.location.hash];
+      if (directFaction) setSetup((current) => ({ ...current, faction: directFaction }));
+      setCurrentScreen(nextScreen);
     };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
-  const handleIssueCommand = (cmd: PlayerCommand) => {
-    if (managerRef.current) {
-      managerRef.current.commandBus.dispatch(cmd);
-    }
+  useEffect(() => {
+    if (currentScreen === 'MATCH' && !managerRef.current) startMatch({ ...setup, faction: factionByHash[window.location.hash] ?? setup.faction });
+  }, [currentScreen, setup, startMatch]);
+
+  useEffect(() => {
+    MusicManager.getInstance().handleScreenChange(currentScreen);
+  }, [currentScreen]);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || currentScreen !== 'MATCH') return;
+      if (paused) managerRef.current?.resume(snapshotHandlerRef.current);
+      else managerRef.current?.pause();
+      setPaused((value) => !value);
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [currentScreen, paused]);
+
+  useEffect(() => disposeMatch, [disposeMatch]);
+
+  const issueCommand = (command: PlayerCommand) => managerRef.current?.commandBus.dispatch(command);
+  const pauseMatch = () => {
+    managerRef.current?.pause();
+    setPaused(true);
+  };
+  const resumeMatch = () => {
+    managerRef.current?.resume(snapshotHandlerRef.current);
+    setPaused(false);
+  };
+  const returnToMenu = () => {
+    setPaused(false);
+    disposeMatch();
+    navigate('MAIN_MENU', '#/menu');
   };
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      {/* 3D Canvas Layer */}
-      <canvas ref={canvasRef} id="renderCanvas" />
-
-      {/* Screen Router Overlays */}
-      {currentScreen === 'TITLE' && <TitleScreen onEnter={() => setCurrentScreen('MAIN_MENU')} />}
-      {currentScreen === 'MAIN_MENU' && <MainMenuScreen onSelectOption={(opt) => {
-        if (opt === 'CAMPAIGN') setCurrentScreen('CAMPAIGN_SELECT');
-        else if (opt === 'SKIRMISH') setCurrentScreen('SKIRMISH_SETUP');
-        else if (opt === 'EXIT') setCurrentScreen('TITLE');
-        else setCurrentScreen('MATCH');
-      }} />}
-      {currentScreen === 'CAMPAIGN_SELECT' && <CampaignSelectScreen onSelectFaction={() => setCurrentScreen('STRATEGIC_MAP')} onBack={() => setCurrentScreen('MAIN_MENU')} />}
-      {currentScreen === 'STRATEGIC_MAP' && <StrategicMapScreen onSelectMission={() => setCurrentScreen('BRIEFING')} onBack={() => setCurrentScreen('CAMPAIGN_SELECT')} />}
-      {currentScreen === 'BRIEFING' && <MissionBriefingScreen onContinue={() => setCurrentScreen('MATCH')} onBack={() => setCurrentScreen('STRATEGIC_MAP')} />}
-      {currentScreen === 'SKIRMISH_SETUP' && <SkirmishSetupScreen onStartMatch={() => setCurrentScreen('MATCH')} onBack={() => setCurrentScreen('MAIN_MENU')} />}
-      {currentScreen === 'LOADING' && <LoadingScreen progress={100} />}
-      {currentScreen === 'MATCH' && <MainHUD onIssueCommand={handleIssueCommand} />}
-      {currentScreen === 'MATCH' && <SkirmishMenu onStartMatch={initMatch} onRestartMatch={initMatch} onOpenGallery={() => setCurrentScreen('GALLERY')} />}
-      {currentScreen === 'GALLERY' && <AssetGallery onClose={() => setCurrentScreen('MATCH')} />}
-
-      {/* Dev Quick Screen Navigation Bar */}
-      <div style={quickNavStyle}>
-        <span style={{ fontSize: '11px', color: '#ff2a4b', fontWeight: 'bold', marginRight: '8px' }}>[RA4 DEV HUB]:</span>
-        <button style={navBtnStyle(currentScreen === 'MATCH')} onClick={() => setCurrentScreen('MATCH')}>🎮 БОЙ</button>
-        <button style={navBtnStyle(currentScreen === 'TITLE')} onClick={() => setCurrentScreen('TITLE')}>1. ЗАСТАВКА</button>
-        <button style={navBtnStyle(currentScreen === 'MAIN_MENU')} onClick={() => setCurrentScreen('MAIN_MENU')}>2. МЕНЮ</button>
-        <button style={navBtnStyle(currentScreen === 'CAMPAIGN_SELECT')} onClick={() => setCurrentScreen('CAMPAIGN_SELECT')}>3. КАМПАНИИ</button>
-        <button style={navBtnStyle(currentScreen === 'STRATEGIC_MAP')} onClick={() => setCurrentScreen('STRATEGIC_MAP')}>8. КАРТА</button>
-        <button style={navBtnStyle(currentScreen === 'BRIEFING')} onClick={() => setCurrentScreen('BRIEFING')}>9. БРИФИНГ</button>
-        <button style={navBtnStyle(currentScreen === 'SKIRMISH_SETUP')} onClick={() => setCurrentScreen('SKIRMISH_SETUP')}>17. СХВАТКА</button>
-        <button style={navBtnStyle(currentScreen === 'GALLERY')} onClick={() => setCurrentScreen('GALLERY')}>🖼️ 3D АССЕТЫ</button>
-      </div>
+    <div className="ra4-app-shell">
+      <canvas ref={canvasRef} id="renderCanvas" className={currentScreen === 'MATCH' ? 'is-visible' : ''} />
+      {currentScreen === 'SPLASH' && <SplashScreen onEnter={() => navigate('MAIN_MENU', '#/menu')} />}
+      {currentScreen === 'MAIN_MENU' && <MainMenuScreen onSelect={(option) => option === 'CAMPAIGN' ? navigate('CAMPAIGN_SELECT', '#/campaign') : option === 'SKIRMISH' ? navigate('SKIRMISH_SETUP', '#/skirmish') : option === 'EXIT' ? navigate('SPLASH', '#/splash') : undefined} />}
+      {currentScreen === 'CAMPAIGN_SELECT' && <CampaignSelectScreen onBack={() => navigate('MAIN_MENU', '#/menu')} onSelect={(faction) => { setSetup((current) => ({ ...current, faction })); navigate('FACTION_CAMPAIGN', factionCampaignHash[faction]); }} />}
+      {currentScreen === 'FACTION_CAMPAIGN' && setup.faction !== FactionId.NEUTRAL && <FactionCampaignScreen faction={setup.faction} onBack={() => navigate('CAMPAIGN_SELECT', '#/campaign')} onContinue={() => setup.faction === FactionId.ALLIANCE ? navigate('COMMAND_CENTER', '#/allied-command') : setup.faction === FactionId.ORIENTAL_COALITION ? navigate('COMMAND_CENTER', '#/coalition-command') : navigate('STRATEGIC_MAP', '#/strategic-map')} />}
+      {currentScreen === 'COMMAND_CENTER' && (setup.faction === FactionId.ALLIANCE || setup.faction === FactionId.ORIENTAL_COALITION) && <CommandCenterScreen faction={setup.faction} onBack={() => navigate('FACTION_CAMPAIGN', factionCampaignHash[setup.faction])} onContinue={() => navigate('STRATEGIC_MAP', '#/strategic-map')} />}
+      {currentScreen === 'STRATEGIC_MAP' && <StrategicMapScreen onBack={() => navigate('CAMPAIGN_SELECT', '#/campaign')} onContinue={() => navigate('BRIEFING', '#/briefing')} />}
+      {currentScreen === 'BRIEFING' && <BriefingScreen onBack={() => navigate('STRATEGIC_MAP', '#/strategic-map')} onContinue={() => navigate('TRANSMISSION', '#/transmission')} />}
+      {currentScreen === 'TRANSMISSION' && <TransmissionScreen onBack={() => navigate('BRIEFING', '#/briefing')} onContinue={() => startMatch(setup)} />}
+      {currentScreen === 'SKIRMISH_SETUP' && <SkirmishSetupScreen onBack={() => navigate('MAIN_MENU', '#/menu')} onStart={startMatch} />}
+      {currentScreen === 'LOADING' && <LoadingScreen setup={setup} stages={loadingStages} />}
+      {currentScreen === 'MATCH' && <GameplayHUD faction={setup.faction} snapshot={snapshot} selectedEntityIds={selectedEntityIds} onIssueCommand={issueCommand} onPause={pauseMatch} />}
+      {currentScreen === 'MATCH' && paused && <PauseOverlay onResume={resumeMatch} onExit={returnToMenu} />}
+      {currentScreen === 'VICTORY' && <MatchResultScreen result="victory" onMenu={returnToMenu} onRetry={() => startMatch(setup)} />}
+      {currentScreen === 'DEFEAT' && <MatchResultScreen result="defeat" onMenu={returnToMenu} onRetry={() => startMatch(setup)} />}
+      <MusicPlayerWidget />
     </div>
   );
 };
-
-const quickNavStyle: React.CSSProperties = {
-  position: 'absolute',
-  top: '8px',
-  left: '50%',
-  transform: 'translateX(-50%)',
-  backgroundColor: 'rgba(6, 9, 15, 0.92)',
-  border: '1px solid rgba(0, 255, 200, 0.4)',
-  borderRadius: '20px',
-  padding: '4px 14px',
-  display: 'flex',
-  alignItems: 'center',
-  gap: '6px',
-  zIndex: 9999,
-  boxShadow: '0 0 15px rgba(0, 255, 200, 0.2)'
-};
-
-const navBtnStyle = (active: boolean): React.CSSProperties => ({
-  background: active ? 'rgba(0, 255, 200, 0.25)' : 'transparent',
-  color: active ? '#00ffc8' : '#aaa',
-  border: active ? '1px solid #00ffc8' : '1px solid transparent',
-  borderRadius: '12px',
-  padding: '3px 10px',
-  fontSize: '11px',
-  fontWeight: 'bold',
-  cursor: 'pointer',
-  transition: 'all 0.15s ease'
-});

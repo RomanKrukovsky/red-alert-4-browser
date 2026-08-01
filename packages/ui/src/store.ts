@@ -9,6 +9,7 @@ export interface UIState {
   activeCategoryTab: 'BUILDINGS' | 'INFANTRY' | 'VEHICLES' | 'AIR' | 'NAVAL';
   evaLogs: { id: string; timestamp: string; message: string; type: 'INFO' | 'WARN' | 'DANGER' }[];
   isMenuOpen: boolean;
+  theme: string;
 
   setSnapshot: (snapshot: WorldSnapshot) => void;
   setSelectedEntityIds: (ids: number[]) => void;
@@ -17,6 +18,7 @@ export interface UIState {
   setActiveCategoryTab: (tab: 'BUILDINGS' | 'INFANTRY' | 'VEHICLES' | 'AIR' | 'NAVAL') => void;
   addEvaLog: (message: string, type?: 'INFO' | 'WARN' | 'DANGER') => void;
   toggleMenu: () => void;
+  setTheme: (theme: string) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -29,6 +31,7 @@ export const useUIStore = create<UIState>((set) => ({
     { id: '1', timestamp: '00:00', message: 'Командная сеть развёрнута. Ожидание приказов.', type: 'INFO' }
   ],
   isMenuOpen: false,
+  theme: 'theme-soviet',
 
   setSnapshot: (snapshot) => set({ snapshot }),
   setSelectedEntityIds: (ids) => set({ selectedEntityIds: ids }),
@@ -41,5 +44,6 @@ export const useUIStore = create<UIState>((set) => ({
       { id: Math.random().toString(), timestamp: new Date().toLocaleTimeString(), message, type }
     ]
   })),
-  toggleMenu: () => set((state) => ({ isMenuOpen: !state.isMenuOpen }))
+  toggleMenu: () => set((state) => ({ isMenuOpen: !state.isMenuOpen })),
+  setTheme: (theme) => set({ theme })
 }));

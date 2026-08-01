@@ -1,6 +1,7 @@
 import React from 'react';
 import { useUIStore } from '../store.js';
 import { OFFICIAL_FACTIONS } from '@ra4/content-runtime';
+import { Button } from './Button.js';
 
 export const HUDHeader: React.FC = () => {
   const snapshot = useUIStore((s) => s.snapshot);
@@ -20,104 +21,51 @@ export const HUDHeader: React.FC = () => {
   const factionSpec = OFFICIAL_FACTIONS[playerIdx % 4];
 
   return (
-    <div style={{
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: '52px',
-      background: 'linear-gradient(180deg, rgba(12,18,28,0.95) 0%, rgba(12,18,28,0.75) 100%)',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+    <div className="ra4-frame" style={{
+      width: '100%',
+      height: '60px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0 20px',
-      color: '#fff',
-      fontFamily: 'Inter, system-ui, sans-serif',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-      zIndex: 1000,
-      userSelect: 'none'
+      padding: '0 30px',
+      borderTop: 'none',
+      borderLeft: 'none',
+      borderRight: 'none',
+      clipPath: 'polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px))' // angled bottom-left
     }}>
       {/* Left: Faction Title & Resource */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-        <div style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '1px', color: '#ff4d4d' }}>
-          RA4 // {factionSpec.name.toUpperCase()}
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          <div style={{ fontSize: '10px', color: '#aaa', textTransform: 'uppercase' }}>
-            {factionSpec.resourceName}
-          </div>
-          <div style={{
-            width: '140px',
-            height: '10px',
-            background: 'rgba(255,255,255,0.1)',
-            borderRadius: '4px',
-            overflow: 'hidden',
-            border: '1px solid rgba(255,255,255,0.2)'
-          }}>
-            <div style={{
-              width: `${playerState.factionResource}%`,
-              height: '100%',
-              background: 'linear-gradient(90deg, #ff9900, #ff4d4d)'
-            }} />
-          </div>
+        <div style={{ fontSize: '20px', fontWeight: 900, letterSpacing: '2px', color: 'var(--faction-secondary)' }}>
+          {factionSpec.name.toUpperCase()}
         </div>
       </div>
 
       {/* Center: Core Resources */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '40px' }}>
         {/* Credits */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '20px' }}>🪙</span>
-          <span style={{ fontSize: '20px', fontWeight: 700, color: '#ffd700' }}>
-            {playerState.credits.toLocaleString()} ₡
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '24px' }}>🪙</span>
+          <span className="ra4-tabular-num" style={{ fontSize: '24px', fontWeight: 900, color: '#ffd700', textShadow: '0 0 10px rgba(255, 215, 0, 0.5)' }}>
+            {playerState.credits.toLocaleString()}
           </span>
         </div>
 
         {/* Power Grid */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '18px' }}>⚡</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '24px', color: playerState.powerLow ? '#ff0000' : '#00ff00' }}>⚡</span>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '14px', fontWeight: 700, color: playerState.powerLow ? '#ff4d4d' : '#4dff88' }}>
-              {playerState.powerConsumed} / {playerState.powerProduced} MW
+            <span className="ra4-tabular-num" style={{ fontSize: '18px', fontWeight: 900, color: playerState.powerLow ? '#ff4d4d' : '#4dff88' }}>
+              {playerState.powerConsumed} / {playerState.powerProduced}
             </span>
-            {playerState.powerLow && (
-              <span style={{ fontSize: '9px', color: '#ff4d4d', fontWeight: 800 }}>ДЕФИЦИТ ЭНЕРГИИ</span>
-            )}
           </div>
-        </div>
-
-        {/* Command Cap */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '18px' }}>🎖️</span>
-          <span style={{ fontSize: '14px', fontWeight: 700, color: '#4dc3ff' }}>
-            ЛИМИТ: {playerState.commandCapUsed} / {playerState.commandCapMax}
-          </span>
         </div>
       </div>
 
       {/* Right: Timer & Menu */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-        <div style={{ fontSize: '14px', fontFamily: 'monospace', color: '#888' }}>
-          TICK: {snapshot?.tick ?? 0}
-        </div>
-        <button
-          onClick={toggleMenu}
-          style={{
-            background: 'linear-gradient(135deg, #334, #223)',
-            border: '1px solid #556',
-            color: '#fff',
-            padding: '6px 16px',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: '12px',
-            textTransform: 'uppercase'
-          }}
-        >
-          МЕНЮ
-        </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <Button variant="primary" onClick={toggleMenu} style={{ padding: '10px 30px', fontSize: '14px' }}>
+          МЕНЮ (ESC)
+        </Button>
       </div>
     </div>
   );

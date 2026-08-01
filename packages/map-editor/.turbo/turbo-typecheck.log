@@ -1,0 +1,4 @@
+
+> @ra4/map-editor@1.0.0 typecheck /Users/romanmolodyko/Documents/red-alert-4-browser/packages/map-editor
+> tsc --noEmit
+

@@ -1,4 +1,6 @@
 export * from './store.js';
+export * from './components/Button.js';
+export * from './components/Frame.js';
 export * from './components/HUDHeader.js';
 export * from './components/Minimap.js';
 export * from './components/ProductionPanel.js';

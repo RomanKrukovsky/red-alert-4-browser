@@ -1,67 +1,59 @@
-import React, { useEffect, useRef } from 'react';
-import { useUIStore } from '../store.js';
+import React from 'react';
+import { Frame } from './Frame.js';
 
 export const Minimap: React.FC = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const snapshot = useUIStore((s) => s.snapshot);
-  const playerIdx = useUIStore((s) => s.activePlayerIndex);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Clear background
-    ctx.fillStyle = '#080d14';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Draw grid border
-    ctx.strokeStyle = 'rgba(0, 255, 200, 0.2)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(0, 0, canvas.width, canvas.height);
-
-    if (!snapshot) return;
-
-    // Draw entities
-    const mapScale = canvas.width / (64 * 1000);
-
-    for (const e of snapshot.entities) {
-      const mx = e.position.x * mapScale;
-      const my = e.position.y * mapScale;
-
-      if (e.playerIndex === playerIdx) {
-        ctx.fillStyle = '#00ff66';
-      } else {
-        ctx.fillStyle = '#ff3333';
-      }
-
-      const size = e.isBuilding ? 6 : 3;
-      ctx.fillRect(mx - size / 2, my - size / 2, size, size);
-    }
-  }, [snapshot, playerIdx]);
-
   return (
-    <div style={{
-      width: '180px',
-      height: '180px',
-      background: '#0c121c',
-      border: '2px solid rgba(0, 255, 200, 0.3)',
-      boxShadow: '0 0 15px rgba(0,0,0,0.8)',
-      position: 'relative'
+    <Frame className="ra4-minimap-panel" style={{
+      width: '300px',
+      height: '300px',
+      display: 'flex',
+      flexDirection: 'column',
+      padding: '10px',
+      clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 30px), calc(100% - 30px) 100%, 0 100%)'
     }}>
-      <canvas ref={canvasRef} width={180} height={180} />
+      {/* Radar sweeping effect container */}
       <div style={{
-        position: 'absolute',
-        bottom: '4px',
-        left: '4px',
-        fontSize: '9px',
-        color: '#00ffc8',
-        fontWeight: 700,
-        textTransform: 'uppercase'
+        flex: 1,
+        background: '#000',
+        border: '1px solid var(--faction-secondary)',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        РАДАР: АКТИВЕН
+        {/* Mock Map Image */}
+        <div style={{
+           width: '100%',
+           height: '100%',
+           backgroundImage: 'url("data:image/svg+xml;utf8,<svg xmlns=\\"http://www.w3.org/2000/svg\\" width=\\"10\\" height=\\"10\\"><rect width=\\"10\\" height=\\"10\\" fill=\\"%23110000\\"/><circle cx=\\"5\\" cy=\\"5\\" r=\\"1\\" fill=\\"%23330000\\"/></svg>")',
+           backgroundSize: '20px 20px'
+        }} />
+        
+        {/* Mock Units */}
+        <div style={{ position: 'absolute', top: '40%', left: '40%', width: '4px', height: '4px', background: '#00ff00' }} />
+        <div style={{ position: 'absolute', top: '45%', left: '38%', width: '4px', height: '4px', background: '#00ff00' }} />
+        <div style={{ position: 'absolute', top: '70%', left: '80%', width: '4px', height: '4px', background: '#ff0000' }} />
+        
+        {/* Radar Sweep */}
+        <div style={{
+           position: 'absolute',
+           top: '50%',
+           left: '50%',
+           width: '150%',
+           height: '150%',
+           background: 'conic-gradient(from 0deg, transparent 70%, rgba(255, 0, 0, 0.4) 100%)',
+           transformOrigin: '0 0',
+           animation: 'spin 4s linear infinite'
+        }} />
       </div>
-    </div>
+      
+      {/* Map Controls */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+         <button style={{ background: 'transparent', border: '1px solid var(--faction-dark)', color: 'var(--faction-text)', padding: '5px 10px', fontSize: '10px' }}>РЕЖИМ 1</button>
+         <button style={{ background: 'transparent', border: '1px solid var(--faction-dark)', color: 'var(--faction-text)', padding: '5px 10px', fontSize: '10px' }}>РЕЖИМ 2</button>
+      </div>
+      
+      <style>{`
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+      `}</style>
+    </Frame>
   );
 };

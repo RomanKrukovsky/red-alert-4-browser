@@ -1,32 +1,22 @@
 import React from 'react';
-import { useUIStore } from '../store.js';
 
 export const EVALog: React.FC = () => {
-  const logs = useUIStore((s) => s.evaLogs);
-
   return (
-    <div style={{
-      width: '320px',
-      maxHeight: '120px',
-      overflowY: 'auto',
-      background: 'rgba(12, 18, 28, 0.75)',
-      border: '1px solid rgba(255,255,255,0.1)',
-      borderRadius: '4px',
-      padding: '8px',
+    <div className="ra4-eva-log" style={{
+      width: '350px',
       display: 'flex',
       flexDirection: 'column',
-      gap: '4px',
-      fontFamily: 'monospace',
-      fontSize: '11px',
-      pointerEvents: 'none'
+      gap: '5px',
+      fontSize: '12px',
+      fontFamily: 'var(--font-family-mono)',
+      letterSpacing: 'var(--letter-spacing-wide)',
+      pointerEvents: 'none',
+      textShadow: '0 1px 2px #000'
     }}>
-      {logs.map(log => (
-        <div key={log.id} style={{
-          color: log.type === 'DANGER' ? '#ff4d4d' : log.type === 'WARN' ? '#ffd700' : '#00ffc8'
-        }}>
-          [{log.timestamp}] EVA: {log.message}
-        </div>
-      ))}
+       <div style={{ color: '#00ff00' }}>[EVA] Установка связи...</div>
+       <div style={{ color: '#00ff00' }}>[EVA] Командир, добро пожаловать.</div>
+       <div style={{ color: '#ffcc00' }}>[СИСТЕМА] Обнаружено передвижение противника.</div>
+       <div style={{ color: '#ff0000' }}>[ВНИМАНИЕ] Наша база атакована.</div>
     </div>
   );
 };

@@ -1,0 +1,66 @@
+/* RA4 Design Token System: AAA RTS Typography */
+:root {
+  /* Font Families */
+  --font-family-logo: 'Russo One', 'Oswald', sans-serif;
+  --font-family-header: 'Russo One', 'Oswald', sans-serif;
+  --font-family-ui: 'Rajdhani', 'Oswald', sans-serif;
+  --font-family-mono: 'Share Tech Mono', 'Courier New', monospace;
+
+  /* Font Sizes */
+  --font-size-xs: 11px;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-lg: 18px;
+  --font-size-xl: 22px;
+  --font-size-2xl: 28px;
+  --font-size-3xl: 36px;
+  --font-size-logo: 52px;
+
+  /* Font Weights */
+  --font-weight-regular: 500;
+  --font-weight-medium: 600;
+  --font-weight-bold: 700;
+
+  /* Letter Spacings */
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0.03em;
+  --letter-spacing-wide: 0.08em;
+  --letter-spacing-widest: 0.15em;
+  --letter-spacing-header: 0.12em;
+}
+
+/* Typography Utility Classes */
+.ra4-font-header {
+  font-family: var(--font-family-header);
+  letter-spacing: var(--letter-spacing-header);
+  text-transform: uppercase;
+}
+
+.ra4-font-ui {
+  font-family: var(--font-family-ui);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+.ra4-font-mono {
+  font-family: var(--font-family-mono);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.ra4-tabular-num {
+  font-family: var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Tactical Text Effects */
+.ra4-text-glow-soviet {
+  text-shadow: 0 0 8px rgba(231, 72, 53, 0.6), 0 0 16px rgba(231, 72, 53, 0.3);
+}
+
+.ra4-text-glow-allies {
+  text-shadow: 0 0 8px rgba(74, 158, 255, 0.6), 0 0 16px rgba(74, 158, 255, 0.3);
+}
+
+.ra4-text-glow-gold {
+  text-shadow: 0 0 8px rgba(236, 182, 70, 0.6), 0 0 16px rgba(236, 182, 70, 0.3);
+}
