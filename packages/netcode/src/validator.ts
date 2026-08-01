@@ -35,18 +35,26 @@ export function validatePlayerCommand(cmd: PlayerCommand, sim: GameSimulation, p
       }
       return { valid: true };
     }
+
     case CommandType.BUILD_STRUCTURE: {
       if (cmd.gridX < 0 || cmd.gridY < 0 || cmd.gridX >= 64 || cmd.gridY >= 64) {
         return { valid: false, reason: 'Grid coordinates out of map bounds' };
       }
+      // Server-side credit validation
+      if (p.credits < 100) {
+        return { valid: false, reason: 'Insufficient player credits for structure construction' };
+      }
       return { valid: true };
     }
+
     case CommandType.PRODUCE_UNIT: {
       const producer = sim.entities.get(cmd.producerEntityId);
       if (!producer) return { valid: false, reason: 'Producer entity does not exist' };
       if (producer.playerIndex !== playerIndex) return { valid: false, reason: 'Producer ownership mismatch' };
+      if (p.credits < 50) return { valid: false, reason: 'Insufficient player credits for unit production' };
       return { valid: true };
     }
+
     default:
       return { valid: true };
   }
