@@ -1,5 +1,6 @@
 import { GameSimulation } from '../simulation.js';
 import { AIBlackboard } from './aiBlackboard.js';
+import { getPersonalityProfile } from './aiPersonalities.js';
 
 export interface ArmySquad {
   id: string;
@@ -10,6 +11,7 @@ export interface ArmySquad {
 export class AIArmyGroupManager {
   public update(sim: GameSimulation, bb: AIBlackboard): ArmySquad[] {
     const myUnits = Array.from(sim.entities.values()).filter(e => e.playerIndex === bb.playerIndex && !e.isBuilding && e.maxOre === 0);
+    const profile = getPersonalityProfile(bb);
 
     const squads: ArmySquad[] = [
       { id: 'sq_defense', type: 'DEFENSE', entityIds: [] },
@@ -17,14 +19,17 @@ export class AIArmyGroupManager {
       { id: 'sq_recon', type: 'RECON', entityIds: [] }
     ];
 
-    // Assign first 2 units to defense, remaining to strike squad
-    myUnits.forEach((unit, idx) => {
-      if (idx < 2) {
+    let defendersAssigned = 0;
+    for (const unit of myUnits) {
+      if (unit.specId.includes('Scout') && squads[2].entityIds.length === 0) {
+        squads[2].entityIds.push(unit.id);
+      } else if (defendersAssigned < profile.defenseReserve) {
         squads[0].entityIds.push(unit.id);
+        defendersAssigned++;
       } else {
         squads[1].entityIds.push(unit.id);
       }
-    });
+    }
 
     return squads;
   }

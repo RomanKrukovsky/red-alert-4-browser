@@ -9,6 +9,7 @@ import { AIBasePlanner } from './ai/basePlanner.js';
 import { AIProductionManager } from './ai/productionManager.js';
 import { AIArmyGroupManager } from './ai/armyGroupManager.js';
 import { AITacticalController } from './ai/tacticalController.js';
+import { getPersonalityProfile } from './ai/aiPersonalities.js';
 
 export class SkirmishAIAgent {
   public playerIndex: number;
@@ -27,12 +28,13 @@ export class SkirmishAIAgent {
     playerIndex: number,
     factionId: FactionId = FactionId.ALLIANCE,
     difficulty: 'EASY' | 'NORMAL' | 'HARD' | 'HARD_FAIR' = 'HARD_FAIR',
-    personality: 'AGGRESSIVE' | 'DEFENSIVE' | 'ECONOMIC' | 'ADAPTIVE' | 'RAIDER' = 'ADAPTIVE'
+    personality: 'AGGRESSIVE' | 'DEFENSIVE' | 'ECONOMIC' | 'ADAPTIVE' | 'RAIDER' = 'ADAPTIVE',
+    team: number = playerIndex
   ) {
     this.playerIndex = playerIndex;
-    this.blackboard = createInitialBlackboard(playerIndex, factionId, difficulty, personality);
+    this.blackboard = createInitialBlackboard(playerIndex, factionId, difficulty, personality, team);
 
-    this.scheduler = new AIScheduler();
+    this.scheduler = new AIScheduler(difficulty);
     this.worldModel = new AIWorldModel();
     this.director = new AIDirector();
     this.economyManager = new AIEconomyManager();
@@ -40,6 +42,7 @@ export class SkirmishAIAgent {
     this.productionManager = new AIProductionManager();
     this.armyGroupManager = new AIArmyGroupManager();
     this.tacticalController = new AITacticalController();
+    this.blackboard.targetHarvesterCount = getPersonalityProfile(this.blackboard).targetHarvesters;
   }
 
   public update(sim: GameSimulation): PlayerCommand[] {

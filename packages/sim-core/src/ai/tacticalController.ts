@@ -2,34 +2,64 @@ import { GameSimulation } from '../simulation.js';
 import { PlayerCommand, CommandType } from '@ra4/shared-types';
 import { AIBlackboard } from './aiBlackboard.js';
 import { ArmySquad } from './armyGroupManager.js';
+import { getPersonalityProfile } from './aiPersonalities.js';
 
 export class AITacticalController {
   public update(sim: GameSimulation, bb: AIBlackboard, squads: ArmySquad[]): PlayerCommand[] {
     const commands: PlayerCommand[] = [];
+    const profile = getPersonalityProfile(bb);
+    const reconSquad = squads.find(s => s.type === 'RECON');
 
-    const strikeSquad = squads.find(s => s.type === 'STRIKE');
-    if (!strikeSquad || strikeSquad.entityIds.length < 4) return commands;
-
-    // Determine target position from FOW Intel Memory
-    const knownEnemies = Array.from(bb.intelEntries.values()).filter(e => e.certainty > 0.1);
-    let targetX = 50000;
-    let targetY = 50000;
-
-    if (knownEnemies.length > 0) {
-      // Prioritize enemy HQ or buildings
-      const bldg = knownEnemies.find(e => e.isBuilding);
-      if (bldg) {
-        targetX = bldg.x;
-        targetY = bldg.y;
-      } else {
-        targetX = knownEnemies[0].x;
-        targetY = knownEnemies[0].y;
+    if (reconSquad && reconSquad.entityIds.length > 0) {
+      const idleReconIds = reconSquad.entityIds.filter(entityId => {
+        const entity = sim.entities.get(entityId);
+        return entity && entity.targetX === undefined && entity.targetEntityId === undefined;
+      });
+      if (idleReconIds.length > 0) {
+        const scoutWaypoints = [
+          { x: 32_000, y: 32_000 },
+          { x: 12_000, y: 52_000 },
+          { x: 52_000, y: 12_000 },
+          { x: 52_000, y: 52_000 },
+          { x: 12_000, y: 12_000 }
+        ];
+        const waypointIndex = (Math.floor(sim.tickIndex / 300) + idleReconIds[0]) % scoutWaypoints.length;
+        const waypoint = scoutWaypoints[waypointIndex];
+        commands.push({
+          type: CommandType.MOVE,
+          entityIds: idleReconIds,
+          targetX: waypoint.x,
+          targetY: waypoint.y,
+          playerIndex: bb.playerIndex,
+          tick: sim.tickIndex
+        });
       }
     }
 
+    const strikeSquad = squads.find(s => s.type === 'STRIKE');
+    if (!strikeSquad || strikeSquad.entityIds.length < profile.strikeThreshold) return commands;
+
+    // Determine target position from FOW Intel Memory
+    const knownEnemies = Array.from(bb.intelEntries.values()).filter(e => e.certainty > 0.1);
+    if (knownEnemies.length === 0) return commands;
+
+    knownEnemies.sort((a, b) => {
+      if (a.isBuilding !== b.isBuilding) return a.isBuilding ? -1 : 1;
+      if (a.certainty !== b.certainty) return b.certainty - a.certainty;
+      return a.entityId - b.entityId;
+    });
+    const targetX = knownEnemies[0].x;
+    const targetY = knownEnemies[0].y;
+
+    const idleStrikeIds = strikeSquad.entityIds.filter(entityId => {
+      const entity = sim.entities.get(entityId);
+      return entity && entity.targetX === undefined && entity.targetEntityId === undefined;
+    });
+    if (idleStrikeIds.length !== strikeSquad.entityIds.length) return commands;
+
     commands.push({
       type: CommandType.ATTACK_MOVE,
-      entityIds: [...strikeSquad.entityIds],
+      entityIds: idleStrikeIds,
       targetX,
       targetY,
       playerIndex: bb.playerIndex,

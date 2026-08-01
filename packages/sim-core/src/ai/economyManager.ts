@@ -1,5 +1,6 @@
 import { GameSimulation } from '../simulation.js';
 import { PlayerCommand, CommandType, FactionId } from '@ra4/shared-types';
+import { DEFAULT_DATABASE } from '@ra4/content-runtime';
 import { AIBlackboard } from './aiBlackboard.js';
 
 export class AIEconomyManager {
@@ -17,8 +18,9 @@ export class AIEconomyManager {
     if (myHarvesters.length < bb.targetHarvesterCount && factories.length > 0) {
       const factory = factories[0];
       if (factory.productionQueue.length < 2) {
-        const harvesterSpec = bb.factionId === FactionId.ALLIANCE ? 'AL_ChronoCollector' : 'SU_BogatyrOreCarrier';
-        if (p.credits >= 1400) {
+        const harvesterSpec = bb.factionId === FactionId.ALLIANCE ? 'AL_PioneerHarvester' : 'SU_BogatyrOreCarrier';
+        const harvesterCost = DEFAULT_DATABASE.units.find(unit => unit.id === harvesterSpec)?.cost;
+        if (harvesterCost !== undefined && p.credits >= harvesterCost) {
           commands.push({
             type: CommandType.PRODUCE_UNIT,
             producerEntityId: factory.id,

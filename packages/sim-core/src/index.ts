@@ -11,4 +11,6 @@ export * from './lifecycle.js';
 export * from './navigation.js';
 export * from './aiAgent.js';
 export * from './ai/aiBlackboard.js';
+export * from './ai/aiScheduler.js';
+export * from './ai/worldModel.js';
 export * from './superweaponManager.js';

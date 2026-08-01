@@ -25,6 +25,7 @@ export interface AIOperationGoal {
 
 export interface AIBlackboard {
   playerIndex: number;
+  team: number;
   factionId: FactionId;
   difficulty: 'EASY' | 'NORMAL' | 'HARD' | 'HARD_FAIR';
   personality: 'AGGRESSIVE' | 'DEFENSIVE' | 'ECONOMIC' | 'ADAPTIVE' | 'RAIDER';
@@ -57,10 +58,12 @@ export function createInitialBlackboard(
   playerIndex: number,
   factionId: FactionId,
   difficulty: 'EASY' | 'NORMAL' | 'HARD' | 'HARD_FAIR' = 'HARD_FAIR',
-  personality: 'AGGRESSIVE' | 'DEFENSIVE' | 'ECONOMIC' | 'ADAPTIVE' | 'RAIDER' = 'ADAPTIVE'
+  personality: 'AGGRESSIVE' | 'DEFENSIVE' | 'ECONOMIC' | 'ADAPTIVE' | 'RAIDER' = 'ADAPTIVE',
+  team: number = playerIndex
 ): AIBlackboard {
   return {
     playerIndex,
+    team,
     factionId,
     difficulty,
     personality,

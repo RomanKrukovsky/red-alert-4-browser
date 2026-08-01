@@ -15,7 +15,7 @@
     "test:combat": "node ./dist/combat.test.js",
     "test:economy": "node ./dist/economy.test.js",
     "test:building": "node ./dist/building.test.js",
-    "test:ai": "node ./dist/aiMatch.test.js"
+    "test:ai": "node ./dist/aiRegression.test.js && node ./dist/aiMatch.test.js"
   },
   "dependencies": {
     "@ra4/shared-types": "workspace:*",

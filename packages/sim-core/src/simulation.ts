@@ -72,6 +72,7 @@ export class GameSimulation {
   public players: PlayerEconomyState[] = [];
   public resourceNodes: Map<string, ResourceNodeState> = new Map();
   public aiAgents: Map<number, SkirmishAIAgent> = new Map();
+  public playerTeams: number[] = [];
 
   public nextEntityId: number = 1;
   public matchState: MatchState = MatchState.IN_GAME;
@@ -86,6 +87,7 @@ export class GameSimulation {
   }
 
   public initMatch(playerConfigs: { name: string; factionId: FactionId; type: PlayerType; team: number }[], startingCredits: number = 10000): void {
+    this.playerTeams = playerConfigs.map(config => config.team);
     this.players = playerConfigs.map(cfg => ({
       credits: startingCredits,
       powerProduced: 100,
@@ -102,7 +104,12 @@ export class GameSimulation {
       this.fogOfWar.registerTeam(p.team);
       this.superweaponManager.initPlayerSuperweapons(idx, p.factionId);
       if (p.type !== PlayerType.HUMAN && p.type !== PlayerType.SPECTATOR) {
-        this.aiAgents.set(idx, new SkirmishAIAgent(idx, p.factionId));
+        const difficulty = p.type === PlayerType.AI_EASY
+          ? 'EASY'
+          : p.type === PlayerType.AI_MEDIUM
+            ? 'NORMAL'
+            : 'HARD_FAIR';
+        this.aiAgents.set(idx, new SkirmishAIAgent(idx, p.factionId, difficulty, 'ADAPTIVE', p.team));
       }
     });
 
@@ -222,7 +229,8 @@ export class GameSimulation {
     if (!p) return;
 
     switch (cmd.type) {
-      case CommandType.MOVE: {
+      case CommandType.MOVE:
+      case CommandType.ATTACK_MOVE: {
         const movableEntities = cmd.entityIds
           .map(id => this.entities.get(id))
           .filter((e): e is SimEntity => !!e && e.playerIndex === cmd.playerIndex && !e.isBuilding);
@@ -288,7 +296,23 @@ export class GameSimulation {
         const producer = this.entities.get(cmd.producerEntityId);
         if (producer && producer.playerIndex === cmd.playerIndex && producer.isBuilding) {
           const unitSpec = DEFAULT_DATABASE.units.find(u => u.id === cmd.unitId);
-          if (unitSpec && p.credits >= unitSpec.cost && (p.commandCapUsed + unitSpec.commandCapCost) <= p.commandCapMax) {
+          const producerSpec = DEFAULT_DATABASE.buildings.find(building => building.id === producer.specId);
+          const ownedSpecIds = new Set(
+            Array.from(this.entities.values())
+              .filter(entity => entity.playerIndex === cmd.playerIndex)
+              .map(entity => entity.specId)
+          );
+          const prerequisitesMet = unitSpec?.prerequisites.every(id => ownedSpecIds.has(id)) ?? false;
+          const compatibleProducer = producerSpec?.producesCategory === unitSpec?.category;
+          if (
+            unitSpec &&
+            unitSpec.factionId === producer.factionId &&
+            unitSpec.tier <= p.techTier &&
+            prerequisitesMet &&
+            compatibleProducer &&
+            p.credits >= unitSpec.cost &&
+            (p.commandCapUsed + unitSpec.commandCapCost) <= p.commandCapMax
+          ) {
             p.credits -= unitSpec.cost;
             producer.productionQueue.push({
               specId: unitSpec.id,
@@ -326,11 +350,14 @@ export class GameSimulation {
   public step(): WorldSnapshot {
     this.tickIndex++;
     this.superweaponManager.update(this);
+    this.updateFogOfWar();
 
     // 0. AI Agents Decision Loop
-    for (const agent of this.aiAgents.values()) {
-      const aiCmds = agent.update(this);
-      this.processCommands(aiCmds);
+    if (this.matchState === MatchState.IN_GAME) {
+      for (const agent of this.aiAgents.values()) {
+        const aiCmds = agent.update(this);
+        this.processCommands(aiCmds);
+      }
     }
 
     // 1. Spatial Grid Reset
@@ -535,6 +562,7 @@ export class GameSimulation {
       let commandCapUsed = 0;
       let commandCapMax = 50;
       let hasHQ = false;
+      let techTier = TechTier.T1;
 
       for (const e of this.entities.values()) {
         if (e.playerIndex === pIdx) {
@@ -544,6 +572,7 @@ export class GameSimulation {
               powerProduced += spec.powerProduced;
               powerConsumed += spec.powerConsumed;
               commandCapMax += spec.commandCapGranted;
+              techTier = Math.max(techTier, spec.tier) as TechTier;
               if (spec.category === BuildingCategory.HQ) hasHQ = true;
             }
           } else {
@@ -560,7 +589,24 @@ export class GameSimulation {
       p.powerLow = powerConsumed > powerProduced;
       p.commandCapUsed = commandCapUsed;
       p.commandCapMax = commandCapMax;
+      p.techTier = techTier;
       p.hasHQ = hasHQ;
+    }
+  }
+
+  private updateFogOfWar(): void {
+    const teams = Array.from(new Set(this.playerTeams)).sort((a, b) => a - b);
+    for (const team of teams) this.fogOfWar.resetVisibility(team);
+
+    for (const entity of this.entities.values()) {
+      const team = this.playerTeams[entity.playerIndex];
+      if (team === undefined) continue;
+      this.fogOfWar.revealCircle(
+        team,
+        Math.floor(entity.x / 1000),
+        Math.floor(entity.y / 1000),
+        Math.ceil(entity.sightRange / 1000)
+      );
     }
   }
 
@@ -568,7 +614,7 @@ export class GameSimulation {
     const activeTeams = new Set<number>();
     this.players.forEach((p, idx) => {
       if (p.hasHQ) {
-        activeTeams.add(idx);
+        activeTeams.add(this.playerTeams[idx] ?? idx);
       }
     });
 
