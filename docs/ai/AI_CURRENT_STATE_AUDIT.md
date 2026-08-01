@@ -1,49 +1,103 @@
-# Red Alert 4: AI Engine Current State Audit
+# Аудит текущего AI режима «Схватка»
 
-**Audit Date**: August 1, 2026  
-**Auditor**: Principal RTS AI Architect  
-**Scope**: `packages/sim-core/src/aiAgent.ts` & Sim-Core Integration  
+Дата: 2026-08-01. Проверен фактический TypeScript-код после коммита `f1d6d843` и последующих исправлений.
 
----
+## Итог
 
-## 1. Executive Summary & Capabilities Assessment
+В проекте уже есть каркас иерархического AI: `SkirmishAIAgent`, Blackboard, Scheduler, World Model, Director, Economy Manager, Base Planner, Production Manager, Army Group Manager и Tactical Controller. Это больше не один монолитный скрипт.
 
-The current AI implementation consists of a single monolithic script (`SkirmishAIAgent` in `packages/sim-core/src/aiAgent.ts`). While functional for basic vertical slice demonstrations, it is a minimal heuristic script rather than an industrial-grade RTS AI engine.
+Вертикальный срез Альянса против СССР способен честно раскрыть карту разведчиком, построить наземную базу, производить пехоту и танки, собрать волну и завершить headless self-play победой. На контрольном seed `20260801` матч завершился на тике 9519.
 
-### Current Capabilities:
-- **Decision Loop**: Evaluates hardcoded rules once every 30 ticks (1.0 second at 30 Hz).
-- **Power Management**: Builds a thermal power plant / fission reactor when `powerLow` is active and credits >= 800.
-- **Economic Expansion**: Builds a single refinery if no refinery exists and credits >= 2000.
-- **Factory Construction**: Builds a heavy factory if refinery exists, no factory exists, and credits >= 2000.
-- **Unit Recruitment**: Queues single MBTs (`SU_GranitMBT` or `AL_BulwarkMBT`) if factory queue length < 2 and credits >= 1200.
-- **Attack Wave Dispatch**: Issues a primitive `MOVE` command to all combat units toward an enemy HQ when army size reaches >= 3 units.
+При этом система ещё не соответствует всем критериям исходного задания. Существующий «10-stage» коммит реализовал часть требований поверхностно, а сценарный файл первоначально содержал лишь 4 из заявленных 18 сценариев. Называть AI production-ready пока нельзя.
 
----
+## Что реально работает
 
-## 2. Identified Deficiencies & Architectural Violations
+| Область | Реализация | Статус |
+| --- | --- | --- |
+| Scheduler | Разносит World Model, economy, base, production и tactics по интервалам и player offset | Работает, без профилей времени подсистем |
+| Blackboard | Хранит фазу, экономику, FOW-память, threat grid, цели и назначения | Каркас работает |
+| Fog of War | Симуляция раскрывает видимость по sight range; World Model записывает только видимые сущности | Работает для team-aware наблюдения |
+| Память | Хранит последнюю позицию, тик, здоровье и certainty; запись удаляется после затухания | Работает, float decay следует заменить целочисленным |
+| Экономика | Поддерживает до двух комбайнов, отдаёт `GATHER`, восстанавливает потерянный комбайн через завод | Базовый уровень |
+| База | Строит power → refinery → barracks → factory → tech → defense относительно HQ | Работает на «Красном Рубеже», нет общего placement validator |
+| Производство | Проверяет фракцию, tech tier, producer category, prerequisites, деньги и cap | Базовая валидация работает |
+| Состав | Казарма производит базовую/контр-пехоту; завод — scout и MBT после tech | Простой состав, без целевых долей |
+| Разведка | Scout получает обычный `MOVE` по карте и естественно раскрывает FOW | Работает, маршруты пока фиксированный общий набор |
+| Группы | Выделяет defense, recon и strike; один юнит попадает в одну группу | Пересоздаются при каждом update, нет постоянных operation IDs |
+| Наступление | Шесть готовых бойцов отправляются `ATTACK_MOVE` только к известной цели | Работает, нет retreat/flank/target utility |
+| Победа | Длинный self-play доходит до уничтожения HQ | Подтверждено на нескольких seeds |
+| Детерминизм | 10 000 тиков дают одинаковый checksum при одинаковом seed | Подтверждено, checksum неполный |
 
-| Category | Description / Finding | Severity |
-| :--- | :--- | :--- |
-| **Fog of War Violation** | AI inspects `sim.entities` globally to find the exact coordinates of enemy buildings without scouting or line of sight. | **CRITICAL** |
-| **Static Placement** | Hardcoded grid coordinates (`45, 45`, `48, 42`, `52, 48`) used for building placement without space validation or obstacle detection. | **HIGH** |
-| **No Harvester Recovery** | Does not check or rebuild destroyed harvesters; economy halts permanently if harvesters are lost. | **HIGH** |
-| **No Tactical Micro & Retreat** | Units move in straight lines without formation offsets, target prioritization, kiting, or damaged unit retreat. | **HIGH** |
-| **No Threat Map & Scouting** | Lacks spatial threat assessment, terrain control maps, and intelligence decay memory. | **HIGH** |
-| **Monolithic Single File** | Lacks layer separation (Director, Intelligence, Economy, Base Planner, Production, Operations, Army Groups, Tactical, Micro). | **MEDIUM** |
-| **No Difficulty / Personalities** | Uniform behavior across all matches; lacks Aggressive, Defensive, Economic, Raider, or Adaptive profiles. | **MEDIUM** |
-| **No Self-Play / Benchmarks** | No automated harness for running 100+ headless games with win-rate statistics. | **MEDIUM** |
+## Команды и честность
 
----
+AI возвращает обычные `PlayerCommand`: `MOVE`, `ATTACK_MOVE`, `GATHER`, `BUILD_STRUCTURE`, `PRODUCE_UNIT`. Он не добавляет деньги, сущности или урон напрямую.
 
-## 3. Mandatory Remediation & 10-Stage Target Architecture
+Внутри `GameSimulation.step()` AI-команды всё ещё передаются напрямую в `processCommands()`, а не через экземпляр `CommandBus` из lifecycle. Это архитектурный долг: общие проверки уже выполняются обработчиком симуляции, но единый наблюдаемый bus для игрока, AI, replay и метрик пока отсутствует.
 
-1. **Stage 1**: Blackboard, Intelligence World Model (Scouted FOW Memory), AI Scheduler.
-2. **Stage 2**: Economy Manager, Harvester Management, Ore Field Assessment, Economic Recovery.
-3. **Stage 3**: Spatial Base Planner, Placement Grid Search, Power Grid expansion, Chokepoint Defense.
-4. **Stage 4**: Production Manager, Dynamic Army Composition (Anti-Armor, Anti-Infantry, Artillery).
-5. **Stage 5**: Intelligence Decay, Threat Maps (UAV/Scout patrol, enemy composition counter).
-6. **Stage 6**: Army Group Manager (Base Defense, Harvester Guard, Main Strike Force, Quick Response).
-7. **Stage 7**: Strategic Operations & Mission Phasing (Opening, Expansion, Midgame, Pressure, Recovery, Endgame).
-8. **Stage 8**: Tactical Controller, Target Evaluation Function, AttackMove & Formation Kiting.
-9. **Stage 9**: Personalities (Aggressive, Defensive, Economic, Adaptive, Raider) & Difficulty Levels (Easy, Normal, Hard, Hard Fair).
-10. **Stage 10**: Self-Play Benchmark Harness, 100-match automated testing, Determinism verification, and Performance profiling.
+Подтверждённые исправления честности:
+
+- скрытая база не попадает в AI memory до разведки;
+- удалён fallback-удар в координату `(50000, 50000)` без разведданных;
+- World Model использует team, а не предполагает `team === playerIndex`;
+- производство чужой фракции отклоняется;
+- `ATTACK_MOVE` проходит обычную обработку движения;
+- после `MatchState.FINISHED` AI больше не создаёт новые команды.
+
+Оставшиеся нарушения общих правил:
+
+- `BUILD_STRUCTURE` не проверяет footprint, занятость, passability, build radius и prerequisites;
+- здание появляется мгновенно, без строительной очереди и build time;
+- явная `ATTACK` не проверяет team и видимость цели;
+- автоматический combat target считает врагом любой другой `playerIndex`, а не другую team;
+- пути используют пустую сетку, а не `passabilityGrid` карты.
+
+## Детерминированность
+
+AI использует seeded `sim.prng`; `Math.random`, `Date.now` и внешних API в принятии решений нет. Расписание зависит только от tick/playerIndex.
+
+Риски:
+
+- certainty сейчас уменьшается float-операцией на каждый запуск World Model, а не вычисляется из `lastSeenTick` целочисленно;
+- checksum не включает кредиты, power, production queues, Fog of War, PRNG state, Blackboard и операции;
+- replay не имеет отдельного доказательного теста для AI-команд и может повторно запускать встроенный AI.
+
+## Зависания и производительность
+
+Исправлена «капельная атака»: пополнение больше не уходит по одному, волна ждёт шесть полностью готовых бойцов. Контрольный матч после этого и исправления tech tier завершился.
+
+На контрольном длинном headless-матче среднее полное время тика составило около `0.053 ms`. Benchmark на 5 seeds: 5/5 завершённых матчей, 0 timeout, средний матч 8113 тиков, p95 полного тика 0.0653 ms, p99 0.1413 ms. Это измерение всего `sim.step()`, а не отдельного AI.
+
+Горячие места:
+
+- менеджеры отдельно создают массивы из всех `sim.entities`;
+- threat grid полностью очищается при каждом обновлении World Model;
+- постоянного индекса owned/visible entities для AI нет;
+- профилирования каждой подсистемы нет.
+
+## Реальное состояние тестов
+
+Работают:
+
+- AI regression: раскрытие FOW, отсутствие слепой атаки, исполнение AttackMove, запрет чужой фракции, производство MBT после tech;
+- базовый AI match;
+- determinism 10 000 тиков;
+- 4 реализованных сценария: развитие, скрытые данные, завершившийся self-play, checksum;
+- benchmark с реальными исходами и timeout-счётчиком.
+
+Не реализованы как отдельные доказательные сценарии: потеря power, альтернативное размещение, локальная защита, реакция на mass armor, raid экономики, retreat, сохранение операции после случайной цели, поражение без зависания, 100 параллельных матчей, различимость personalities, конечность каждой операции и полный набор property-based invariants.
+
+## Что взято из C++/UE5 проекта
+
+Из `/Users/romanmolodyko/Documents/red-alert-4` применимы и сохранены идеи:
+
+- read-only fog-limited World View;
+- память `EnemyMemory` с `LastSeenTick` и confidence;
+- utility weights и hysteresis смены стратегии;
+- постоянные роли групп: scout, reserve, response, assault, guard;
+- конфигурационные doctrine/personality вместо копий AI.
+
+Не следует переносить старый `Source/RAAI` напрямую: он использует UE actors, BlackboardComponent, GameplayTag, `GetTimeSeconds()` и float-time. В самом C++ проекте аудит также отмечает несколько конкурирующих AI-фреймворков; браузерный проект должен развивать один существующий контур.
+
+## Следующий обязательный этап
+
+Перед расширением тактики нужен общий `BuildingPlacementValidator` и единый валидируемый command path для игрока/AI/replay. После этого — persistent operations/groups, retreat и полный набор сценарных/invariant тестов. Без этих пунктов текущая реализация остаётся рабочим вертикальным срезом, а не завершённым промышленным AI.
