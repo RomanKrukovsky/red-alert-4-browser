@@ -1,6 +1,7 @@
-export function createInitialBlackboard(playerIndex, factionId, difficulty = 'HARD_FAIR', personality = 'ADAPTIVE') {
+export function createInitialBlackboard(playerIndex, factionId, difficulty = 'HARD_FAIR', personality = 'ADAPTIVE', team = playerIndex) {
     return {
         playerIndex,
+        team,
         factionId,
         difficulty,
         personality,

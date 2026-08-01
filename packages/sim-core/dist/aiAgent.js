@@ -8,6 +8,7 @@ import { AIBasePlanner } from './ai/basePlanner.js';
 import { AIProductionManager } from './ai/productionManager.js';
 import { AIArmyGroupManager } from './ai/armyGroupManager.js';
 import { AITacticalController } from './ai/tacticalController.js';
+import { getPersonalityProfile } from './ai/aiPersonalities.js';
 export class SkirmishAIAgent {
     playerIndex;
     blackboard;
@@ -19,10 +20,10 @@ export class SkirmishAIAgent {
     productionManager;
     armyGroupManager;
     tacticalController;
-    constructor(playerIndex, factionId = FactionId.ALLIANCE, difficulty = 'HARD_FAIR', personality = 'ADAPTIVE') {
+    constructor(playerIndex, factionId = FactionId.ALLIANCE, difficulty = 'HARD_FAIR', personality = 'ADAPTIVE', team = playerIndex) {
         this.playerIndex = playerIndex;
-        this.blackboard = createInitialBlackboard(playerIndex, factionId, difficulty, personality);
-        this.scheduler = new AIScheduler();
+        this.blackboard = createInitialBlackboard(playerIndex, factionId, difficulty, personality, team);
+        this.scheduler = new AIScheduler(difficulty);
         this.worldModel = new AIWorldModel();
         this.director = new AIDirector();
         this.economyManager = new AIEconomyManager();
@@ -30,6 +31,7 @@ export class SkirmishAIAgent {
         this.productionManager = new AIProductionManager();
         this.armyGroupManager = new AIArmyGroupManager();
         this.tacticalController = new AITacticalController();
+        this.blackboard.targetHarvesterCount = getPersonalityProfile(this.blackboard).targetHarvesters;
     }
     update(sim) {
         const commands = [];

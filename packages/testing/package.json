@@ -15,7 +15,12 @@
     "test:combat": "node ./dist/combat.test.js",
     "test:economy": "node ./dist/economy.test.js",
     "test:building": "node ./dist/building.test.js",
-    "test:ai": "node ./dist/aiRegression.test.js && node ./dist/aiMatch.test.js"
+    "test:ai": "node ./dist/aiRegression.test.js && node ./dist/aiMatch.test.js",
+    "test:server": "vitest run apps/game-server/src/__tests__/server*.test.ts",
+    "test:protocol": "vitest run apps/game-server/src/__tests__/serverAuth.test.ts",
+    "test:reconnect": "vitest run apps/game-server/src/__tests__/serverReconnect.test.ts",
+    "test:security": "vitest run apps/game-server/src/__tests__/serverAdmin.test.ts",
+    "test:replay": "vitest run apps/game-server/src/__tests__/serverMatchRuntime.test.ts"
   },
   "dependencies": {
     "@ra4/shared-types": "workspace:*",

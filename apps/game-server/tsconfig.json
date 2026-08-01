@@ -3,6 +3,11 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
+    "moduleResolution": "node",
+    "module": "CommonJS",
+    "target": "ES2022",
+    "noImplicitAny": false,
+    "skipLibCheck": true,
     "types": ["node"]
   },
   "include": ["src/**/*"]

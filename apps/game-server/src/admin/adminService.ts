@@ -1,6 +1,6 @@
 import { UserRole } from '../auth/service.js';
-import { AuthoritativeMatchRuntime } from '../matches/matchRuntime.ts';
-import { RoomManager } from '../lobby/roomManager.ts';
+import { AuthoritativeMatchRuntime } from '../matches/matchRuntime.js';
+import { RoomManager } from '../lobby/roomManager.js';
 import { db, isDbConnected } from '../persistence/db.js';
 import { auditLogs } from '../persistence/schema.js';
 

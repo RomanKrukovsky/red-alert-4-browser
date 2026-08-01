@@ -1,0 +1,576 @@
+[
+  {
+    "assetId": "SU_GranitMBT",
+    "displayName": "Granit Main Battle Tank",
+    "category": "unit",
+    "platform": "Quaternius",
+    "author": "Quaternius",
+    "sourcePage": "https://quaternius.com/packs/animatedtanks.html",
+    "license": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceFormat": "blend",
+    "sourcePath": "assets-source/downloads/quaternius-animated-tanks/Blends/Tank.blend",
+    "files": [
+      "units/SU_GranitMBT_LOD0.glb",
+      "units/SU_GranitMBT_LOD1.glb",
+      "units/SU_GranitMBT_LOD2.glb"
+    ],
+    "modifications": "Named vehicle/turret/gun/muzzle sockets, collision proxy, normalized materials, offline LODs.",
+    "attributionRequired": false,
+    "animations": [
+      "Forward"
+    ],
+    "downloadedAt": "2026-08-01",
+    "gameUsage": "unit",
+    "runtimeFormat": "glb",
+    "runtimeFiles": [
+      "units/SU_GranitMBT_LOD0.glb",
+      "units/SU_GranitMBT_LOD1.glb",
+      "units/SU_GranitMBT_LOD2.glb"
+    ],
+    "runtimeSha256": {
+      "units/SU_GranitMBT_LOD0.glb": "0d946f744ad475f281097e6ca1eebbc4bad1f17c97f22a02986aa28e0f4c78d9",
+      "units/SU_GranitMBT_LOD1.glb": "1cec2d99f6a242f31165cfce68dbf29a83965c36b7b432d5a971b894c8981ab6",
+      "units/SU_GranitMBT_LOD2.glb": "bdfdcb9a1c4b7dfb9068868c2186a3907d4b73ef1c075dbdb9f7e209b758797b"
+    },
+    "runtimeTriangleCountByLod": {
+      "LOD0": 6624,
+      "LOD1": 3644,
+      "LOD2": 1664
+    },
+    "runtimeTextureResolution": "embedded/source palette or 1024x1024 terrain set",
+    "sourceSha256": "1949b020efda14164b62f153e8d186e624aa4b6edb8d3539a31d42e2286a5692",
+    "sourceTriangleCount": 6624,
+    "reviewStatus": "APPROVED_CC0_RUNTIME"
+  },
+  {
+    "assetId": "SU_BogatyrOreCarrier",
+    "displayName": "Bogatyr Ore Carrier",
+    "category": "unit",
+    "platform": "Quaternius + Kenney",
+    "author": "Quaternius; Kenney",
+    "sourcePage": "https://quaternius.com/packs/animatedtanks.html",
+    "license": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceFormat": "blend + glb",
+    "sourcePath": "assets-source/downloads/quaternius-animated-tanks/Blends/Tank4.blend",
+    "files": [
+      "units/SU_BogatyrOreCarrier_LOD0.glb",
+      "units/SU_BogatyrOreCarrier_LOD1.glb",
+      "units/SU_BogatyrOreCarrier_LOD2.glb"
+    ],
+    "modifications": "Tank chassis kitbashed with Kenney hopper, unload/fill sockets, collision proxy, offline LODs.",
+    "attributionRequired": false,
+    "animations": [
+      "Tank_Backwards",
+      "Tank_Forward",
+      "Tank_TurningLeft",
+      "Tank_TurningRight"
+    ],
+    "downloadedAt": "2026-08-01",
+    "gameUsage": "unit",
+    "runtimeFormat": "glb",
+    "runtimeFiles": [
+      "units/SU_BogatyrOreCarrier_LOD0.glb",
+      "units/SU_BogatyrOreCarrier_LOD1.glb",
+      "units/SU_BogatyrOreCarrier_LOD2.glb"
+    ],
+    "runtimeSha256": {
+      "units/SU_BogatyrOreCarrier_LOD0.glb": "089811556a19208d2a954f3e26cdea93594588c108a16466180f516b0d7b1297",
+      "units/SU_BogatyrOreCarrier_LOD1.glb": "03442439cd8454b4267a950db187c86a0c4ab5062fec8dacd3380f5af51f9b48",
+      "units/SU_BogatyrOreCarrier_LOD2.glb": "85c1ad0b3ec1fa12c33d626849ed55f3540ca6098cded31f6280f4f8d89ae7a3"
+    },
+    "runtimeTriangleCountByLod": {
+      "LOD0": 11534,
+      "LOD1": 6344,
+      "LOD2": 2890
+    },
+    "runtimeTextureResolution": "embedded/source palette or 1024x1024 terrain set",
+    "sourceSha256": "25613d55289dce03f71c19f11cb1386be24927ad28f6766af6ec19a51f4cb93e",
+    "sourceTriangleCount": 11534,
+    "reviewStatus": "APPROVED_CC0_RUNTIME"
+  },
+  {
+    "assetId": "SU_RubezhRifleman",
+    "displayName": "Rubezh Rifleman",
+    "category": "unit",
+    "platform": "Quaternius",
+    "author": "Quaternius",
+    "sourcePage": "https://quaternius.com/packs/ultimatemodularcharacters.html",
+    "license": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceFormat": "blend",
+    "sourcePath": "assets-source/downloads/quaternius-modular-men/All together/Blends/Humans_Master.blend",
+    "files": [
+      "units/SU_RubezhRifleman_LOD0.glb"
+    ],
+    "modifications": "SWAT modular parts selected, weapon/muzzle sockets and collision proxy added; 24 source actions preserved. LOD1/2 pending skinned-mesh retopology.",
+    "attributionRequired": false,
+    "animations": [
+      "Death",
+      "Gun_Shoot",
+      "HitRecieve",
+      "HitRecieve_2",
+      "Idle",
+      "Idle_Gun",
+      "Idle_Gun_Pointing",
+      "Idle_Gun_Shoot",
+      "Idle_Neutral",
+      "Idle_Sword",
+      "Interact",
+      "Kick_Left",
+      "Kick_Right",
+      "Punch_Left",
+      "Punch_Right",
+      "Roll",
+      "Run",
+      "Run_Back",
+      "Run_Left",
+      "Run_Right",
+      "Run_Shoot",
+      "Sword_Slash",
+      "Walk",
+      "Wave"
+    ],
+    "downloadedAt": "2026-08-01",
+    "gameUsage": "unit",
+    "runtimeFormat": "glb",
+    "runtimeFiles": [
+      "units/SU_RubezhRifleman_LOD0.glb"
+    ],
+    "runtimeSha256": {
+      "units/SU_RubezhRifleman_LOD0.glb": "7874cbc04dcf645c0e282051a4e1bc7c3fd1bc25266b991cd2bc256f7a24c65d"
+    },
+    "runtimeTriangleCountByLod": {
+      "LOD0": 8806
+    },
+    "runtimeTextureResolution": "embedded/source palette or 1024x1024 terrain set",
+    "sourceSha256": "25252b3fb5d48b59f2b2dafeb0fd61af0c3ea652254b39cec02fc752be0123f4",
+    "sourceTriangleCount": 8806,
+    "reviewStatus": "APPROVED_CC0_RUNTIME"
+  },
+  {
+    "assetId": "SU_HeavyFactory",
+    "displayName": "Soviet Heavy Factory",
+    "category": "building",
+    "platform": "Kenney",
+    "author": "Kenney",
+    "sourcePage": "https://kenney.nl/assets/factory-kit",
+    "license": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceFormat": "glb",
+    "sourcePath": "assets-source/downloads/kenney/factory-kit.zip",
+    "files": [
+      "buildings/SU_HeavyFactory_LOD0.glb",
+      "buildings/SU_HeavyFactory_LOD1.glb",
+      "buildings/SU_HeavyFactory_LOD2.glb"
+    ],
+    "modifications": "Modular kitbash, exit/rally/UI anchors, collision proxy, offline LODs.",
+    "attributionRequired": false,
+    "animations": [],
+    "downloadedAt": "2026-08-01",
+    "gameUsage": "building",
+    "runtimeFormat": "glb",
+    "runtimeFiles": [
+      "buildings/SU_HeavyFactory_LOD0.glb",
+      "buildings/SU_HeavyFactory_LOD1.glb",
+      "buildings/SU_HeavyFactory_LOD2.glb"
+    ],
+    "runtimeSha256": {
+      "buildings/SU_HeavyFactory_LOD0.glb": "e8e1c12d56797e022772c53ae4698db6d1bd837b6bbba03862c75f949b10a84e",
+      "buildings/SU_HeavyFactory_LOD1.glb": "44556b1645667659d598ea25e929f0bbc8d1df64bcc9fc80285cb7e1da226ed9",
+      "buildings/SU_HeavyFactory_LOD2.glb": "33aa43dc7d56daac054b9f58cc2ffe35dfa6f256f77ba7bdd60e7070c9545af5"
+    },
+    "runtimeTriangleCountByLod": {
+      "LOD0": 2898,
+      "LOD1": 1597,
+      "LOD2": 731
+    },
+    "runtimeTextureResolution": "embedded/source palette or 1024x1024 terrain set",
+    "sourceSha256": "7e31fb2308e90304672bd15cd18fa9d9f02c03731a8cbc57a8e3e1c181dfb0a7",
+    "sourceTriangleCount": 2898,
+    "reviewStatus": "APPROVED_CC0_RUNTIME"
+  },
+  {
+    "assetId": "SU_Pillbox",
+    "displayName": "Soviet Pillbox",
+    "category": "building",
+    "platform": "Kenney",
+    "author": "Kenney",
+    "sourcePage": "https://kenney.nl/assets/factory-kit",
+    "license": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceFormat": "glb",
+    "sourcePath": "assets-source/downloads/kenney/factory-kit.zip",
+    "files": [
+      "buildings/SU_Pillbox_LOD0.glb",
+      "buildings/SU_Pillbox_LOD1.glb",
+      "buildings/SU_Pillbox_LOD2.glb"
+    ],
+    "modifications": "Fortified machine/scanner kitbash, turret and muzzle sockets, collision proxy, offline LODs.",
+    "attributionRequired": false,
+    "animations": [],
+    "downloadedAt": "2026-08-01",
+    "gameUsage": "building",
+    "runtimeFormat": "glb",
+    "runtimeFiles": [
+      "buildings/SU_Pillbox_LOD0.glb",
+      "buildings/SU_Pillbox_LOD1.glb",
+      "buildings/SU_Pillbox_LOD2.glb"
+    ],
+    "runtimeSha256": {
+      "buildings/SU_Pillbox_LOD0.glb": "39fe25752364fc9afaf6f883719947d303a703f9e1963759bc3a9b0ed4a1c08e",
+      "buildings/SU_Pillbox_LOD1.glb": "125e30ac8cd2e9bce7be731057ee67fb31add166a4a101399d2546553a2bfc9e",
+      "buildings/SU_Pillbox_LOD2.glb": "78627e55e8a862ea02b1e09ab65b2670f966c2396c09b49e6879e98ab1502b53"
+    },
+    "runtimeTriangleCountByLod": {
+      "LOD0": 572,
+      "LOD1": 320,
+      "LOD2": 152
+    },
+    "runtimeTextureResolution": "embedded/source palette or 1024x1024 terrain set",
+    "sourceSha256": "7e31fb2308e90304672bd15cd18fa9d9f02c03731a8cbc57a8e3e1c181dfb0a7",
+    "sourceTriangleCount": 572,
+    "reviewStatus": "APPROVED_CC0_RUNTIME"
+  },
+  {
+    "assetId": "pine_tree_01",
+    "displayName": "Pine Tree",
+    "category": "environment",
+    "platform": "Kenney",
+    "author": "Kenney",
+    "sourcePage": "https://kenney.nl/assets/mini-forest",
+    "license": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceFormat": "glb",
+    "sourcePath": "assets-source/downloads/kenney/mini-forest.zip",
+    "files": [
+      "environment/pine_tree_01_LOD0.glb",
+      "environment/pine_tree_01_LOD1.glb",
+      "environment/pine_tree_01_LOD2.glb"
+    ],
+    "modifications": "Scale normalized, collision proxy and offline LODs.",
+    "attributionRequired": false,
+    "animations": [],
+    "downloadedAt": "2026-08-01",
+    "gameUsage": "environment",
+    "runtimeFormat": "glb",
+    "runtimeFiles": [
+      "environment/pine_tree_01_LOD0.glb",
+      "environment/pine_tree_01_LOD1.glb",
+      "environment/pine_tree_01_LOD2.glb"
+    ],
+    "runtimeSha256": {
+      "environment/pine_tree_01_LOD0.glb": "a05c2b9cd316b821457bbaca8aea23f78da01d9bb8c0ee0ab7dc74631c9525ad",
+      "environment/pine_tree_01_LOD1.glb": "30f1f81843414dc2271fb43fdaf7c9669de465807224a1b31598ff41af2240f3",
+      "environment/pine_tree_01_LOD2.glb": "7cce43dd531efb2cd8300e3335055bba6c7d59230b3165295a4a35e01a4b252b"
+    },
+    "runtimeTriangleCountByLod": {
+      "LOD0": 278,
+      "LOD1": 145,
+      "LOD2": 65
+    },
+    "runtimeTextureResolution": "embedded/source palette or 1024x1024 terrain set",
+    "sourceSha256": "8691614018075a66458e35915b8c358c2e6178648aedadafcdf313b924aa6581",
+    "sourceTriangleCount": 278,
+    "reviewStatus": "APPROVED_CC0_RUNTIME"
+  },
+  {
+    "assetId": "coast_rocks_01",
+    "displayName": "Rock Cluster",
+    "category": "environment",
+    "platform": "Kenney",
+    "author": "Kenney",
+    "sourcePage": "https://kenney.nl/assets/mini-forest",
+    "license": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceFormat": "glb",
+    "sourcePath": "assets-source/downloads/kenney/mini-forest.zip",
+    "files": [
+      "environment/coast_rocks_01_LOD0.glb",
+      "environment/coast_rocks_01_LOD1.glb",
+      "environment/coast_rocks_01_LOD2.glb"
+    ],
+    "modifications": "Scale normalized, collision proxy and offline LODs.",
+    "attributionRequired": false,
+    "animations": [],
+    "downloadedAt": "2026-08-01",
+    "gameUsage": "environment",
+    "runtimeFormat": "glb",
+    "runtimeFiles": [
+      "environment/coast_rocks_01_LOD0.glb",
+      "environment/coast_rocks_01_LOD1.glb",
+      "environment/coast_rocks_01_LOD2.glb"
+    ],
+    "runtimeSha256": {
+      "environment/coast_rocks_01_LOD0.glb": "13531f989fbfc381ad1bc93b77616a7b5dfa9064be11f041aad85da68b059a0b",
+      "environment/coast_rocks_01_LOD1.glb": "4572d27745f77af7f77b8cefa88f19cf6bc11639071ec13bc4b8b93eb7935888",
+      "environment/coast_rocks_01_LOD2.glb": "0cd78172dc6c12fb104273f201bf80893693b2063cf3c833c07f3932d0f70e30"
+    },
+    "runtimeTriangleCountByLod": {
+      "LOD0": 354,
+      "LOD1": 183,
+      "LOD2": 80
+    },
+    "runtimeTextureResolution": "embedded/source palette or 1024x1024 terrain set",
+    "sourceSha256": "8691614018075a66458e35915b8c358c2e6178648aedadafcdf313b924aa6581",
+    "sourceTriangleCount": 354,
+    "reviewStatus": "APPROVED_CC0_RUNTIME"
+  },
+  {
+    "assetId": "concrete_road_barrier",
+    "displayName": "Road Barrier",
+    "category": "prop",
+    "platform": "Kenney",
+    "author": "Kenney",
+    "sourcePage": "https://kenney.nl/assets/factory-kit",
+    "license": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceFormat": "glb",
+    "sourcePath": "assets-source/downloads/kenney/factory-kit.zip",
+    "files": [
+      "props/concrete_road_barrier_LOD0.glb",
+      "props/concrete_road_barrier_LOD1.glb"
+    ],
+    "modifications": "Temporary structure proxy, collision proxy and offline LOD.",
+    "attributionRequired": false,
+    "animations": [],
+    "downloadedAt": "2026-08-01",
+    "gameUsage": "prop",
+    "runtimeFormat": "glb",
+    "runtimeFiles": [
+      "props/concrete_road_barrier_LOD0.glb",
+      "props/concrete_road_barrier_LOD1.glb"
+    ],
+    "runtimeSha256": {
+      "props/concrete_road_barrier_LOD0.glb": "8eeb122d350db9534160a6ea4b4270ae80932e51d1144e71dcc4862dca41a2ca",
+      "props/concrete_road_barrier_LOD1.glb": "cbd4db62494f1e1787955197c68c5df06ffdd3c8cc0411934c2a1ec2d919ecd2"
+    },
+    "runtimeTriangleCountByLod": {
+      "LOD0": 280,
+      "LOD1": 132
+    },
+    "runtimeTextureResolution": "embedded/source palette or 1024x1024 terrain set",
+    "sourceSha256": "7e31fb2308e90304672bd15cd18fa9d9f02c03731a8cbc57a8e3e1c181dfb0a7",
+    "sourceTriangleCount": 280,
+    "reviewStatus": "APPROVED_CC0_RUNTIME"
+  },
+  {
+    "assetId": "old_military_crate",
+    "displayName": "Military Crate",
+    "category": "prop",
+    "platform": "Kenney",
+    "author": "Kenney",
+    "sourcePage": "https://kenney.nl/assets/factory-kit",
+    "license": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceFormat": "glb",
+    "sourcePath": "assets-source/downloads/kenney/factory-kit.zip",
+    "files": [
+      "props/old_military_crate_LOD0.glb",
+      "props/old_military_crate_LOD1.glb"
+    ],
+    "modifications": "Scale normalized, collision proxy and offline LOD.",
+    "attributionRequired": false,
+    "animations": [],
+    "downloadedAt": "2026-08-01",
+    "gameUsage": "prop",
+    "runtimeFormat": "glb",
+    "runtimeFiles": [
+      "props/old_military_crate_LOD0.glb",
+      "props/old_military_crate_LOD1.glb"
+    ],
+    "runtimeSha256": {
+      "props/old_military_crate_LOD0.glb": "b28782803f0ccc2e614fdb13907384d4dbb282c3af1cc8d0f1b8d7fe231d0fdd",
+      "props/old_military_crate_LOD1.glb": "1604d3a077fc62bfc82667202d5c70da9335983f97935be05910e19b0c7dc674"
+    },
+    "runtimeTriangleCountByLod": {
+      "LOD0": 82,
+      "LOD1": 43
+    },
+    "runtimeTextureResolution": "embedded/source palette or 1024x1024 terrain set",
+    "sourceSha256": "7e31fb2308e90304672bd15cd18fa9d9f02c03731a8cbc57a8e3e1c181dfb0a7",
+    "sourceTriangleCount": 82,
+    "reviewStatus": "APPROVED_CC0_RUNTIME"
+  },
+  {
+    "assetId": "brown_mud_02",
+    "displayName": "brown_mud_02",
+    "category": "material",
+    "platform": "Poly Haven",
+    "author": "Poly Haven",
+    "sourcePage": "https://polyhaven.com/a/brown_mud_02",
+    "license": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceFormat": "jpg",
+    "sourcePath": "assets-source/downloads/polyhaven/brown_mud_02/brown_mud_02_diff_1k.jpg",
+    "files": [],
+    "modifications": "Official 1K diffuse, OpenGL normal and ARM maps.",
+    "attributionRequired": false,
+    "animations": [],
+    "downloadedAt": "2026-08-01",
+    "gameUsage": "terrain material",
+    "runtimeFormat": "jpg",
+    "runtimeFiles": [],
+    "runtimeSha256": {
+      "brown_mud_02_diff_1k.jpg": "058b6f12493305ec6b47cb5ea77f013c9e7e58216b34af3700a3d3d7d821732d"
+    },
+    "runtimeTriangleCountByLod": {},
+    "runtimeTextureResolution": "1024x1024",
+    "sourceSha256": "058b6f12493305ec6b47cb5ea77f013c9e7e58216b34af3700a3d3d7d821732d",
+    "sourceTriangleCount": 0,
+    "reviewStatus": "APPROVED_CC0_RUNTIME"
+  },
+  {
+    "assetId": "rock_3",
+    "displayName": "rock_3",
+    "category": "material",
+    "platform": "Poly Haven",
+    "author": "Poly Haven",
+    "sourcePage": "https://polyhaven.com/a/rock_3",
+    "license": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceFormat": "jpg",
+    "sourcePath": "assets-source/downloads/polyhaven/rock_3/rock_3_diff_1k.jpg",
+    "files": [],
+    "modifications": "Official 1K diffuse, OpenGL normal and ARM maps.",
+    "attributionRequired": false,
+    "animations": [],
+    "downloadedAt": "2026-08-01",
+    "gameUsage": "terrain material",
+    "runtimeFormat": "jpg",
+    "runtimeFiles": [],
+    "runtimeSha256": {
+      "rock_3_diff_1k.jpg": "e68a81e113a4173c0e19f58bedda41b3b13adcfdeb2f8ae4808f63ec5de10225"
+    },
+    "runtimeTriangleCountByLod": {},
+    "runtimeTextureResolution": "1024x1024",
+    "sourceSha256": "e68a81e113a4173c0e19f58bedda41b3b13adcfdeb2f8ae4808f63ec5de10225",
+    "sourceTriangleCount": 0,
+    "reviewStatus": "APPROVED_CC0_RUNTIME"
+  },
+  {
+    "assetId": "asphalt_01",
+    "displayName": "asphalt_01",
+    "category": "material",
+    "platform": "Poly Haven",
+    "author": "Poly Haven",
+    "sourcePage": "https://polyhaven.com/a/asphalt_01",
+    "license": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceFormat": "jpg",
+    "sourcePath": "assets-source/downloads/polyhaven/asphalt_01/asphalt_01_diff_1k.jpg",
+    "files": [],
+    "modifications": "Official 1K diffuse, OpenGL normal and ARM maps.",
+    "attributionRequired": false,
+    "animations": [],
+    "downloadedAt": "2026-08-01",
+    "gameUsage": "terrain material",
+    "runtimeFormat": "jpg",
+    "runtimeFiles": [],
+    "runtimeSha256": {
+      "asphalt_01_diff_1k.jpg": "99b6f6bdfbd09279f3f550ac9593336df541aa2319537566eeb3e737d8512010"
+    },
+    "runtimeTriangleCountByLod": {},
+    "runtimeTextureResolution": "1024x1024",
+    "sourceSha256": "99b6f6bdfbd09279f3f550ac9593336df541aa2319537566eeb3e737d8512010",
+    "sourceTriangleCount": 0,
+    "reviewStatus": "APPROVED_CC0_RUNTIME"
+  },
+  {
+    "assetId": "concrete_floor_01",
+    "displayName": "concrete_floor_01",
+    "category": "material",
+    "platform": "Poly Haven",
+    "author": "Poly Haven",
+    "sourcePage": "https://polyhaven.com/a/concrete_floor_01",
+    "license": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceFormat": "jpg",
+    "sourcePath": "assets-source/downloads/polyhaven/concrete_floor_01/concrete_floor_01_diff_1k.jpg",
+    "files": [],
+    "modifications": "Official 1K diffuse, OpenGL normal and ARM maps.",
+    "attributionRequired": false,
+    "animations": [],
+    "downloadedAt": "2026-08-01",
+    "gameUsage": "terrain material",
+    "runtimeFormat": "jpg",
+    "runtimeFiles": [],
+    "runtimeSha256": {
+      "concrete_floor_01_diff_1k.jpg": "db7c800f1464359b5f359fc743e82ac51b34e014fdfd53844f4af34bb1949229"
+    },
+    "runtimeTriangleCountByLod": {},
+    "runtimeTextureResolution": "1024x1024",
+    "sourceSha256": "db7c800f1464359b5f359fc743e82ac51b34e014fdfd53844f4af34bb1949229",
+    "sourceTriangleCount": 0,
+    "reviewStatus": "APPROVED_CC0_RUNTIME"
+  },
+  {
+    "assetId": "industrial_sunset_puresky",
+    "displayName": "Industrial Sunset PureSky",
+    "category": "environment-light",
+    "platform": "Poly Haven",
+    "author": "Poly Haven",
+    "sourcePage": "https://polyhaven.com/a/industrial_sunset_puresky",
+    "license": "CC0 1.0 Universal",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceFormat": "hdr",
+    "sourcePath": "assets-source/downloads/polyhaven/industrial_sunset_puresky/industrial_sunset_puresky_1k.hdr",
+    "files": [],
+    "modifications": "Official 1K HDR runtime copy.",
+    "attributionRequired": false,
+    "animations": [],
+    "downloadedAt": "2026-08-01",
+    "gameUsage": "IBL/environment lighting",
+    "runtimeFormat": "hdr",
+    "runtimeFiles": [],
+    "runtimeSha256": {
+      "industrial_sunset_puresky_1k.hdr": "ce8235e4b1b10b620120ceeb32eb3e80af15ea29b09a8625a4bdae647dff328d"
+    },
+    "runtimeTriangleCountByLod": {},
+    "runtimeTextureResolution": "1024px equirectangular",
+    "sourceSha256": "ce8235e4b1b10b620120ceeb32eb3e80af15ea29b09a8625a4bdae647dff328d",
+    "sourceTriangleCount": 0,
+    "reviewStatus": "APPROVED_CC0_RUNTIME"
+  },
+  {
+    "assetId": "sketchfab-2d01eba3031f4db48eea8cdcc504b366",
+    "displayName": "Military Character Kit 1.1",
+    "status": "BLOCKED_AUTH",
+    "reason": "SKETCHFAB_OAUTH_TOKEN is not set; official download API was not called.",
+    "sourcePage": "https://sketchfab.com/3d-models/2d01eba3031f4db48eea8cdcc504b366",
+    "downloadApi": "https://api.sketchfab.com/v3/models/2d01eba3031f4db48eea8cdcc504b366/download"
+  },
+  {
+    "assetId": "sketchfab-7103a15d0c0141d6b3372e781e2f4e92",
+    "displayName": "Military Character Kit Textured",
+    "status": "BLOCKED_AUTH",
+    "reason": "SKETCHFAB_OAUTH_TOKEN is not set; official download API was not called.",
+    "sourcePage": "https://sketchfab.com/3d-models/7103a15d0c0141d6b3372e781e2f4e92",
+    "downloadApi": "https://api.sketchfab.com/v3/models/7103a15d0c0141d6b3372e781e2f4e92/download"
+  },
+  {
+    "assetId": "sketchfab-91f495435f624d8b97a768f692aa6ce9",
+    "displayName": "Military Landvehicle Kit 1.2",
+    "status": "BLOCKED_AUTH",
+    "reason": "SKETCHFAB_OAUTH_TOKEN is not set; official download API was not called.",
+    "sourcePage": "https://sketchfab.com/3d-models/91f495435f624d8b97a768f692aa6ce9",
+    "downloadApi": "https://api.sketchfab.com/v3/models/91f495435f624d8b97a768f692aa6ce9/download"
+  },
+  {
+    "assetId": "sketchfab-ae7ceaca7615424a91f0bd9a29ffc3d7",
+    "displayName": "Military Outpost Kit 1.0",
+    "status": "BLOCKED_AUTH",
+    "reason": "SKETCHFAB_OAUTH_TOKEN is not set; official download API was not called.",
+    "sourcePage": "https://sketchfab.com/3d-models/ae7ceaca7615424a91f0bd9a29ffc3d7",
+    "downloadApi": "https://api.sketchfab.com/v3/models/ae7ceaca7615424a91f0bd9a29ffc3d7/download"
+  },
+  {
+    "assetId": "sketchfab-df32789800154ac08778a8db932d9184",
+    "displayName": "LPMAC Military Truck",
+    "status": "BLOCKED_AUTH",
+    "reason": "SKETCHFAB_OAUTH_TOKEN is not set; official download API was not called.",
+    "sourcePage": "https://sketchfab.com/3d-models/df32789800154ac08778a8db932d9184",
+    "downloadApi": "https://api.sketchfab.com/v3/models/df32789800154ac08778a8db932d9184/download"
+  }
+]

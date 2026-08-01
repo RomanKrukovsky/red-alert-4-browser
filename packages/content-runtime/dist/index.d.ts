@@ -1,5 +1,6 @@
 import { ContentDatabase } from '@ra4/content-schema';
 export * from './database.js';
+export * from './audioRegistry.js';
 export declare function validateContentDatabase(db?: ContentDatabase): {
     success: boolean;
     errors?: string[];

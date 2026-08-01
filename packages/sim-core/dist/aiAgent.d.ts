@@ -12,7 +12,7 @@ export declare class SkirmishAIAgent {
     private productionManager;
     private armyGroupManager;
     private tacticalController;
-    constructor(playerIndex: number, factionId?: FactionId, difficulty?: 'EASY' | 'NORMAL' | 'HARD' | 'HARD_FAIR', personality?: 'AGGRESSIVE' | 'DEFENSIVE' | 'ECONOMIC' | 'ADAPTIVE' | 'RAIDER');
+    constructor(playerIndex: number, factionId?: FactionId, difficulty?: 'EASY' | 'NORMAL' | 'HARD' | 'HARD_FAIR', personality?: 'AGGRESSIVE' | 'DEFENSIVE' | 'ECONOMIC' | 'ADAPTIVE' | 'RAIDER', team?: number);
     update(sim: GameSimulation): PlayerCommand[];
 }
 //# sourceMappingURL=aiAgent.d.ts.map

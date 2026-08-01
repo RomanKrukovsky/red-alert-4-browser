@@ -22,6 +22,7 @@ export interface AIOperationGoal {
 }
 export interface AIBlackboard {
     playerIndex: number;
+    team: number;
     factionId: FactionId;
     difficulty: 'EASY' | 'NORMAL' | 'HARD' | 'HARD_FAIR';
     personality: 'AGGRESSIVE' | 'DEFENSIVE' | 'ECONOMIC' | 'ADAPTIVE' | 'RAIDER';
@@ -47,5 +48,5 @@ export interface AIBlackboard {
     activeGoals: AIOperationGoal[];
     assignedUnits: Map<number, string>;
 }
-export declare function createInitialBlackboard(playerIndex: number, factionId: FactionId, difficulty?: 'EASY' | 'NORMAL' | 'HARD' | 'HARD_FAIR', personality?: 'AGGRESSIVE' | 'DEFENSIVE' | 'ECONOMIC' | 'ADAPTIVE' | 'RAIDER'): AIBlackboard;
+export declare function createInitialBlackboard(playerIndex: number, factionId: FactionId, difficulty?: 'EASY' | 'NORMAL' | 'HARD' | 'HARD_FAIR', personality?: 'AGGRESSIVE' | 'DEFENSIVE' | 'ECONOMIC' | 'ADAPTIVE' | 'RAIDER', team?: number): AIBlackboard;
 //# sourceMappingURL=aiBlackboard.d.ts.map

@@ -1,133 +1,243 @@
-import { WebSocketServer, WebSocket } from 'ws';
-import { GameSimulation } from '@ra4/sim-core';
-import { deserializeClientMessage, serializeServerMessage, validatePlayerCommand } from '@ra4/netcode';
-import { FactionId, MatchState, PlayerType } from '@ra4/shared-types';
-const PORT = 8080;
-const wss = new WebSocketServer({ port: PORT });
-console.log(`[RA4 Game Server] Authoritative RTS Server listening on ws://localhost:${PORT}`);
-class GameRoom {
-    id = 'default-room';
-    matchState = MatchState.LOBBY;
-    sim;
-    connections = new Map();
-    tickBuffer = [];
-    timer = null;
-    constructor() {
-        this.sim = new GameSimulation(1337);
-    }
-    startMatch() {
-        this.matchState = MatchState.IN_GAME;
-        this.sim.initMatch([
-            { name: 'Игрок 1 (СССР)', factionId: FactionId.USSR, type: PlayerType.HUMAN, team: 0 },
-            { name: 'Игрок 2 (Альянс)', factionId: FactionId.ALLIANCE, type: PlayerType.AI_MEDIUM, team: 1 }
-        ]);
-        const initialSnapshot = this.sim.createSnapshot();
-        this.broadcast({
-            type: 'MATCH_START',
-            seed: this.sim.seed,
-            tickRate: 30,
-            initialSnapshot
-        });
-        // 30 Hz Fixed-Step Loop (33.33ms)
-        this.timer = setInterval(() => {
-            this.tick();
-        }, 33);
-    }
-    tick() {
-        if (this.matchState !== MatchState.IN_GAME)
-            return;
-        // Process queued player commands
-        const currentCommands = [...this.tickBuffer];
-        this.tickBuffer = [];
-        this.sim.processCommands(currentCommands);
-        const snapshot = this.sim.step();
-        // Broadcast tick frame to clients
-        this.broadcast({
-            type: 'TICK_FRAME',
-            tick: snapshot.tick,
-            commands: currentCommands
-        });
-        // Send snapshot every 30 ticks (1s)
-        if (snapshot.tick % 30 === 0) {
-            this.broadcast({
-                type: 'STATE_SNAPSHOT',
-                snapshot
-            });
-        }
-        if (this.sim.matchState === MatchState.FINISHED) {
-            this.matchState = MatchState.FINISHED;
-            if (this.timer)
-                clearInterval(this.timer);
-            this.broadcast({
-                type: 'GAME_OVER',
-                winnerTeam: this.sim.winnerTeam,
-                winningPlayerIndices: [this.sim.winnerTeam],
-                reason: 'Командное ядро противника уничтожено!'
-            });
-        }
-    }
-    broadcast(msg) {
-        const data = serializeServerMessage(msg);
-        for (const ws of this.connections.values()) {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(data);
-            }
-        }
-    }
-}
-const room = new GameRoom();
-wss.on('connection', (ws) => {
-    console.log('[RA4 Game Server] New client connected');
-    const playerIndex = room.connections.size;
-    room.connections.set(playerIndex, ws);
-    ws.on('message', (data) => {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const fastify_1 = __importDefault(require("fastify"));
+const websocket_1 = __importDefault(require("@fastify/websocket"));
+const cors_1 = __importDefault(require("@fastify/cors"));
+const jwt_1 = __importDefault(require("@fastify/jwt"));
+const rate_limit_1 = __importDefault(require("@fastify/rate-limit"));
+const env_js_1 = require("./config/env.js");
+const db_js_1 = require("./persistence/db.js");
+const redis_js_1 = require("./persistence/redis.js");
+const service_js_1 = require("./auth/service.js");
+const roomManager_js_1 = require("./lobby/roomManager.js");
+const matchRuntime_js_1 = require("./matches/matchRuntime.js");
+const matchmaker_js_1 = require("./matchmaking/matchmaker.js");
+const metrics_js_1 = require("./observability/metrics.js");
+const GIT_COMMIT = process.env.GIT_COMMIT || 'development-commit';
+const SERVER_VERSION = '1.0.0';
+const fastify = (0, fastify_1.default)({
+    logger: false, // We use pino logger instance
+    disableRequestLogging: true,
+});
+const roomManager = new roomManager_js_1.RoomManager();
+const matchmaker = new matchmaker_js_1.Matchmaker();
+const activeMatches = new Map();
+async function main() {
+    metrics_js_1.logger.info({
+        serverVersion: SERVER_VERSION,
+        gitCommit: GIT_COMMIT,
+        protocolVersion: env_js_1.env.PROTOCOL_VERSION,
+        contentVersion: env_js_1.env.CONTENT_VERSION,
+        simCoreVersion: env_js_1.env.SIM_CORE_VERSION,
+    }, '[Bootstrap] Initializing RA4 Authoritative Game Server...');
+    // Initialize DB and Redis
+    await (0, db_js_1.initDb)();
+    await (0, redis_js_1.initRedis)();
+    // Register Fastify plugins
+    await fastify.register(cors_1.default, { origin: true });
+    await fastify.register(jwt_1.default, { secret: env_js_1.env.JWT_SECRET });
+    await fastify.register(rate_limit_1.default, { max: env_js_1.env.RATE_LIMIT_MAX, timeWindow: '1 minute' });
+    await fastify.register(websocket_1.default);
+    // Request counter hook
+    fastify.addHook('onRequest', async (req, reply) => {
+        metrics_js_1.httpRequestsTotal.inc({ method: req.method, route: req.routeOptions.url || req.url, status_code: reply.statusCode });
+    });
+    // Health and Readiness endpoints
+    fastify.get('/health', async () => ({
+        status: 'ok',
+        uptimeSeconds: Math.floor(process.uptime()),
+        timestamp: new Date().toISOString(),
+    }));
+    fastify.get('/ready', async () => ({
+        status: 'ready',
+        versions: {
+            server: SERVER_VERSION,
+            gitCommit: GIT_COMMIT,
+            protocol: env_js_1.env.PROTOCOL_VERSION,
+            content: env_js_1.env.CONTENT_VERSION,
+            simCore: env_js_1.env.SIM_CORE_VERSION,
+        },
+        activeMatches: activeMatches.size,
+        publicRooms: roomManager.listPublicRooms().length,
+    }));
+    // Prometheus Metrics endpoint
+    fastify.get('/metrics', async (req, reply) => {
+        reply.type(metrics_js_1.register.contentType);
+        return metrics_js_1.register.metrics();
+    });
+    // HTTP API V1 Routes
+    fastify.post('/api/v1/auth/guest', async () => {
+        const guestUser = await service_js_1.AuthService.createGuestSession();
+        const token = fastify.jwt.sign({ userId: guestUser.id, role: guestUser.role, nickname: guestUser.nickname });
+        return { token, user: { id: guestUser.id, nickname: guestUser.nickname, role: guestUser.role } };
+    });
+    fastify.post('/api/v1/auth/register', async (req, reply) => {
+        const { nickname, password, email, secretKey } = req.body;
         try {
-            const msg = deserializeClientMessage(data.toString());
-            switch (msg.type) {
-                case 'JOIN_LOBBY': {
-                    ws.send(serializeServerMessage({
-                        type: 'LOBBY_STATE',
-                        state: {
-                            roomId: room.id,
-                            mapId: 'map_red_square_duel',
-                            matchState: room.matchState,
-                            hostIndex: 0,
-                            slots: [
-                                { index: 0, name: msg.playerName, type: PlayerType.HUMAN, factionId: FactionId.USSR, team: 0, color: '#ff4d4d', isReady: true, isConnected: true },
-                                { index: 1, name: 'AI ИИ-Командир', type: PlayerType.AI_MEDIUM, factionId: FactionId.ALLIANCE, team: 1, color: '#4dc3ff', isReady: true, isConnected: true }
-                            ],
-                            contentVersionHash: 'sha256_official'
+            const newUser = await service_js_1.AuthService.register(nickname, password, email, secretKey);
+            const token = fastify.jwt.sign({ userId: newUser.id, role: newUser.role, nickname: newUser.nickname });
+            return { token, user: { id: newUser.id, nickname: newUser.nickname, role: newUser.role } };
+        }
+        catch (err) {
+            reply.status(400);
+            return { error: err.message };
+        }
+    });
+    fastify.post('/api/v1/auth/login', async (req, reply) => {
+        const { identifier, password } = req.body;
+        try {
+            const user = await service_js_1.AuthService.login(identifier, password, req.ip);
+            const token = fastify.jwt.sign({ userId: user.id, role: user.role, nickname: user.nickname });
+            return { token, user: { id: user.id, nickname: user.nickname, role: user.role } };
+        }
+        catch (err) {
+            reply.status(401);
+            return { error: err.message };
+        }
+    });
+    fastify.get('/api/v1/users/profile', async (req, reply) => {
+        try {
+            await req.jwtVerify();
+            const payload = req.user;
+            const data = await service_js_1.AuthService.getProfile(payload.userId);
+            return data ?? { error: 'Profile not found' };
+        }
+        catch {
+            reply.status(401);
+            return { error: 'Unauthorized' };
+        }
+    });
+    // WebSocket Gateway Route
+    fastify.get('/ws', { websocket: true }, (socket, req) => {
+        metrics_js_1.activeWebSocketConnections.inc();
+        metrics_js_1.logger.info({ ip: req.ip }, '[WS] Client connected to WebSocket Gateway');
+        let currentRoomId = 'default-room';
+        let playerIndex = 0;
+        let currentMatch = null;
+        let userRole = 'player';
+        let userId = 'guest-anon';
+        socket.on('message', async (data) => {
+            try {
+                const msg = JSON.parse(data.toString());
+                switch (msg.type) {
+                    case 'JOIN_LOBBY': {
+                        const result = roomManager.joinRoom(msg.roomId || 'default-room', msg.playerName, userId);
+                        currentRoomId = result.room.id;
+                        playerIndex = result.slotIndex;
+                        socket.send(JSON.stringify({
+                            type: 'LOBBY_STATE',
+                            state: roomManager.getLobbyState(result.room),
+                        }));
+                        break;
+                    }
+                    case 'SET_SLOT': {
+                        if (currentRoomId) {
+                            const room = roomManager.setSlotConfig(currentRoomId, msg.slotIndex, msg.factionId, msg.playerType, msg.team);
+                            socket.send(JSON.stringify({ type: 'LOBBY_STATE', state: roomManager.getLobbyState(room) }));
                         }
-                    }));
-                    break;
-                }
-                case 'START_MATCH': {
-                    if (room.matchState === MatchState.LOBBY) {
-                        room.startMatch();
+                        break;
                     }
-                    break;
-                }
-                case 'SUBMIT_COMMAND': {
-                    const val = validatePlayerCommand(msg.command, room.sim, playerIndex);
-                    if (val.valid) {
-                        room.tickBuffer.push(msg.command);
+                    case 'SET_READY': {
+                        if (currentRoomId) {
+                            const room = roomManager.setReady(currentRoomId, playerIndex, msg.isReady);
+                            socket.send(JSON.stringify({ type: 'LOBBY_STATE', state: roomManager.getLobbyState(room) }));
+                        }
+                        break;
                     }
-                    else {
-                        console.warn(`[Anti-Cheat Reject] Player ${playerIndex}: ${val.reason}`);
+                    case 'START_MATCH': {
+                        if (currentRoomId) {
+                            const room = roomManager.getRoom(currentRoomId);
+                            if (room) {
+                                const matchPlayers = room.slots.map(s => ({
+                                    playerIndex: s.index,
+                                    name: s.name,
+                                    factionId: s.factionId,
+                                    team: s.team,
+                                    type: s.type,
+                                    ws: s.index === playerIndex ? socket : null,
+                                    isConnected: true,
+                                    lastAckTick: 0,
+                                    reconnectToken: `token-${s.index}`,
+                                }));
+                                const runtime = new matchRuntime_js_1.AuthoritativeMatchRuntime(room.mapId, matchPlayers);
+                                activeMatches.set(runtime.matchId, runtime);
+                                metrics_js_1.activeMatchesCount.set(activeMatches.size);
+                                currentMatch = runtime;
+                                runtime.start();
+                            }
+                        }
+                        break;
                     }
-                    break;
+                    case 'SUBMIT_COMMAND': {
+                        if (currentMatch) {
+                            const res = currentMatch.submitCommand(playerIndex, msg.command);
+                            if (!res.valid) {
+                                metrics_js_1.rejectedCommandsTotal.inc({ reason: res.reason || 'invalid' });
+                                socket.send(JSON.stringify({
+                                    type: 'ERROR',
+                                    message: `Command rejected: ${res.reason}`,
+                                }));
+                            }
+                        }
+                        break;
+                    }
+                    case 'RECONNECT': {
+                        const match = activeMatches.get(msg.roomId);
+                        if (match) {
+                            const ok = match.handleReconnect(msg.playerIndex, `token-${msg.playerIndex}`, msg.lastTick, socket);
+                            if (ok) {
+                                currentMatch = match;
+                                playerIndex = msg.playerIndex;
+                            }
+                            else {
+                                socket.send(JSON.stringify({ type: 'ERROR', message: 'Reconnect failed: invalid token' }));
+                            }
+                        }
+                        break;
+                    }
+                    default:
+                        break;
                 }
-                default:
-                    break;
             }
-        }
-        catch (e) {
-            console.error('[RA4 Game Server] Error parsing client message:', e);
-        }
+            catch (err) {
+                metrics_js_1.logger.error({ err }, '[WS] Error processing message');
+            }
+        });
+        socket.on('close', () => {
+            metrics_js_1.activeWebSocketConnections.dec();
+            metrics_js_1.logger.info({ userId }, '[WS] Client disconnected');
+            if (currentRoomId) {
+                roomManager.leaveRoom(currentRoomId, playerIndex);
+            }
+            if (currentMatch) {
+                currentMatch.handleDisconnect(playerIndex);
+            }
+        });
     });
-    ws.on('close', () => {
-        console.log(`[RA4 Game Server] Client ${playerIndex} disconnected`);
-        room.connections.delete(playerIndex);
-    });
+    // Start HTTP & WS Server
+    await fastify.listen({ port: env_js_1.env.PORT, host: env_js_1.env.HOST });
+    metrics_js_1.logger.info(`[RA4 Game Server] Authoritative Fastify Server running on http://${env_js_1.env.HOST}:${env_js_1.env.PORT}`);
+}
+// Graceful Shutdown Signal Handler
+async function gracefulShutdown(signal) {
+    metrics_js_1.logger.info({ signal }, '[Shutdown] Initiating graceful shutdown...');
+    // Stop active match timers
+    for (const match of activeMatches.values()) {
+        match.stop();
+    }
+    await fastify.close();
+    await (0, db_js_1.closeDb)();
+    await (0, redis_js_1.closeRedis)();
+    metrics_js_1.logger.info('[Shutdown] Server successfully shut down.');
+    process.exit(0);
+}
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+main().catch(err => {
+    metrics_js_1.logger.fatal({ err }, 'Fatal error during server startup');
+    process.exit(1);
 });
 //# sourceMappingURL=index.js.map

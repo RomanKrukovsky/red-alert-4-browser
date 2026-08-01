@@ -68,6 +68,7 @@ export declare class GameSimulation {
     players: PlayerEconomyState[];
     resourceNodes: Map<string, ResourceNodeState>;
     aiAgents: Map<number, SkirmishAIAgent>;
+    playerTeams: number[];
     nextEntityId: number;
     matchState: MatchState;
     winnerTeam: number;
@@ -84,6 +85,7 @@ export declare class GameSimulation {
     private executeCommand;
     step(): WorldSnapshot;
     recalculateEconomy(): void;
+    private updateFogOfWar;
     checkVictory(): void;
     calculateChecksum(): number;
     createSnapshot(): WorldSnapshot;

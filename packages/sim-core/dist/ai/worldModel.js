@@ -15,7 +15,7 @@ export class AIWorldModel {
             const wx = entity.x / 1000;
             const wz = entity.y / 1000;
             // FOW Compliance Check
-            if (fow.isVisible(bb.playerIndex, Math.floor(wx), Math.floor(wz))) {
+            if (fow.isVisible(bb.team, Math.floor(wx), Math.floor(wz))) {
                 bb.intelEntries.set(entity.id, {
                     entityId: entity.id,
                     specId: entity.specId,

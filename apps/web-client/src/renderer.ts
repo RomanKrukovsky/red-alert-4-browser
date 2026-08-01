@@ -8,6 +8,8 @@ import { WorldSnapshot } from '@ra4/shared-types';
 import { RTSCamera } from './camera.js';
 import { useUIStore } from '@ra4/ui';
 import { RuntimeAssetInstance, RuntimeAssetRegistry } from './assets/RuntimeAssetRegistry.js';
+import { GameplayAssetPresenter } from './presentation/GameplayAssetPresenter.js';
+import { findNearestShooter, getGameplayAssetProfile } from './presentation/gameplayAssetPolicy.js';
 
 export class RTSRenderer {
   public engine: Engine;
@@ -20,7 +22,7 @@ export class RTSRenderer {
   public ready: Promise<void>;
 
   private materials: Map<string, StandardMaterial | PBRMaterial> = new Map();
-  private entityAssets: Map<number, RuntimeAssetInstance> = new Map();
+  private entityPresenters: Map<number, GameplayAssetPresenter> = new Map();
   private environmentAssets: RuntimeAssetInstance[] = [];
   private assetRegistry: RuntimeAssetRegistry;
 
@@ -197,6 +199,11 @@ export class RTSRenderer {
   public updateScene(snapshot: WorldSnapshot): void {
     const activeIds = new Set<number>();
     const selectedIds = new Set(useUIStore.getState().selectedEntityIds);
+    const shotByEntity = new Map<number, { target: Vector3 }>();
+    for (const shot of snapshot.shotFX ?? []) {
+      const shooter = findNearestShooter(snapshot.entities, shot, 2.5);
+      if (shooter) shotByEntity.set(shooter.id, { target: new Vector3(shot.targetX / 1000, 0, shot.targetY / 1000) });
+    }
 
     for (const e of snapshot.entities) {
       activeIds.add(e.id);
@@ -206,12 +213,12 @@ export class RTSRenderer {
       const wz = e.position.y / 1000;
 
       if (!node) {
-        const asset = this.assetRegistry.instantiate(e.specId, `entity_${e.id}`);
-        if (asset) {
-          node = asset.root;
-          this.entityAssets.set(e.id, asset);
-          const idle = asset.animations.get('Idle_Gun') ?? asset.animations.get('Idle');
-          idle?.start(true);
+        const profile = getGameplayAssetProfile(e.specId);
+        const asset = profile ? this.assetRegistry.instantiate(e.specId, `entity_${e.id}`) : null;
+        if (asset && profile) {
+          const presenter = new GameplayAssetPresenter(this.scene, e.id, profile, asset);
+          node = presenter.root;
+          this.entityPresenters.set(e.id, presenter);
         } else {
           if (e.isBuilding) {
             node = MeshBuilder.CreateBox(`entity_${e.id}`, { width: 3, height: 2, depth: 3 }, this.scene);
@@ -225,26 +232,22 @@ export class RTSRenderer {
         this.entityMeshes.set(e.id, node);
       }
 
-      node.position.x = wx;
-      node.position.z = wz;
-      node.position.y = 0;
-      node.rotation.y = -e.rotation / 1000;
-
-      const asset = this.entityAssets.get(e.id);
-      if (asset && !e.isBuilding) {
-        const moving = e.moveTarget !== undefined;
-        const desired = moving ? asset.animations.get('Run') ?? asset.animations.get('Walk') : asset.animations.get('Idle_Gun') ?? asset.animations.get('Idle');
-        if (desired && !desired.isPlaying) {
-          for (const animation of asset.animations.values()) animation.stop();
-          desired.start(true);
-        }
+      const presenter = this.entityPresenters.get(e.id);
+      const shot = shotByEntity.get(e.id);
+      if (presenter) {
+        presenter.update(e, { firing: Boolean(shot), shotTarget: shot?.target, productionActive: e.productionQueue.length > 0 });
+      } else {
+        node.position.x = wx;
+        node.position.z = wz;
+        node.position.y = 0;
+        node.rotation.y = -e.rotation / 1000;
       }
 
       // Selection Ring
       let ring = this.selectionRings.get(e.id);
       if (selectedIds.has(e.id)) {
         if (!ring) {
-          ring = MeshBuilder.CreateTorus(`ring_${e.id}`, { diameter: e.isBuilding ? 3.8 : 1.8, thickness: 0.12 }, this.scene);
+          ring = MeshBuilder.CreateTorus(`ring_${e.id}`, { diameter: presenter?.selectionDiameter ?? (e.isBuilding ? 3.8 : 1.8), thickness: 0.12 }, this.scene);
           ring.material = this.materials.get('mat_ring')!;
           this.selectionRings.set(e.id, ring);
         }
@@ -260,15 +263,18 @@ export class RTSRenderer {
     // Render Tracer Lines & Muzzle Light Flashes for Shot FX
     if (snapshot.shotFX) {
       for (const shot of snapshot.shotFX) {
+        const shooter = findNearestShooter(snapshot.entities, shot, 2.5);
+        const presenter = shooter ? this.entityPresenters.get(shooter.id) : undefined;
+        const start = presenter?.getMuzzleWorldPosition() ?? new Vector3(shot.startX / 1000, 1.2, shot.startY / 1000);
         const line = MeshBuilder.CreateLines(`tracer_${Date.now()}_${Math.random()}`, {
           points: [
-            new Vector3(shot.startX / 1000, 1.2, shot.startY / 1000),
+            start,
             new Vector3(shot.targetX / 1000, 1.2, shot.targetY / 1000)
           ]
         }, this.scene);
         line.color = new Color3(1.0, 0.85, 0.25);
 
-        const flash = new PointLight(`flash_${Date.now()}`, new Vector3(shot.startX / 1000, 1.4, shot.startY / 1000), this.scene);
+        const flash = new PointLight(`flash_${Date.now()}`, start, this.scene);
         flash.diffuse = new Color3(1.0, 0.7, 0.2);
         flash.intensity = 4.0;
         flash.range = 8.0;
@@ -283,11 +289,11 @@ export class RTSRenderer {
     // Cleanup destroyed entities
     for (const [id, node] of this.entityMeshes.entries()) {
       if (!activeIds.has(id)) {
-        const asset = this.entityAssets.get(id);
-        if (asset) asset.dispose();
+        const presenter = this.entityPresenters.get(id);
+        if (presenter) presenter.dispose();
         else node.dispose();
         this.entityMeshes.delete(id);
-        this.entityAssets.delete(id);
+        this.entityPresenters.delete(id);
         const ring = this.selectionRings.get(id);
         if (ring) {
           ring.dispose();
@@ -327,8 +333,8 @@ export class RTSRenderer {
     if (this.ghostMesh) {
       this.ghostMesh.dispose();
     }
-    for (const asset of this.entityAssets.values()) asset.dispose();
-    this.entityAssets.clear();
+    for (const presenter of this.entityPresenters.values()) presenter.dispose();
+    this.entityPresenters.clear();
     this.entityMeshes.clear();
     for (const asset of this.environmentAssets) asset.dispose();
     this.environmentAssets = [];

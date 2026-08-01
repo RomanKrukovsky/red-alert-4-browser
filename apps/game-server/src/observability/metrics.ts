@@ -5,12 +5,11 @@ import { env } from '../config/env.js';
 export const logger = pino({
   level: env.LOG_LEVEL,
   formatters: {
-    level: (label) => ({ level: label }),
+    level: (label: string) => ({ level: label }),
   },
   timestamp: pino.stdTimeFunctions.isoTime,
 });
 
-// Prometheus Registry & Metrics Definitions
 export const register = new client.Registry();
 
 client.collectDefaultMetrics({ register });

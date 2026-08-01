@@ -40,11 +40,31 @@ export class RoomManager {
       },
       {
         index: 1,
-        name: 'AI ИИ-Командир',
-        type: PlayerType.AI_MEDIUM,
+        name: 'Commander 2',
+        type: PlayerType.HUMAN,
         factionId: FactionId.ALLIANCE,
         team: 1,
         color: '#4dc3ff',
+        isReady: false,
+        isConnected: false,
+      },
+      {
+        index: 2,
+        name: 'Commander 3',
+        type: PlayerType.HUMAN,
+        factionId: FactionId.ORIENTAL_COALITION,
+        team: 0,
+        color: '#ffd700',
+        isReady: false,
+        isConnected: false,
+      },
+      {
+        index: 3,
+        name: 'AI ИИ-Командир',
+        type: PlayerType.AI_MEDIUM,
+        factionId: FactionId.CHRONOLEGION,
+        team: 1,
+        color: '#9370db',
         isReady: true,
         isConnected: true,
       },
@@ -93,8 +113,8 @@ export class RoomManager {
       return { room, slotIndex: existingSlot.index };
     }
 
-    // Find first empty slot
-    const emptySlot = room.slots.find(s => !s.isConnected && s.type !== PlayerType.AI_EASY && s.type !== PlayerType.AI_MEDIUM && s.type !== PlayerType.AI_HARD);
+    // Find first empty/disconnected slot
+    const emptySlot = room.slots.find(s => !s.isConnected);
     if (!emptySlot) {
       throw new Error('Room is full');
     }

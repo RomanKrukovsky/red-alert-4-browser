@@ -1,7 +1,14 @@
-import { Scene, Vector3, Matrix, PointerEventTypes, PointerInfo } from '@babylonjs/core';
+import { AbstractMesh, Scene, Vector3, Matrix, PointerEventTypes, PointerInfo } from '@babylonjs/core';
 import { RTSRenderer } from './renderer.js';
 import { CommandType, PlayerCommand } from '@ra4/shared-types';
 import { useUIStore, AdminConsoleService } from '@ra4/ui';
+
+const getPickedEntityId = (mesh: AbstractMesh): number | undefined => {
+  const metadataId = mesh.metadata?.entityId;
+  if (typeof metadataId === 'number') return metadataId;
+  const match = /^entity_(\d+)$/.exec(mesh.name);
+  return match ? Number(match[1]) : undefined;
+};
 
 export class InputManager {
   private renderer: RTSRenderer;
@@ -136,9 +143,8 @@ export class InputManager {
   private handleSingleClick(evt: { clientX: number; clientY: number }): void {
     const pickResult = this.renderer.scene.pick(evt.clientX, evt.clientY);
     if (pickResult && pickResult.hit && pickResult.pickedMesh) {
-      const meshName = pickResult.pickedMesh.name;
-      if (meshName.startsWith('entity_')) {
-        const entityId = parseInt(meshName.replace('entity_', ''), 10);
+      const entityId = getPickedEntityId(pickResult.pickedMesh);
+      if (entityId !== undefined) {
         useUIStore.getState().setSelectedEntityIds([entityId]);
         return;
       }
@@ -186,8 +192,9 @@ export class InputManager {
     const snapshot = useUIStore.getState().snapshot;
     const playerIdx = useUIStore.getState().activePlayerIndex;
 
-    if (pickResult.pickedMesh && pickResult.pickedMesh.name.startsWith('entity_')) {
-      const targetId = parseInt(pickResult.pickedMesh.name.replace('entity_', ''), 10);
+    const pickedEntityId = pickResult.pickedMesh ? getPickedEntityId(pickResult.pickedMesh) : undefined;
+    if (pickedEntityId !== undefined) {
+      const targetId = pickedEntityId;
       const targetEntity = snapshot?.entities.find(e => e.id === targetId);
 
       if (targetEntity && targetEntity.playerIndex !== playerIdx) {
@@ -226,8 +233,9 @@ export class InputManager {
     const snapshot = useUIStore.getState().snapshot;
     const playerIdx = useUIStore.getState().activePlayerIndex;
 
-    if (pickResult.pickedMesh && pickResult.pickedMesh.name.startsWith('entity_')) {
-      const targetId = parseInt(pickResult.pickedMesh.name.replace('entity_', ''), 10);
+    const pickedEntityId = pickResult.pickedMesh ? getPickedEntityId(pickResult.pickedMesh) : undefined;
+    if (pickedEntityId !== undefined) {
+      const targetId = pickedEntityId;
       this.onCommandDispatch({
         type: CommandType.ATTACK,
         entityIds: [this.controlledEntityId],

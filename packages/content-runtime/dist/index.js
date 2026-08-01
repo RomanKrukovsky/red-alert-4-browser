@@ -1,6 +1,7 @@
 import { ContentDatabaseSchema } from '@ra4/content-schema';
 import { DEFAULT_DATABASE } from './database.js';
 export * from './database.js';
+export * from './audioRegistry.js';
 export function validateContentDatabase(db = DEFAULT_DATABASE) {
     const result = ContentDatabaseSchema.safeParse(db);
     if (!result.success) {

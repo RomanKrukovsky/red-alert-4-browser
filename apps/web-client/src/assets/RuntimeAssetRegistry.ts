@@ -3,6 +3,7 @@ import { RuntimeAssetDefinition, runtimeAssetById, runtimeAssetManifest } from '
 
 export interface RuntimeAssetInstance {
   root: TransformNode;
+  visibleMeshes: Mesh[];
   animations: Map<string, AnimationGroup>;
   sockets: Map<string, Node>;
   dispose: () => void;
@@ -32,7 +33,13 @@ export class RuntimeAssetRegistry {
   public constructor(private scene: Scene, private shadowGenerator: ShadowGenerator | null) {}
 
   public async preloadCritical(): Promise<void> {
-    await Promise.all(runtimeAssetManifest.map((definition) => this.load(definition)));
+    await Promise.all(runtimeAssetManifest.map(async (definition) => {
+      try {
+        await this.load(definition);
+      } catch (error: unknown) {
+        console.warn(`[RuntimeAssetRegistry] Failed to load ${definition.id} from ${definition.url}; gameplay fallback will be used.`, error);
+      }
+    }));
   }
 
   private async load(definition: RuntimeAssetDefinition): Promise<void> {
@@ -81,6 +88,7 @@ export class RuntimeAssetRegistry {
 
     return {
       root,
+      visibleMeshes: baseMeshes,
       animations,
       sockets,
       dispose: () => {
