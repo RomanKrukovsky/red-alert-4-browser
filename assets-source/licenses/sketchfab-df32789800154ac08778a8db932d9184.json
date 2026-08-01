@@ -1,6 +1,8 @@
 {
+  "assetId": "sketchfab-df32789800154ac08778a8db932d9184",
+  "displayName": "LPMAC Military Truck",
   "status": "BLOCKED_AUTH",
-  "reason": "SKETCHFAB_OAUTH_TOKEN environment variable not set. Official API requires OAuth authentication.",
-  "uid": "df32789800154ac08778a8db932d9184",
-  "sourcePage": "https://sketchfab.com/3d-models/df32789800154ac08778a8db932d9184"
+  "reason": "SKETCHFAB_OAUTH_TOKEN is not set; official download API was not called.",
+  "sourcePage": "https://sketchfab.com/3d-models/df32789800154ac08778a8db932d9184",
+  "downloadApi": "https://api.sketchfab.com/v3/models/df32789800154ac08778a8db932d9184/download"
 }

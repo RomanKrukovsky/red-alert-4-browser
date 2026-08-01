@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { Button } from '../components/Button';
+import { Button } from '../components/Button.js';
 export const SkirmishSetupScreen = ({ onStartMatch, onBack }) => {
     const players = [
         { id: 1, name: 'SOKOLOV_1945', faction: 'СССР', color: '#ff0000', team: '1', ready: true },

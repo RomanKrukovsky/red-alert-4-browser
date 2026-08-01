@@ -1,6 +1,8 @@
 {
+  "assetId": "sketchfab-7103a15d0c0141d6b3372e781e2f4e92",
+  "displayName": "Military Character Kit Textured",
   "status": "BLOCKED_AUTH",
-  "reason": "SKETCHFAB_OAUTH_TOKEN environment variable not set. Official API requires OAuth authentication.",
-  "uid": "7103a15d0c0141d6b3372e781e2f4e92",
-  "sourcePage": "https://sketchfab.com/3d-models/7103a15d0c0141d6b3372e781e2f4e92"
+  "reason": "SKETCHFAB_OAUTH_TOKEN is not set; official download API was not called.",
+  "sourcePage": "https://sketchfab.com/3d-models/7103a15d0c0141d6b3372e781e2f4e92",
+  "downloadApi": "https://api.sketchfab.com/v3/models/7103a15d0c0141d6b3372e781e2f4e92/download"
 }

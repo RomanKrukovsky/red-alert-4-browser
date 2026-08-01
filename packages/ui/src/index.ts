@@ -16,3 +16,5 @@ export * from './screens/SkirmishSetupScreen.js';
 export * from './screens/LoadingScreen.js';
 export * from './screens/MissionBriefingScreen.js';
 export * from './screens/StrategicMapScreen.js';
+export * from './components/AdminConsole.js';
+export * from './adminConsoleService.js';

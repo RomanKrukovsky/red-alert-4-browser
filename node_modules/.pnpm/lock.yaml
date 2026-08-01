@@ -279,6 +279,9 @@ importers:
       '@ra4/sim-core':
         specifier: workspace:*
         version: link:../sim-core
+      '@ra4/ui':
+        specifier: workspace:*
+        version: link:../ui
     devDependencies:
       '@types/node':
         specifier: ^22.13.4

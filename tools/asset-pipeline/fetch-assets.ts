@@ -1,209 +1,112 @@
-import fs from 'fs';
-import path from 'path';
-import { execSync } from 'child_process';
+import { spawnSync } from 'node:child_process';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const POLYHAVEN_ASSETS = [
-  { id: 'modular_factory_facade', category: 'building', name: 'Modular Factory Facade' },
-  { id: 'modular_industrial_pipes_01', category: 'building', name: 'Modular Industrial Pipes' },
-  { id: 'modular_airduct_rectangular_01', category: 'building', name: 'Industrial Airduct' },
-  { id: 'modular_electric_cables', category: 'building', name: 'Electric Cables' },
-  { id: 'utility_box_01', category: 'building', name: 'Utility Power Box' },
-  { id: 'concrete_road_barrier', category: 'prop', name: 'Concrete Road Barrier' },
-  { id: 'concrete_road_barrier_02', category: 'prop', name: 'Damaged Concrete Barrier' },
-  { id: 'old_military_crate', category: 'prop', name: 'Old Military Crate' },
-  { id: 'wooden_military_crate', category: 'prop', name: 'Wooden Military Crate' },
-  { id: 'Barrel_01', category: 'prop', name: 'Metal Barrel' },
-  { id: 'Barrel_02', category: 'prop', name: 'Plastic Industrial Barrel' },
-  { id: 'pine_tree_01', category: 'environment', name: 'Pine Tree High Resolution' },
-  { id: 'fir_tree_01', category: 'environment', name: 'Fir Tree High Resolution' },
-  { id: 'pine_sapling_small', category: 'environment', name: 'Pine Sapling' },
-  { id: 'fir_sapling', category: 'environment', name: 'Fir Sapling' },
-  { id: 'mountainside', category: 'environment', name: 'Mountainside Cliff' },
-  { id: 'coast_land_rocks_02', category: 'environment', name: 'Coastal Land Rocks Set' },
-  { id: 'coast_rocks_01', category: 'environment', name: 'Large Coast Rocks' },
-  { id: 'sand_rocks_small_01', category: 'environment', name: 'Sand Rocks Small' },
-  { id: 'concrete_floor_01', category: 'terrain', name: 'Concrete Floor PBR Material' },
-  { id: 'asphalt_01', category: 'terrain', name: 'Asphalt PBR Material' },
-  { id: 'rock_3', category: 'terrain', name: 'Rock Surface PBR Material' },
-  { id: 'industrial_sunset_puresky', category: 'hdri', name: 'Industrial Sunset HDRI' }
+const rootDir = process.cwd();
+const sourceDir = path.join(rootDir, 'assets-source/downloads');
+const extractedDir = path.join(rootDir, 'assets-source/extracted');
+const licensesDir = path.join(rootDir, 'assets-source/licenses');
+const runtimeTexturesDir = path.join(rootDir, 'apps/web-client/public/assets/textures/terrain');
+const runtimeEnvironmentDir = path.join(rootDir, 'apps/web-client/public/assets/environments');
+const userAgent = 'RA4-Browser-AssetImporter/1.0';
+
+for (const directory of [sourceDir, extractedDir, licensesDir, runtimeTexturesDir, runtimeEnvironmentDir]) fs.mkdirSync(directory, { recursive: true });
+
+const sha256 = (file: string): string => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+
+const download = async (url: string, target: string): Promise<void> => {
+  if (fs.existsSync(target) && fs.statSync(target).size > 0) return;
+  const response = await fetch(url, { headers: { 'User-Agent': userAgent } });
+  if (!response.ok) throw new Error(`${response.status} ${url}`);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, Buffer.from(await response.arrayBuffer()));
+};
+
+const run = (command: string, args: string[]): void => {
+  const result = spawnSync(command, args, { cwd: rootDir, stdio: 'inherit' });
+  if (result.status !== 0) throw new Error(`${command} failed with ${result.status}`);
+};
+
+const googleFiles = [
+  { id: '1uaTlQ-HqN27if0knwsGTpL2NiQKFEKms', target: 'quaternius-animated-tanks/Blends/Tank.blend' },
+  { id: '1hrG1XAUSpbCAtvxsOEdx0Csi-O4yTSAx', target: 'quaternius-animated-tanks/Blends/Tank4.blend' },
+  { id: '1VuTMkuQymqZGmLIACWWMOI4lXLx0TCCY', target: 'quaternius-animated-tanks/License.txt' },
+  { id: '1B9DlH0SacSiAlAdnk_Ra9tA0sEpkNAtT', target: 'quaternius-modular-men/All together/Blends/Humans_Master.blend' },
+  { id: '1TTvylHa1CsiJuHFWWiv6PFGhLM-aAH5z', target: 'quaternius-modular-men/License.txt' },
 ];
 
-const SKETCHFAB_ASSETS = [
-  { uid: '91f495435f624d8b97a768f692aa6ce9', name: 'Military Landvehicle Kit 1.2', category: 'unit_kit' },
-  { uid: 'df32789800154ac08778a8db932d9184', name: 'LPMAC Military Truck', category: 'unit_kit' },
-  { uid: '2d01eba3031f4db48eea8cdcc504b366', name: 'Military Character Kit 1.1 FBX', category: 'infantry_kit' },
-  { uid: '7103a15d0c0141d6b3372e781e2f4e92', name: 'Military Character Kit Textured', category: 'infantry_kit' },
-  { uid: 'ae7ceaca7615424a91f0bd9a29ffc3d7', name: 'Military Outpost Kit 1.0 FBX', category: 'outpost_kit' }
+const kenneyPacks = [
+  { id: 'kenney-factory-kit', url: 'https://kenney.nl/media/pages/assets/factory-kit/edaac9d4f6-1777639602/kenney_factory-kit_3.0.zip', archive: 'kenney/factory-kit.zip', extracted: 'kenney-factory' },
+  { id: 'kenney-city-kit-industrial', url: 'https://kenney.nl/media/pages/assets/city-kit-industrial/5fcb837741-1750838303/kenney_city-kit-industrial_1.0.zip', archive: 'kenney/city-kit-industrial.zip', extracted: 'kenney-industrial' },
+  { id: 'kenney-mini-forest', url: 'https://kenney.nl/media/pages/assets/mini-forest/44a89aed7f-1784024079/kenney_mini-forest_1.0.zip', archive: 'kenney/mini-forest.zip', extracted: 'kenney-mini-forest' },
 ];
 
-interface ManifestEntry {
-  assetId: string;
-  displayName: string;
-  category: string;
-  sourcePage: string;
-  downloadApi: string;
-  author: string;
-  platform: string;
-  license: string;
-  licenseUrl: string;
-  attributionRequired: boolean;
-  downloadedAt: string;
-  sourceFormat: string;
-  runtimeFormat: string;
-  sourceSha256: string;
-  runtimeSha256: string;
-  sourceTriangleCount: number;
-  runtimeTriangleCountByLod: Record<string, number>;
-  sourceTextureResolution: string;
-  runtimeTextureResolution: string;
-  animations: string[];
-  modifications: string;
-  gameUsage: string;
-  reviewStatus: string;
-}
+const polyHavenTextures = ['brown_mud_02', 'rock_3', 'asphalt_01', 'concrete_floor_01'];
+const hdriId = 'industrial_sunset_puresky';
 
-async function runFetch() {
-  console.log('=== RA4 Asset Fetcher & Licensing Manager ===');
-  const manifestEntries: ManifestEntry[] = [];
-  const rootDir = process.cwd();
-  const licensesDir = path.join(rootDir, 'assets-source/licenses');
-  const downloadsDir = path.join(rootDir, 'assets-source/downloads');
+const blockedSketchfab = [
+  ['91f495435f624d8b97a768f692aa6ce9', 'Military Landvehicle Kit 1.2'],
+  ['df32789800154ac08778a8db932d9184', 'LPMAC Military Truck'],
+  ['2d01eba3031f4db48eea8cdcc504b366', 'Military Character Kit 1.1'],
+  ['7103a15d0c0141d6b3372e781e2f4e92', 'Military Character Kit Textured'],
+  ['ae7ceaca7615424a91f0bd9a29ffc3d7', 'Military Outpost Kit 1.0'],
+];
+async function main(): Promise<void> {
+  for (const file of googleFiles) {
+    const target = path.join(sourceDir, file.target);
+    if (!fs.existsSync(target)) run('uvx', ['--from', 'gdown', 'gdown', file.id, '-O', target]);
+  }
 
-  fs.mkdirSync(licensesDir, { recursive: true });
-  fs.mkdirSync(downloadsDir, { recursive: true });
+  for (const pack of kenneyPacks) {
+    const archive = path.join(sourceDir, pack.archive);
+    await download(pack.url, archive);
+    const output = path.join(extractedDir, pack.extracted);
+    if (!fs.existsSync(path.join(output, 'Models'))) run('unzip', ['-q', '-o', archive, '-d', output]);
+  }
 
-  // 1. Fetch Poly Haven Assets
-  for (const item of POLYHAVEN_ASSETS) {
-    console.log(`Processing Poly Haven Asset: ${item.name} (${item.id})...`);
-    const jsonPath = path.join(licensesDir, `${item.id}.files.json`);
-    const apiUrl = `https://api.polyhaven.com/files/${item.id}`;
-
-    try {
-      if (!fs.existsSync(jsonPath)) {
-        execSync(`curl -s -H "User-Agent: RA4-Browser-AssetImporter/1.0" "${apiUrl}" -o "${jsonPath}"`);
-      }
-
-      let metadata: any = {};
-      if (fs.existsSync(jsonPath)) {
-        metadata = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-      }
-
-      // Download primary glTF/GLB or HDR if available
-      let fileUrl = '';
-      let fileFormat = 'gltf';
-      if (metadata.gltf && metadata.gltf['1k'] && metadata.gltf['1k'].gltf) {
-        fileUrl = metadata.gltf['1k'].gltf.url;
-      } else if (metadata.hdri && metadata.hdri['1k'] && metadata.hdri['1k'].hdr) {
-        fileUrl = metadata.hdri['1k'].hdr.url;
-        fileFormat = 'hdr';
-      }
-
-      let targetFile = path.join(downloadsDir, `${item.id}.${fileFormat}`);
-      if (fileUrl && !fs.existsSync(targetFile)) {
-        console.log(` Downloading source file from ${fileUrl}...`);
-        execSync(`curl -s -L -H "User-Agent: RA4-Browser-AssetImporter/1.0" "${fileUrl}" -o "${targetFile}"`);
-      }
-
-      manifestEntries.push({
-        assetId: item.id,
-        displayName: item.name,
-        category: item.category,
-        sourcePage: `https://polyhaven.com/a/${item.id}`,
-        downloadApi: apiUrl,
-        author: 'Poly Haven Creators (CC0 Community)',
-        platform: 'Poly Haven',
-        license: 'CC0 1.0 Universal',
-        licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
-        attributionRequired: false,
-        downloadedAt: new Date().toISOString(),
-        sourceFormat: fileFormat,
-        runtimeFormat: 'glb',
-        sourceSha256: 'VERIFIED_OK',
-        runtimeSha256: 'VERIFIED_OK',
-        sourceTriangleCount: 15000,
-        runtimeTriangleCountByLod: { LOD0: 12000, LOD1: 5000, LOD2: 1500 },
-        sourceTextureResolution: '2048x2048',
-        runtimeTextureResolution: '1024x1024',
-        animations: [],
-        modifications: 'Processed via RA4 Blender pipeline for PBR optimization and LOD generation',
-        gameUsage: `Environment / Building prop for ${item.category}`,
-        reviewStatus: 'APPROVED_CC0'
-      });
-    } catch (e: any) {
-      console.warn(`Could not fetch ${item.id}:`, e.message);
+  for (const id of polyHavenTextures) {
+    const manifestPath = path.join(licensesDir, `${id}.files.json`);
+    await download(`https://api.polyhaven.com/files/${id}`, manifestPath);
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as Record<string, Record<string, Record<string, { url: string }>>>;
+    for (const [key, suffix] of [['Diffuse', 'diff'], ['nor_gl', 'nor_gl'], ['arm', 'arm']] as const) {
+      const file = manifest[key]?.['1k']?.jpg;
+      if (!file?.url) continue;
+      const source = path.join(sourceDir, 'polyhaven', id, `${id}_${suffix}_1k.jpg`);
+      await download(file.url, source);
+      fs.copyFileSync(source, path.join(runtimeTexturesDir, path.basename(source)));
     }
   }
 
-  // 2. Process Sketchfab Assets (OAuth token check)
-  const token = process.env.SKETCHFAB_OAUTH_TOKEN;
-  for (const item of SKETCHFAB_ASSETS) {
-    console.log(`Processing Sketchfab Asset: ${item.name} (${item.uid})...`);
-    const jsonPath = path.join(licensesDir, `sketchfab-${item.uid}.json`);
-    const apiUrl = `https://api.sketchfab.com/v3/models/${item.uid}/download`;
+  const hdriManifestPath = path.join(licensesDir, `${hdriId}.files.json`);
+  await download(`https://api.polyhaven.com/files/${hdriId}`, hdriManifestPath);
+  const hdriManifest = JSON.parse(fs.readFileSync(hdriManifestPath, 'utf8')) as { hdri?: { '1k'?: { hdr?: { url: string } } } };
+  const hdriUrl = hdriManifest.hdri?.['1k']?.hdr?.url;
+  if (!hdriUrl) throw new Error('Poly Haven HDRI 1K URL missing');
+  const hdriSource = path.join(sourceDir, 'polyhaven', hdriId, `${hdriId}_1k.hdr`);
+  await download(hdriUrl, hdriSource);
+  fs.copyFileSync(hdriSource, path.join(runtimeEnvironmentDir, `${hdriId}_1k.hdr`));
 
-    if (token) {
-      try {
-        execSync(`curl -s -H "Authorization: Bearer ${token}" "${apiUrl}" -o "${jsonPath}"`);
-      } catch (e: any) {
-        console.warn(`Sketchfab OAuth error for ${item.uid}:`, e.message);
-      }
-    } else {
-      fs.writeFileSync(jsonPath, JSON.stringify({
-        status: 'BLOCKED_AUTH',
-        reason: 'SKETCHFAB_OAUTH_TOKEN environment variable not set. Official API requires OAuth authentication.',
-        uid: item.uid,
-        sourcePage: `https://sketchfab.com/3d-models/${item.uid}`
-      }, null, 2));
-    }
-
-    manifestEntries.push({
-      assetId: `sketchfab-${item.uid}`,
-      displayName: item.name,
-      category: item.category,
-      sourcePage: `https://sketchfab.com/3d-models/${item.uid}`,
-      downloadApi: apiUrl,
-      author: 'Sketchfab CC0 Contributor',
-      platform: 'Sketchfab',
-      license: 'CC0 1.0 Universal',
-      licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
-      attributionRequired: false,
-      downloadedAt: new Date().toISOString(),
-      sourceFormat: 'gltf/fbx',
-      runtimeFormat: 'glb',
-      sourceSha256: 'AUTH_PENDING',
-      runtimeSha256: 'SYNTHESIZED_PROTOTYPE',
-      sourceTriangleCount: 85000,
-      runtimeTriangleCountByLod: { LOD0: 45000, LOD1: 20000, LOD2: 6000 },
-      sourceTextureResolution: '4096x4096',
-      runtimeTextureResolution: '2048x2048',
-      animations: ['idle', 'walk', 'fire', 'death'],
-      modifications: 'Kitbashed for RA4 vehicle & unit roster specifications',
-      gameUsage: `Base kitbash model for ${item.name}`,
-      reviewStatus: token ? 'APPROVED' : 'BLOCKED_AUTH'
-    });
+  const tokenPresent = Boolean(process.env.SKETCHFAB_OAUTH_TOKEN);
+  for (const [uid, displayName] of blockedSketchfab) {
+    const target = path.join(licensesDir, `sketchfab-${uid}.json`);
+    if (!tokenPresent) fs.writeFileSync(target, JSON.stringify({ assetId: `sketchfab-${uid}`, displayName, status: 'BLOCKED_AUTH', reason: 'SKETCHFAB_OAUTH_TOKEN is not set; official download API was not called.', sourcePage: `https://sketchfab.com/3d-models/${uid}`, downloadApi: `https://api.sketchfab.com/v3/models/${uid}/download` }, null, 2));
   }
 
-  // Save Manifest JSON
-  const manifestPath = path.join(rootDir, 'assets-source/licenses/asset-manifest.json');
-  fs.writeFileSync(manifestPath, JSON.stringify(manifestEntries, null, 2));
-  
-  const publicManifestDir = path.join(rootDir, 'apps/web-client/public/assets/manifests');
-  fs.mkdirSync(publicManifestDir, { recursive: true });
-  fs.writeFileSync(path.join(publicManifestDir, 'asset-manifest.json'), JSON.stringify(manifestEntries, null, 2));
-
-  // Generate THIRD_PARTY_ASSETS.md
-  let mdContent = `# Third-Party Asset Attribution & Legal Audit Report\n\n`;
-  mdContent += `**Generated**: ${new Date().toISOString()}\n`;
-  mdContent += `**Project**: Red Alert 4: Browser RTS\n\n`;
-  mdContent += `## 1. Verified Asset Inventory\n\n`;
-  mdContent += `| Asset ID | Display Name | Platform | License | Review Status | Source Page |\n`;
-  mdContent += `| :--- | :--- | :--- | :--- | :--- | :--- |\n`;
-  for (const entry of manifestEntries) {
-    mdContent += `| \`${entry.assetId}\` | ${entry.displayName} | ${entry.platform} | [${entry.license}](${entry.licenseUrl}) | \`${entry.reviewStatus}\` | [Link](${entry.sourcePage}) |\n`;
-  }
-
-  fs.writeFileSync(path.join(rootDir, 'THIRD_PARTY_ASSETS.md'), mdContent);
-  console.log('SUCCESS! Manifest and THIRD_PARTY_ASSETS.md created cleanly.');
+  const sourceAudit = {
+    generatedAt: new Date().toISOString(),
+    files: [
+      ...googleFiles.map((file) => path.join(sourceDir, file.target)),
+      ...kenneyPacks.map((pack) => path.join(sourceDir, pack.archive)),
+      ...polyHavenTextures.map((id) => path.join(sourceDir, 'polyhaven', id, `${id}_diff_1k.jpg`)),
+      hdriSource,
+    ].filter(fs.existsSync).map((file) => ({ path: path.relative(rootDir, file), bytes: fs.statSync(file).size, sha256: sha256(file) })),
+  };
+  fs.writeFileSync(path.join(licensesDir, 'source-audit.json'), JSON.stringify(sourceAudit, null, 2));
+  console.log(`Fetched and audited ${sourceAudit.files.length} official source files.`);
 }
 
-runFetch().catch(console.error);
+void main().catch((error: unknown) => {
+  console.error(error);
+  process.exitCode = 1;
+});

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MatchLifecycleManager } from '@ra4/sim-core';
 import { FactionId, MatchState, PlayerCommand, PlayerType, WorldSnapshot } from '@ra4/shared-types';
-import { useUIStore } from '@ra4/ui';
+import { useUIStore, AdminConsole, AdminConsoleService } from '@ra4/ui';
 import { InputManager } from './inputManager.js';
 import { RTSRenderer } from './renderer.js';
 import { GameplayHUD, PauseOverlay } from './ui/hud/GameplayHUD.js';
@@ -59,13 +59,15 @@ export const App: React.FC = () => {
     hasReceivedSnapshotRef.current = false;
   }, []);
 
-  const initializeMatch = useCallback((matchSetup: MatchSetup) => {
+  const initializeMatch = useCallback(async (matchSetup: MatchSetup) => {
     if (!canvasRef.current) return;
     disposeMatch();
     setLoadingStages((stages) => stages.map((stage) => stage.id === 'renderer' ? { ...stage, status: 'active', progress: 28 } : stage));
 
     const renderer = new RTSRenderer(canvasRef.current);
     rendererRef.current = renderer;
+    await renderer.ready;
+    if (rendererRef.current !== renderer) return;
     setLoadingStages((stages) => stages.map((stage) => stage.id === 'renderer' ? { ...stage, status: 'complete', progress: 38 } : stage.id === 'simulation' ? { ...stage, status: 'active', progress: 50 } : stage));
 
     const manager = new MatchLifecycleManager();
@@ -113,7 +115,7 @@ export const App: React.FC = () => {
       { id: 'snapshot', label: 'ПЕРВЫЙ СНИМОК МИРА', progress: 12, status: 'pending' },
     ]);
     navigate('LOADING', '#/loading');
-    window.requestAnimationFrame(() => initializeMatch(matchSetup));
+    window.requestAnimationFrame(() => { void initializeMatch(matchSetup); });
   }, [initializeMatch, navigate]);
 
   useEffect(() => {
@@ -181,6 +183,14 @@ export const App: React.FC = () => {
       {currentScreen === 'MATCH' && paused && <PauseOverlay onResume={resumeMatch} onExit={returnToMenu} />}
       {currentScreen === 'VICTORY' && <MatchResultScreen result="victory" onMenu={returnToMenu} onRetry={() => startMatch(setup)} />}
       {currentScreen === 'DEFEAT' && <MatchResultScreen result="defeat" onMenu={returnToMenu} onRetry={() => startMatch(setup)} />}
+      <AdminConsole
+        onExecuteCommand={(cmd) => AdminConsoleService.getInstance().executeCommand(cmd)}
+        onGetAutocomplete={(prefix) => AdminConsoleService.getInstance().getAutocompleteSuggestions(prefix)}
+        onClose={() => {
+          useUIStore.getState().setConsoleOpen(false);
+          useUIStore.getState().setInputMode('RTS');
+        }}
+      />
       <MusicPlayerWidget />
     </div>
   );

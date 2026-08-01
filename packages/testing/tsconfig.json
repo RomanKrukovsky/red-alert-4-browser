@@ -3,7 +3,10 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "@ra4/ui": ["../ui/dist/index.d.ts"]
+    }
   },
   "include": ["src/**/*"]
 }

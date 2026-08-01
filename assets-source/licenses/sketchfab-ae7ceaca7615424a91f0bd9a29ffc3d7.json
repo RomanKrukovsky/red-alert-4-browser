@@ -1,6 +1,8 @@
 {
+  "assetId": "sketchfab-ae7ceaca7615424a91f0bd9a29ffc3d7",
+  "displayName": "Military Outpost Kit 1.0",
   "status": "BLOCKED_AUTH",
-  "reason": "SKETCHFAB_OAUTH_TOKEN environment variable not set. Official API requires OAuth authentication.",
-  "uid": "ae7ceaca7615424a91f0bd9a29ffc3d7",
-  "sourcePage": "https://sketchfab.com/3d-models/ae7ceaca7615424a91f0bd9a29ffc3d7"
+  "reason": "SKETCHFAB_OAUTH_TOKEN is not set; official download API was not called.",
+  "sourcePage": "https://sketchfab.com/3d-models/ae7ceaca7615424a91f0bd9a29ffc3d7",
+  "downloadApi": "https://api.sketchfab.com/v3/models/ae7ceaca7615424a91f0bd9a29ffc3d7/download"
 }

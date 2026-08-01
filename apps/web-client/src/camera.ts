@@ -64,6 +64,41 @@ export class RTSCamera {
     else this.keysPressed.delete('edge_down');
   };
 
+  public setFreeCameraMode(enabled: boolean): void {
+    if (enabled) {
+      this.camera.lowerBetaLimit = 0.1;
+      this.camera.upperBetaLimit = Math.PI / 2.05;
+      this.camera.lowerRadiusLimit = 5;
+      this.camera.upperRadiusLimit = 120;
+    } else {
+      this.camera.lowerRadiusLimit = 12;
+      this.camera.upperRadiusLimit = 75;
+      this.camera.lowerBetaLimit = 0.3;
+      this.camera.upperBetaLimit = Math.PI / 2.5;
+    }
+  }
+
+  public rotateFree(deltaX: number, deltaY: number, sensitivity: number = 0.005): void {
+    this.camera.alpha += deltaX * sensitivity;
+    this.camera.beta = Math.max(0.1, Math.min(Math.PI / 2.05, this.camera.beta + deltaY * sensitivity));
+  }
+
+  public trackUnitPosition(pos: { x: number; y: number }, smooth: boolean = true): void {
+    const worldX = pos.x / 1000;
+    const worldZ = pos.y / 1000;
+
+    if (smooth) {
+      this.camera.target.x += (worldX - this.camera.target.x) * 0.15;
+      this.camera.target.z += (worldZ - this.camera.target.z) * 0.15;
+    } else {
+      this.camera.target.x = worldX;
+      this.camera.target.z = worldZ;
+    }
+
+    this.camera.radius = 16;
+    this.camera.beta = Math.PI / 2.8;
+  }
+
   public update(): void {
     const move = new Vector3(0, 0, 0);
     const speed = this.keysPressed.has('shift') ? this.moveSpeed * 2.0 : this.moveSpeed;

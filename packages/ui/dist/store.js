@@ -11,6 +11,9 @@ export const useUIStore = create((set) => ({
     ],
     isMenuOpen: false,
     theme: 'theme-soviet',
+    inputMode: 'RTS',
+    consoleOpen: false,
+    adminUser: { nickname: 'Админ', role: 'admin', token: 'server_auth_admin_token_83921' },
     setSnapshot: (snapshot) => set({ snapshot }),
     setSelectedEntityIds: (ids) => set({ selectedEntityIds: ids }),
     setActivePlayerIndex: (idx) => set({ activePlayerIndex: idx }),
@@ -23,6 +26,9 @@ export const useUIStore = create((set) => ({
         ]
     })),
     toggleMenu: () => set((state) => ({ isMenuOpen: !state.isMenuOpen })),
-    setTheme: (theme) => set({ theme })
+    setTheme: (theme) => set({ theme }),
+    setInputMode: (inputMode) => set({ inputMode }),
+    setConsoleOpen: (consoleOpen) => set({ consoleOpen }),
+    setAdminUser: (adminUser) => set({ adminUser })
 }));
 //# sourceMappingURL=store.js.map

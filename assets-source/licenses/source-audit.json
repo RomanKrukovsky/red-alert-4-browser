@@ -1,0 +1,70 @@
+{
+  "generatedAt": "2026-08-01T11:09:09.770Z",
+  "files": [
+    {
+      "path": "assets-source/downloads/quaternius-animated-tanks/Blends/Tank.blend",
+      "bytes": 1279620,
+      "sha256": "1949b020efda14164b62f153e8d186e624aa4b6edb8d3539a31d42e2286a5692"
+    },
+    {
+      "path": "assets-source/downloads/quaternius-animated-tanks/Blends/Tank4.blend",
+      "bytes": 2008212,
+      "sha256": "25613d55289dce03f71c19f11cb1386be24927ad28f6766af6ec19a51f4cb93e"
+    },
+    {
+      "path": "assets-source/downloads/quaternius-animated-tanks/License.txt",
+      "bytes": 364,
+      "sha256": "83d8959f9fc56353ed571fbe2dc52e4bcd64508e2399501cd45ac2ce3df0bf8c"
+    },
+    {
+      "path": "assets-source/downloads/quaternius-modular-men/All together/Blends/Humans_Master.blend",
+      "bytes": 11548924,
+      "sha256": "25252b3fb5d48b59f2b2dafeb0fd61af0c3ea652254b39cec02fc752be0123f4"
+    },
+    {
+      "path": "assets-source/downloads/quaternius-modular-men/License.txt",
+      "bytes": 372,
+      "sha256": "e8dbf915a2b82229913e301a0787696611241bdefec4832bc084f54161db1efe"
+    },
+    {
+      "path": "assets-source/downloads/kenney/factory-kit.zip",
+      "bytes": 4511890,
+      "sha256": "7e31fb2308e90304672bd15cd18fa9d9f02c03731a8cbc57a8e3e1c181dfb0a7"
+    },
+    {
+      "path": "assets-source/downloads/kenney/city-kit-industrial.zip",
+      "bytes": 3805564,
+      "sha256": "99a09ff148056678c0c3b7977ad9dbce55d2f243e06fbfc7c28642accef4dd9e"
+    },
+    {
+      "path": "assets-source/downloads/kenney/mini-forest.zip",
+      "bytes": 1118081,
+      "sha256": "8691614018075a66458e35915b8c358c2e6178648aedadafcdf313b924aa6581"
+    },
+    {
+      "path": "assets-source/downloads/polyhaven/brown_mud_02/brown_mud_02_diff_1k.jpg",
+      "bytes": 527741,
+      "sha256": "058b6f12493305ec6b47cb5ea77f013c9e7e58216b34af3700a3d3d7d821732d"
+    },
+    {
+      "path": "assets-source/downloads/polyhaven/rock_3/rock_3_diff_1k.jpg",
+      "bytes": 850585,
+      "sha256": "e68a81e113a4173c0e19f58bedda41b3b13adcfdeb2f8ae4808f63ec5de10225"
+    },
+    {
+      "path": "assets-source/downloads/polyhaven/asphalt_01/asphalt_01_diff_1k.jpg",
+      "bytes": 739513,
+      "sha256": "99b6f6bdfbd09279f3f550ac9593336df541aa2319537566eeb3e737d8512010"
+    },
+    {
+      "path": "assets-source/downloads/polyhaven/concrete_floor_01/concrete_floor_01_diff_1k.jpg",
+      "bytes": 755740,
+      "sha256": "db7c800f1464359b5f359fc743e82ac51b34e014fdfd53844f4af34bb1949229"
+    },
+    {
+      "path": "assets-source/downloads/polyhaven/industrial_sunset_puresky/industrial_sunset_puresky_1k.hdr",
+      "bytes": 1158432,
+      "sha256": "ce8235e4b1b10b620120ceeb32eb3e80af15ea29b09a8625a4bdae647dff328d"
+    }
+  ]
+}

@@ -1,6 +1,8 @@
 {
+  "assetId": "sketchfab-2d01eba3031f4db48eea8cdcc504b366",
+  "displayName": "Military Character Kit 1.1",
   "status": "BLOCKED_AUTH",
-  "reason": "SKETCHFAB_OAUTH_TOKEN environment variable not set. Official API requires OAuth authentication.",
-  "uid": "2d01eba3031f4db48eea8cdcc504b366",
-  "sourcePage": "https://sketchfab.com/3d-models/2d01eba3031f4db48eea8cdcc504b366"
+  "reason": "SKETCHFAB_OAUTH_TOKEN is not set; official download API was not called.",
+  "sourcePage": "https://sketchfab.com/3d-models/2d01eba3031f4db48eea8cdcc504b366",
+  "downloadApi": "https://api.sketchfab.com/v3/models/2d01eba3031f4db48eea8cdcc504b366/download"
 }

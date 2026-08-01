@@ -4,26 +4,26 @@
 
 vite v6.4.3 building for production...
 transforming...
-✓ 2067 modules transformed.
+✓ 2071 modules transformed.
 rendering chunks...
 computing gzip size...
-dist/index.html                                          0.86 kB │ gzip:     0.47 kB
-dist/assets/index-ChIVlxru.css                          47.37 kB │ gzip:    11.42 kB
-dist/assets/tgaTextureLoader-BLZ4r25a.js                 0.31 kB │ gzip:     0.25 kB
-dist/assets/flowGraphGLTFDataProvider-DLiFQLbr.js        0.46 kB │ gzip:     0.29 kB
-dist/assets/flowGraphCodeExecutionBlock-Dx_58I_F.js      0.47 kB │ gzip:     0.27 kB
-dist/assets/hdrTextureLoader-BTg6x2dK.js                 0.53 kB │ gzip:     0.38 kB
-dist/assets/envTextureLoader-DRjoXw4U.js                 0.56 kB │ gzip:     0.36 kB
+dist/index.html                                          0.86 kB │ gzip:     0.48 kB
+dist/assets/index-C4DRQ3R0.css                          47.28 kB │ gzip:    11.37 kB
+dist/assets/tgaTextureLoader-B4_XrsBT.js                 0.31 kB │ gzip:     0.25 kB
+dist/assets/flowGraphGLTFDataProvider-Byyw8fO-.js        0.46 kB │ gzip:     0.29 kB
+dist/assets/flowGraphCodeExecutionBlock-0TzgwpM_.js      0.47 kB │ gzip:     0.27 kB
+dist/assets/hdrTextureLoader-DqNIhkbe.js                 0.53 kB │ gzip:     0.38 kB
+dist/assets/envTextureLoader-Cn8RimMU.js                 0.56 kB │ gzip:     0.37 kB
 dist/assets/mesh.vertexData.functions-BYooUupK.js        0.92 kB │ gzip:     0.49 kB
-dist/assets/basisTextureLoader-5jI4wZN_.js               1.19 kB │ gzip:     0.57 kB
-dist/assets/ddsTextureLoader-C7joyNem.js                 1.22 kB │ gzip:     0.59 kB
-dist/assets/ktxTextureLoader-Cn_3BOe6.js                 1.37 kB │ gzip:     0.71 kB
-dist/assets/iesTextureLoader-CNsYHIfQ.js                 2.69 kB │ gzip:     1.16 kB
-dist/assets/exrTextureLoader-BFtLrM1X.js                 6.53 kB │ gzip:     2.54 kB
-dist/assets/index-yfllivfu.js                        5,699.04 kB │ gzip: 1,284.23 kB
+dist/assets/basisTextureLoader-CU18hryL.js               1.19 kB │ gzip:     0.57 kB
+dist/assets/ddsTextureLoader-D3E0IaKD.js                 1.22 kB │ gzip:     0.59 kB
+dist/assets/ktxTextureLoader-BLDLSsQb.js                 1.37 kB │ gzip:     0.71 kB
+dist/assets/iesTextureLoader-fM6JA7jn.js                 2.69 kB │ gzip:     1.16 kB
+dist/assets/exrTextureLoader-BSjwWPTl.js                 6.53 kB │ gzip:     2.54 kB
+dist/assets/index-B3iLpeCH.js                        5,719.23 kB │ gzip: 1,291.26 kB
 
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 3.89s
+✓ built in 4.08s

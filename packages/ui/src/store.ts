@@ -11,6 +11,11 @@ export interface UIState {
   isMenuOpen: boolean;
   theme: string;
 
+  // New Input Modes & Admin Console State
+  inputMode: 'RTS' | 'DirectUnitControl' | 'FreeCamera' | 'Console';
+  consoleOpen: boolean;
+  adminUser: { nickname: string; role: string; token: string } | null;
+
   setSnapshot: (snapshot: WorldSnapshot) => void;
   setSelectedEntityIds: (ids: number[]) => void;
   setActivePlayerIndex: (idx: number) => void;
@@ -19,6 +24,9 @@ export interface UIState {
   addEvaLog: (message: string, type?: 'INFO' | 'WARN' | 'DANGER') => void;
   toggleMenu: () => void;
   setTheme: (theme: string) => void;
+  setInputMode: (mode: 'RTS' | 'DirectUnitControl' | 'FreeCamera' | 'Console') => void;
+  setConsoleOpen: (open: boolean) => void;
+  setAdminUser: (user: { nickname: string; role: string; token: string } | null) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -32,6 +40,9 @@ export const useUIStore = create<UIState>((set) => ({
   ],
   isMenuOpen: false,
   theme: 'theme-soviet',
+  inputMode: 'RTS',
+  consoleOpen: false,
+  adminUser: { nickname: 'Админ', role: 'admin', token: 'server_auth_admin_token_83921' },
 
   setSnapshot: (snapshot) => set({ snapshot }),
   setSelectedEntityIds: (ids) => set({ selectedEntityIds: ids }),
@@ -45,5 +56,8 @@ export const useUIStore = create<UIState>((set) => ({
     ]
   })),
   toggleMenu: () => set((state) => ({ isMenuOpen: !state.isMenuOpen })),
-  setTheme: (theme) => set({ theme })
+  setTheme: (theme) => set({ theme }),
+  setInputMode: (inputMode) => set({ inputMode }),
+  setConsoleOpen: (consoleOpen) => set({ consoleOpen }),
+  setAdminUser: (adminUser) => set({ adminUser })
 }));

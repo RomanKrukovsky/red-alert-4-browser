@@ -1,12 +1,13 @@
 import {
   Engine, Scene, Vector3, HemisphericLight, DirectionalLight, PointLight,
-  MeshBuilder, StandardMaterial, PBRMaterial, Color3, Color4, Mesh, SceneLoader, TransformNode,
-  DefaultRenderingPipeline, DynamicTexture, ShadowGenerator
+  MeshBuilder, StandardMaterial, PBRMaterial, Color3, Color4, Mesh, TransformNode,
+  DefaultRenderingPipeline, ShadowGenerator, Texture, HDRCubeTexture
 } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF/index.js';
 import { WorldSnapshot } from '@ra4/shared-types';
 import { RTSCamera } from './camera.js';
 import { useUIStore } from '@ra4/ui';
+import { RuntimeAssetInstance, RuntimeAssetRegistry } from './assets/RuntimeAssetRegistry.js';
 
 export class RTSRenderer {
   public engine: Engine;
@@ -14,11 +15,14 @@ export class RTSRenderer {
   public rtsCamera: RTSCamera;
   public entityMeshes: Map<number, TransformNode> = new Map();
   public selectionRings: Map<number, Mesh> = new Map();
-  public loadedTemplates: Map<string, Mesh> = new Map();
   public shadowGenerator: ShadowGenerator | null = null;
   public pipeline: DefaultRenderingPipeline | null = null;
+  public ready: Promise<void>;
 
   private materials: Map<string, StandardMaterial | PBRMaterial> = new Map();
+  private entityAssets: Map<number, RuntimeAssetInstance> = new Map();
+  private environmentAssets: RuntimeAssetInstance[] = [];
+  private assetRegistry: RuntimeAssetRegistry;
 
   constructor(canvas: HTMLCanvasElement) {
     this.engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
@@ -40,13 +44,13 @@ export class RTSRenderer {
     this.shadowGenerator = new ShadowGenerator(2048, dirLight);
     this.shadowGenerator.useBlurExponentialShadowMap = true;
     this.shadowGenerator.blurKernel = 16;
+    this.assetRegistry = new RuntimeAssetRegistry(this.scene, this.shadowGenerator);
 
     // AAA Post-Processing Pipeline
     this.initPostProcessing();
     this.initMaterials();
     this.createTacticalTerrain();
-    this.preloadGLBModels();
-    this.spawnEnvironmentDecor();
+    this.ready = this.initializeAssets();
 
     // Main Render & Animation Loop
     this.engine.runRenderLoop(() => {
@@ -121,89 +125,72 @@ export class RTSRenderer {
     ground.position = new Vector3(32, 0, 32);
     ground.receiveShadows = true;
 
-    // Tactical Grid Dynamic Texture
-    const dynamicTex = new DynamicTexture('gridTex', 1024, this.scene, true);
-    const ctx = dynamicTex.getContext();
-    ctx.fillStyle = '#0c121e';
-    ctx.fillRect(0, 0, 1024, 1024);
-
-    // Draw Grid Lines
-    ctx.strokeStyle = 'rgba(0, 255, 200, 0.15)';
-    ctx.lineWidth = 2;
-    const step = 1024 / 32;
-    for (let i = 0; i <= 1024; i += step) {
-      ctx.beginPath();
-      ctx.moveTo(i, 0); ctx.lineTo(i, 1024);
-      ctx.moveTo(0, i); ctx.lineTo(1024, i);
-      ctx.stroke();
-    }
-    dynamicTex.update();
-
     const pbrGround = new PBRMaterial('pbrGround', this.scene);
-    pbrGround.albedoTexture = dynamicTex;
-    pbrGround.roughness = 0.65;
-    pbrGround.metallic = 0.25;
+    pbrGround.albedoTexture = this.createTerrainTexture('/assets/textures/terrain/brown_mud_02_diff_1k.jpg', 14);
+    pbrGround.bumpTexture = this.createTerrainTexture('/assets/textures/terrain/brown_mud_02_nor_gl_1k.jpg', 14);
+    pbrGround.metallicTexture = this.createTerrainTexture('/assets/textures/terrain/brown_mud_02_arm_1k.jpg', 14);
+    pbrGround.useAmbientOcclusionFromMetallicTextureRed = true;
+    pbrGround.useRoughnessFromMetallicTextureGreen = true;
+    pbrGround.useMetallnessFromMetallicTextureBlue = true;
+    pbrGround.roughness = .92;
+    pbrGround.metallic = .02;
 
     ground.material = pbrGround;
-  }
 
-  private async preloadGLBModels(): Promise<void> {
-    const modelSpecs = [
-      { id: 'SU_GranitMBT', url: '/assets/models/units/SU_GranitMBT.glb' },
-      { id: 'SU_BogatyrOreCarrier', url: '/assets/models/units/SU_BogatyrOreCarrier.glb' },
-      { id: 'SU_RubezhRifleman', url: '/assets/models/units/SU_RubezhRifleman.glb' },
-      { id: 'SU_HeavyFactory', url: '/assets/models/buildings/SU_HeavyFactory.glb' },
-      { id: 'SU_Pillbox', url: '/assets/models/buildings/SU_Pillbox.glb' }
-    ];
+    const road = MeshBuilder.CreateGround('asphalt-road', { width: 12, height: 64 }, this.scene);
+    road.position = new Vector3(31, .018, 32);
+    road.receiveShadows = true;
+    const roadMaterial = new PBRMaterial('pbrAsphalt', this.scene);
+    roadMaterial.albedoTexture = this.createTerrainTexture('/assets/textures/terrain/asphalt_01_diff_1k.jpg', 8);
+    roadMaterial.bumpTexture = this.createTerrainTexture('/assets/textures/terrain/asphalt_01_nor_gl_1k.jpg', 8);
+    roadMaterial.roughness = .88;
+    road.material = roadMaterial;
 
-    for (const spec of modelSpecs) {
-      try {
-        const result = await SceneLoader.ImportMeshAsync('', '', spec.url, this.scene);
-        const root = result.meshes[0] as Mesh;
-        if (root) {
-          root.setEnabled(false);
-          this.loadedTemplates.set(spec.id, root);
-        }
-      } catch (e) {
-        console.warn(`[RTSRenderer] Fallback used for ${spec.id}`);
-      }
+    for (const [index, position] of [[12, 12], [50, 50]].entries()) {
+      const pad = MeshBuilder.CreateGround(`concrete-pad-${index}`, { width: 13, height: 13 }, this.scene);
+      pad.position = new Vector3(position[0], .026, position[1]);
+      pad.receiveShadows = true;
+      const material = new PBRMaterial(`pbrConcrete-${index}`, this.scene);
+      material.albedoTexture = this.createTerrainTexture('/assets/textures/terrain/concrete_floor_01_diff_1k.jpg', 3);
+      material.bumpTexture = this.createTerrainTexture('/assets/textures/terrain/concrete_floor_01_nor_gl_1k.jpg', 3);
+      material.roughness = .84;
+      pad.material = material;
     }
   }
 
-  private async spawnEnvironmentDecor(): Promise<void> {
-    try {
-      const treeRes = await SceneLoader.ImportMeshAsync('', '', '/assets/models/environment/pine_tree_01.glb', this.scene);
-      const treeRoot = treeRes.meshes[0] as Mesh;
-      if (treeRoot) {
-        treeRoot.setEnabled(false);
-        const treeCoords = [[10, 10], [14, 8], [12, 16], [50, 12], [54, 15], [52, 50], [10, 52]];
-        treeCoords.forEach(([tx, tz], i) => {
-          const instance = treeRoot.clone(`tree_${i}`, null);
-          if (instance) {
-            instance.setEnabled(true);
-            instance.position = new Vector3(tx, 0, tz);
-            if (this.shadowGenerator) {
-              this.shadowGenerator.addShadowCaster(instance, true);
-            }
-          }
-        });
-      }
+  private createTerrainTexture(url: string, scale: number): Texture {
+    const texture = new Texture(url, this.scene, true, false);
+    texture.uScale = scale;
+    texture.vScale = scale;
+    return texture;
+  }
 
-      const rockRes = await SceneLoader.ImportMeshAsync('', '', '/assets/models/environment/coast_rocks_01.glb', this.scene);
-      const rockRoot = rockRes.meshes[0] as Mesh;
-      if (rockRoot) {
-        rockRoot.setEnabled(false);
-        const rockCoords = [[5, 30], [58, 30], [30, 5], [32, 58]];
-        rockCoords.forEach(([rx, rz], i) => {
-          const instance = rockRoot.clone(`rock_${i}`, null);
-          if (instance) {
-            instance.setEnabled(true);
-            instance.position = new Vector3(rx, 0, rz);
-          }
-        });
-      }
-    } catch (e) {
-      console.warn('[RTSRenderer] Environment decor warning:', e);
+  private async initializeAssets(): Promise<void> {
+    const environment = new HDRCubeTexture('/assets/environments/industrial_sunset_puresky_1k.hdr', this.scene, 128, false, true, false, true);
+    this.scene.environmentTexture = environment;
+    this.scene.environmentIntensity = .72;
+    this.scene.fogMode = Scene.FOGMODE_EXP2;
+    this.scene.fogDensity = .005;
+    this.scene.fogColor = new Color3(.12, .15, .18);
+    await this.assetRegistry.preloadCritical();
+    this.spawnEnvironmentDecor();
+  }
+
+  private spawnEnvironmentDecor(): void {
+    const layouts: Array<{ assetId: string; points: Array<[number, number, number]> }> = [
+      { assetId: 'ENV_PineTree01', points: [[8, 9, .1], [12, 7, 1.3], [10, 16, 2.5], [52, 11, 3.2], [55, 16, 4.1], [51, 52, 5.2], [9, 53, 5.8]] },
+      { assetId: 'ENV_CoastRocks01', points: [[4, 30, .4], [59, 31, 1.7], [30, 4, 3.1], [33, 59, 4.8]] },
+      { assetId: 'PROP_ConcreteBarrier', points: [[24, 26, 0], [27, 26, 0], [36, 39, 3.14], [39, 39, 3.14]] },
+      { assetId: 'PROP_MilitaryCrate', points: [[16, 15, .3], [17.3, 15.4, 1.1], [46, 49, 2.4]] },
+    ];
+    for (const layout of layouts) {
+      layout.points.forEach(([x, z, rotation], index) => {
+        const instance = this.assetRegistry.instantiate(layout.assetId, `${layout.assetId}_${index}`);
+        if (!instance) return;
+        instance.root.position.set(x, 0, z);
+        instance.root.rotation.y = rotation;
+        this.environmentAssets.push(instance);
+      });
     }
   }
 
@@ -219,15 +206,12 @@ export class RTSRenderer {
       const wz = e.position.y / 1000;
 
       if (!node) {
-        const template = this.loadedTemplates.get(e.specId);
-        if (template) {
-          node = template.clone(`entity_${e.id}`, null) as TransformNode;
-          node.setEnabled(true);
-          if (this.shadowGenerator) {
-            for (const m of node.getChildMeshes()) {
-              this.shadowGenerator.addShadowCaster(m, true);
-            }
-          }
+        const asset = this.assetRegistry.instantiate(e.specId, `entity_${e.id}`);
+        if (asset) {
+          node = asset.root;
+          this.entityAssets.set(e.id, asset);
+          const idle = asset.animations.get('Idle_Gun') ?? asset.animations.get('Idle');
+          idle?.start(true);
         } else {
           if (e.isBuilding) {
             node = MeshBuilder.CreateBox(`entity_${e.id}`, { width: 3, height: 2, depth: 3 }, this.scene);
@@ -244,6 +228,17 @@ export class RTSRenderer {
       node.position.x = wx;
       node.position.z = wz;
       node.position.y = 0;
+      node.rotation.y = -e.rotation / 1000;
+
+      const asset = this.entityAssets.get(e.id);
+      if (asset && !e.isBuilding) {
+        const moving = e.moveTarget !== undefined;
+        const desired = moving ? asset.animations.get('Run') ?? asset.animations.get('Walk') : asset.animations.get('Idle_Gun') ?? asset.animations.get('Idle');
+        if (desired && !desired.isPlaying) {
+          for (const animation of asset.animations.values()) animation.stop();
+          desired.start(true);
+        }
+      }
 
       // Selection Ring
       let ring = this.selectionRings.get(e.id);
@@ -288,8 +283,11 @@ export class RTSRenderer {
     // Cleanup destroyed entities
     for (const [id, node] of this.entityMeshes.entries()) {
       if (!activeIds.has(id)) {
-        node.dispose();
+        const asset = this.entityAssets.get(id);
+        if (asset) asset.dispose();
+        else node.dispose();
         this.entityMeshes.delete(id);
+        this.entityAssets.delete(id);
         const ring = this.selectionRings.get(id);
         if (ring) {
           ring.dispose();
@@ -329,15 +327,12 @@ export class RTSRenderer {
     if (this.ghostMesh) {
       this.ghostMesh.dispose();
     }
-    for (const node of this.entityMeshes.values()) {
-      node.dispose();
-    }
+    for (const asset of this.entityAssets.values()) asset.dispose();
+    this.entityAssets.clear();
     this.entityMeshes.clear();
-
-    for (const template of this.loadedTemplates.values()) {
-      template.dispose();
-    }
-    this.loadedTemplates.clear();
+    for (const asset of this.environmentAssets) asset.dispose();
+    this.environmentAssets = [];
+    this.assetRegistry.dispose();
 
     if (this.pipeline) {
       this.pipeline.dispose();

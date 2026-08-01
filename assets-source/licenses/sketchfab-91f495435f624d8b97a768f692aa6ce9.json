@@ -1,6 +1,8 @@
 {
+  "assetId": "sketchfab-91f495435f624d8b97a768f692aa6ce9",
+  "displayName": "Military Landvehicle Kit 1.2",
   "status": "BLOCKED_AUTH",
-  "reason": "SKETCHFAB_OAUTH_TOKEN environment variable not set. Official API requires OAuth authentication.",
-  "uid": "91f495435f624d8b97a768f692aa6ce9",
-  "sourcePage": "https://sketchfab.com/3d-models/91f495435f624d8b97a768f692aa6ce9"
+  "reason": "SKETCHFAB_OAUTH_TOKEN is not set; official download API was not called.",
+  "sourcePage": "https://sketchfab.com/3d-models/91f495435f624d8b97a768f692aa6ce9",
+  "downloadApi": "https://api.sketchfab.com/v3/models/91f495435f624d8b97a768f692aa6ce9/download"
 }

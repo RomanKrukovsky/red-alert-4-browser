@@ -1,7 +1,7 @@
 import { Scene, Vector3, Matrix, PointerEventTypes, PointerInfo } from '@babylonjs/core';
 import { RTSRenderer } from './renderer.js';
-import { CommandType, PlayerCommand, WorldSnapshot } from '@ra4/shared-types';
-import { useUIStore } from '@ra4/ui';
+import { CommandType, PlayerCommand } from '@ra4/shared-types';
+import { useUIStore, AdminConsoleService } from '@ra4/ui';
 
 export class InputManager {
   private renderer: RTSRenderer;
@@ -16,10 +16,21 @@ export class InputManager {
   private hotkeyGroups: Map<number, number[]> = new Map();
   private lastEventPos: Vector3 = new Vector3(32, 0, 32);
 
+  // Mode states
+  private isSpaceHeld: boolean = false;
+  private isRmbHeld: boolean = false;
+  private prevMouseX: number = 0;
+  private prevMouseY: number = 0;
+  private controlledEntityId: number | null = null;
+  private lastDirectMoveTick: number = 0;
+
   constructor(renderer: RTSRenderer, canvas: HTMLCanvasElement, onCommandDispatch: (cmd: PlayerCommand) => void) {
     this.renderer = renderer;
     this.canvas = canvas;
     this.onCommandDispatch = onCommandDispatch;
+
+    // Attach dispatch handler to AdminConsoleService
+    AdminConsoleService.getInstance().onDispatchCommand = this.onCommandDispatch;
 
     // Create 2D Selection Box Overlay
     this.selectionBoxElement = document.createElement('div');
@@ -38,24 +49,47 @@ export class InputManager {
     const scene = this.renderer.scene;
 
     scene.onPointerObservable.add((pointerInfo: PointerInfo) => {
+      const mode = useUIStore.getState().inputMode;
+      if (mode === 'Console') return;
+
       switch (pointerInfo.type) {
         case PointerEventTypes.POINTERDOWN: {
           if (pointerInfo.event.button === 0) { // Left Click Down
-            this.isDragging = true;
-            this.dragStartX = pointerInfo.event.clientX;
-            this.dragStartY = pointerInfo.event.clientY;
-            this.selectionBoxElement.style.left = `${this.dragStartX}px`;
-            this.selectionBoxElement.style.top = `${this.dragStartY}px`;
-            this.selectionBoxElement.style.width = '0px';
-            this.selectionBoxElement.style.height = '0px';
-            this.selectionBoxElement.style.display = 'block';
+            if (mode === 'DirectUnitControl') {
+              this.handleDirectFire(pointerInfo.event);
+            } else if (mode === 'RTS') {
+              this.isDragging = true;
+              this.dragStartX = pointerInfo.event.clientX;
+              this.dragStartY = pointerInfo.event.clientY;
+              this.selectionBoxElement.style.left = `${this.dragStartX}px`;
+              this.selectionBoxElement.style.top = `${this.dragStartY}px`;
+              this.selectionBoxElement.style.width = '0px';
+              this.selectionBoxElement.style.height = '0px';
+              this.selectionBoxElement.style.display = 'block';
+            }
+          } else if (pointerInfo.event.button === 2) { // Right Click Down
+            this.isRmbHeld = true;
+            this.prevMouseX = pointerInfo.event.clientX;
+            this.prevMouseY = pointerInfo.event.clientY;
+
+            if (this.isSpaceHeld) {
+              useUIStore.getState().setInputMode('FreeCamera');
+              this.renderer.rtsCamera.setFreeCameraMode(true);
+            }
           }
           break;
         }
         case PointerEventTypes.POINTERMOVE: {
-          if (this.isDragging) {
-            const currentX = pointerInfo.event.clientX;
-            const currentY = pointerInfo.event.clientY;
+          const currentX = pointerInfo.event.clientX;
+          const currentY = pointerInfo.event.clientY;
+
+          if (useUIStore.getState().inputMode === 'FreeCamera' && this.isRmbHeld) {
+            const dx = currentX - this.prevMouseX;
+            const dy = currentY - this.prevMouseY;
+            this.renderer.rtsCamera.rotateFree(dx, dy);
+            this.prevMouseX = currentX;
+            this.prevMouseY = currentY;
+          } else if (this.isDragging && mode === 'RTS') {
             const left = Math.min(this.dragStartX, currentX);
             const top = Math.min(this.dragStartY, currentY);
             const width = Math.abs(currentX - this.dragStartX);
@@ -69,7 +103,7 @@ export class InputManager {
           break;
         }
         case PointerEventTypes.POINTERUP: {
-          if (pointerInfo.event.button === 0 && this.isDragging) { // Left Click Up
+          if (pointerInfo.event.button === 0 && this.isDragging && mode === 'RTS') { // Left Click Up
             this.isDragging = false;
             this.selectionBoxElement.style.display = 'none';
 
@@ -77,14 +111,18 @@ export class InputManager {
             const dy = Math.abs(pointerInfo.event.clientY - this.dragStartY);
 
             if (dx < 5 && dy < 5) {
-              // Single Click Pick
               this.handleSingleClick(pointerInfo.event);
             } else {
-              // Drag Box Select
               this.handleBoxSelect(this.dragStartX, this.dragStartY, pointerInfo.event.clientX, pointerInfo.event.clientY);
             }
-          } else if (pointerInfo.event.button === 2) { // Right Click (Issue Context Command)
-            this.handleRightClick(pointerInfo.event);
+          } else if (pointerInfo.event.button === 2) { // Right Click Up
+            this.isRmbHeld = false;
+            if (useUIStore.getState().inputMode === 'FreeCamera') {
+              useUIStore.getState().setInputMode('RTS');
+              this.renderer.rtsCamera.setFreeCameraMode(false);
+            } else if (mode === 'RTS') {
+              this.handleRightClick(pointerInfo.event);
+            }
           }
           break;
         }
@@ -92,6 +130,7 @@ export class InputManager {
     });
 
     window.addEventListener('keydown', this.handleKeyDown);
+    window.addEventListener('keyup', this.handleKeyUp);
   }
 
   private handleSingleClick(evt: { clientX: number; clientY: number }): void {
@@ -104,7 +143,6 @@ export class InputManager {
         return;
       }
     }
-    // Deselect if ground clicked
     useUIStore.getState().setSelectedEntityIds([]);
   }
 
@@ -148,27 +186,22 @@ export class InputManager {
     const snapshot = useUIStore.getState().snapshot;
     const playerIdx = useUIStore.getState().activePlayerIndex;
 
-    // Check if clicked entity
     if (pickResult.pickedMesh && pickResult.pickedMesh.name.startsWith('entity_')) {
       const targetId = parseInt(pickResult.pickedMesh.name.replace('entity_', ''), 10);
       const targetEntity = snapshot?.entities.find(e => e.id === targetId);
 
-      if (targetEntity) {
-        if (targetEntity.playerIndex !== playerIdx) {
-          // Issue Attack Command
-          this.onCommandDispatch({
-            type: CommandType.ATTACK,
-            entityIds: selectedIds,
-            targetEntityId: targetId,
-            playerIndex: playerIdx,
-            tick: snapshot?.tick ?? 0
-          });
-          return;
-        }
+      if (targetEntity && targetEntity.playerIndex !== playerIdx) {
+        this.onCommandDispatch({
+          type: CommandType.ATTACK,
+          entityIds: selectedIds,
+          targetEntityId: targetId,
+          playerIndex: playerIdx,
+          tick: snapshot?.tick ?? 0
+        });
+        return;
       }
     }
 
-    // Default ground click -> Issue MOVE command
     if (pickResult.pickedPoint) {
       const targetX = Math.round(pickResult.pickedPoint.x * 1000);
       const targetY = Math.round(pickResult.pickedPoint.z * 1000);
@@ -184,33 +217,135 @@ export class InputManager {
     }
   }
 
-  private handleKeyDown = (e: KeyboardEvent) => {
-    const keyNum = parseInt(e.key, 10);
-    const selectedIds = useUIStore.getState().selectedEntityIds;
+  private handleDirectFire(evt: { clientX: number; clientY: number }): void {
+    if (!this.controlledEntityId) return;
 
-    if (!isNaN(keyNum) && keyNum >= 1 && keyNum <= 9) {
-      if (e.ctrlKey) {
-        // Save Hotkey Group
-        this.hotkeyGroups.set(keyNum, [...selectedIds]);
-        useUIStore.getState().addEvaLog(`Группа ${keyNum} сохранена (${selectedIds.length} единиц).`, 'INFO');
+    const pickResult = this.renderer.scene.pick(evt.clientX, evt.clientY);
+    if (!pickResult || !pickResult.hit) return;
+
+    const snapshot = useUIStore.getState().snapshot;
+    const playerIdx = useUIStore.getState().activePlayerIndex;
+
+    if (pickResult.pickedMesh && pickResult.pickedMesh.name.startsWith('entity_')) {
+      const targetId = parseInt(pickResult.pickedMesh.name.replace('entity_', ''), 10);
+      this.onCommandDispatch({
+        type: CommandType.ATTACK,
+        entityIds: [this.controlledEntityId],
+        targetEntityId: targetId,
+        playerIndex: playerIdx,
+        tick: snapshot?.tick ?? 0
+      });
+    } else if (pickResult.pickedPoint) {
+      const targetX = Math.round(pickResult.pickedPoint.x * 1000);
+      const targetY = Math.round(pickResult.pickedPoint.z * 1000);
+      this.onCommandDispatch({
+        type: CommandType.MOVE,
+        entityIds: [this.controlledEntityId],
+        targetX,
+        targetY,
+        playerIndex: playerIdx,
+        tick: snapshot?.tick ?? 0
+      });
+    }
+  }
+
+  private handleKeyDown = (e: KeyboardEvent) => {
+    const mode = useUIStore.getState().inputMode;
+
+    // Tilde / Backquote key -> Toggle Console Mode
+    if (e.key === '`' || e.key === '~' || e.key === 'Ё' || e.key === 'ё') {
+      e.preventDefault();
+      if (mode === 'Console') {
+        useUIStore.getState().setConsoleOpen(false);
+        useUIStore.getState().setInputMode('RTS');
       } else {
-        // Select Hotkey Group
-        const groupIds = this.hotkeyGroups.get(keyNum) ?? [];
-        useUIStore.getState().setSelectedEntityIds(groupIds);
+        useUIStore.getState().setConsoleOpen(true);
+        useUIStore.getState().setInputMode('Console');
+      }
+      return;
+    }
+
+    if (mode === 'Console') return; // Block all other hotkeys when console is open
+
+    if (e.key === ' ') {
+      this.isSpaceHeld = true;
+      if (this.isRmbHeld) {
+        useUIStore.getState().setInputMode('FreeCamera');
+        this.renderer.rtsCamera.setFreeCameraMode(true);
+      }
+    } else if (e.key.toLowerCase() === 'f') { // F key -> Toggle Direct Unit Control Mode
+      const selected = useUIStore.getState().selectedEntityIds;
+      if (mode === 'DirectUnitControl') {
+        useUIStore.getState().setInputMode('RTS');
+        this.controlledEntityId = null;
+        useUIStore.getState().addEvaLog('Прямое управление отключено. Возврат в RTS-режим.', 'INFO');
+      } else if (selected.length > 0) {
+        const playerIdx = useUIStore.getState().activePlayerIndex;
+        const snapshot = useUIStore.getState().snapshot;
+        const ownedUnit = snapshot?.entities.find(ent => ent.id === selected[0] && ent.playerIndex === playerIdx && !ent.isBuilding);
+
+        if (ownedUnit) {
+          this.controlledEntityId = ownedUnit.id;
+          useUIStore.getState().setInputMode('DirectUnitControl');
+          useUIStore.getState().addEvaLog(`Прямое управление объектом #${ownedUnit.id} [WASD / Стрельба LMB].`, 'INFO');
+        } else {
+          useUIStore.getState().addEvaLog('Прямое управление доступно только для собственных юнитов.', 'WARN');
+        }
       }
     } else if (e.key === 'Escape') {
-      useUIStore.getState().setSelectedEntityIds([]);
-    } else if (e.key === ' ') {
-      // Space: Focus camera on last event
-      this.renderer.camera.target.x = this.lastEventPos.x;
-      this.renderer.camera.target.z = this.lastEventPos.z;
+      if (mode === 'DirectUnitControl') {
+        useUIStore.getState().setInputMode('RTS');
+        this.controlledEntityId = null;
+      } else {
+        useUIStore.getState().setSelectedEntityIds([]);
+      }
+    } else if (mode === 'RTS') {
+      const keyNum = parseInt(e.key, 10);
+      const selectedIds = useUIStore.getState().selectedEntityIds;
+
+      if (!isNaN(keyNum) && keyNum >= 1 && keyNum <= 9) {
+        if (e.ctrlKey) {
+          this.hotkeyGroups.set(keyNum, [...selectedIds]);
+          useUIStore.getState().addEvaLog(`Группа ${keyNum} сохранена (${selectedIds.length} единиц).`, 'INFO');
+        } else {
+          const groupIds = this.hotkeyGroups.get(keyNum) ?? [];
+          useUIStore.getState().setSelectedEntityIds(groupIds);
+        }
+      }
     }
   };
+
+  private handleKeyUp = (e: KeyboardEvent) => {
+    if (e.key === ' ') {
+      this.isSpaceHeld = false;
+      if (useUIStore.getState().inputMode === 'FreeCamera') {
+        useUIStore.getState().setInputMode('RTS');
+        this.renderer.rtsCamera.setFreeCameraMode(false);
+      }
+    }
+  };
+
+  public update(): void {
+    const mode = useUIStore.getState().inputMode;
+
+    if (mode === 'DirectUnitControl' && this.controlledEntityId) {
+      const snapshot = useUIStore.getState().snapshot;
+      const unit = snapshot?.entities.find(e => e.id === this.controlledEntityId);
+      if (unit) {
+        this.renderer.rtsCamera.trackUnitPosition(unit.position);
+      } else {
+        // Controlled unit lost or destroyed
+        useUIStore.getState().setInputMode('RTS');
+        this.controlledEntityId = null;
+      }
+    }
+  }
 
   public dispose(): void {
     if (this.selectionBoxElement.parentNode) {
       this.selectionBoxElement.parentNode.removeChild(this.selectionBoxElement);
     }
     window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('keyup', this.handleKeyUp);
   }
 }

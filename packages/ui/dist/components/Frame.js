@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useUIStore } from '../store';
+import { useUIStore } from '../store.js';
 export const Frame = ({ children, variant = 'panel', withGlow = false, className = '', ...props }) => {
     const { theme } = useUIStore();
     const baseClasses = `ra4-frame ra4-frame-${variant} ${withGlow ? 'ra4-frame-glow' : ''} ${className}`;

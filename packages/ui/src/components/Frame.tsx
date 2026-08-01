@@ -1,5 +1,5 @@
 import React from 'react';
-import { useUIStore } from '../store';
+import { useUIStore } from '../store.js';
 
 export interface FrameProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'panel' | 'beveled' | 'modal' | 'minimap';

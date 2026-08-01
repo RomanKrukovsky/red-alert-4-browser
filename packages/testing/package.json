@@ -20,7 +20,8 @@
   "dependencies": {
     "@ra4/shared-types": "workspace:*",
     "@ra4/sim-core": "workspace:*",
-    "@ra4/replay": "workspace:*"
+    "@ra4/replay": "workspace:*",
+    "@ra4/ui": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",
