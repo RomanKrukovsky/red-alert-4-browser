@@ -18,44 +18,12 @@ os.makedirs(UNITS_DIR, exist_ok=True)
 os.makedirs(BUILDINGS_DIR, exist_ok=True)
 os.makedirs(FBX_DIR, exist_ok=True)
 
+# Keep only environment props and static map decorations in PRESERVE_MODELS
 PRESERVE_MODELS = {
-    'SU_RubezhRifleman',
-    'SU_GranitMBT',
-    'SU_BogatyrOreCarrier',
-    'SU_HeavyFactory',
-    'SU_Pillbox',
     'ENV_PineTree01',
     'ENV_CoastRocks01',
     'PROP_ConcreteBarrier',
     'PROP_MilitaryCrate',
-    'AL_SentinelRifleman',
-    'AL_FieldEngineer',
-    'AL_FrostlineSpecialist',
-    'AL_Hero_Hart',
-    'AL_LancerTeam',
-    'AL_LifelineMedic',
-    'AL_LongwatchSniper',
-    'CH_AporiaSniper',
-    'CH_CausalityEngineer',
-    'CH_CensorOperative',
-    'CH_Hero_Voss',
-    'CH_PunctureLancer',
-    'CH_ResonanceRifleman',
-    'CH_ReversalMedic',
-    'CO_Hero_Mei',
-    'CO_JieTechnician',
-    'CO_KawasemiDrone',
-    'CO_QianweiRifleman',
-    'CO_RakshaGuard',
-    'CO_SanjivaniMedic',
-    'CO_ShengongMarksman',
-    'CO_VajraLancer',
-    'SU_Hero_Morozova',
-    'SU_MasterEngineer',
-    'SU_RazryadTrooper',
-    'SU_VektorOfficer',
-    'SU_ZapalGrenadier',
-    'SU_ZaslonAATeam'
 }
 
 def clear_scene():
@@ -88,6 +56,7 @@ def get_materials_for_model(model_id):
     mat_gold_trim = create_pbr_material("Mat_GoldTrim", (0.85, 0.65, 0.15, 1.0), metallic=0.98, roughness=0.15)
     mat_treads = create_pbr_material("Mat_Treads", (0.05, 0.05, 0.06, 1.0), metallic=0.6, roughness=0.6)
     mat_glass = create_pbr_material("Mat_Glass", (0.1, 0.4, 0.6, 0.6), metallic=0.1, roughness=0.1)
+    mat_rubber = create_pbr_material("Mat_Rubber", (0.02, 0.02, 0.02, 1.0), metallic=0.1, roughness=0.8)
 
     mat_soviet_armor = create_pbr_material("Mat_SovietArmor", (0.35, 0.08, 0.06, 1.0), metallic=0.7, roughness=0.35)
     mat_soviet_red = create_pbr_material("Mat_SovietRed", (1.0, 0.05, 0.05, 1.0), metallic=0.3, roughness=0.2, emissive_rgba=(1.0, 0.1, 0.1, 1.0), emissive_strength=10.0)
@@ -103,15 +72,15 @@ def get_materials_for_model(model_id):
     mat_chrono_core = create_pbr_material("Mat_ChronoCore", (0.9, 0.4, 1.0, 1.0), metallic=0.1, roughness=0.05, emissive_rgba=(0.95, 0.5, 1.0, 1.0), emissive_strength=15.0)
 
     if 'CH_' in model_id:
-        return {'primary': mat_chrono_hull, 'accent': mat_chrono_purple, 'core': mat_chrono_core, 'dark_steel': mat_dark_obsidian, 'treads': mat_treads, 'glass': mat_glass, 'gold': mat_gold_trim}
+        return {'primary': mat_chrono_hull, 'accent': mat_chrono_purple, 'core': mat_chrono_core, 'dark_steel': mat_dark_obsidian, 'treads': mat_treads, 'glass': mat_glass, 'gold': mat_gold_trim, 'rubber': mat_rubber}
     elif 'SU_' in model_id:
-        return {'primary': mat_soviet_armor, 'accent': mat_soviet_red, 'core': mat_soviet_red, 'dark_steel': mat_dark_steel, 'treads': mat_treads, 'glass': mat_glass, 'gold': mat_gold_trim}
+        return {'primary': mat_soviet_armor, 'accent': mat_soviet_red, 'core': mat_soviet_red, 'dark_steel': mat_dark_steel, 'treads': mat_treads, 'glass': mat_glass, 'gold': mat_gold_trim, 'rubber': mat_rubber}
     elif 'AL_' in model_id:
-        return {'primary': mat_alliance_armor, 'accent': mat_alliance_blue, 'core': mat_alliance_blue, 'dark_steel': mat_dark_steel, 'treads': mat_treads, 'glass': mat_glass, 'gold': mat_gold_trim}
+        return {'primary': mat_alliance_armor, 'accent': mat_alliance_blue, 'core': mat_alliance_blue, 'dark_steel': mat_dark_steel, 'treads': mat_treads, 'glass': mat_glass, 'gold': mat_gold_trim, 'rubber': mat_rubber}
     else:
-        return {'primary': mat_coalition_gold, 'accent': mat_coalition_teal, 'core': mat_coalition_teal, 'dark_steel': mat_dark_steel, 'treads': mat_treads, 'glass': mat_glass, 'gold': mat_gold_trim}
+        return {'primary': mat_coalition_gold, 'accent': mat_coalition_teal, 'core': mat_coalition_teal, 'dark_steel': mat_dark_steel, 'treads': mat_treads, 'glass': mat_glass, 'gold': mat_gold_trim, 'rubber': mat_rubber}
 
-def add_sockets(root_name="VehicleRoot", turret=True, muzzle=True):
+def add_sockets(root_name="VehicleRoot", turret=True, muzzle=True, is_building=False):
     root = bpy.data.objects.new(root_name, None)
     bpy.context.scene.collection.objects.link(root)
 
@@ -122,7 +91,7 @@ def add_sockets(root_name="VehicleRoot", turret=True, muzzle=True):
 
     hp_anchor = bpy.data.objects.new("HealthBarAnchor", None)
     hp_anchor.parent = root
-    hp_anchor.location = (0, 0, 2.8)
+    hp_anchor.location = (0, 0, 3.2 if is_building else 2.2)
     bpy.context.scene.collection.objects.link(hp_anchor)
 
     col_root = bpy.data.objects.new("CollisionRoot", None)
@@ -136,590 +105,470 @@ def add_sockets(root_name="VehicleRoot", turret=True, muzzle=True):
     if turret:
         turret_yaw = bpy.data.objects.new("TurretYaw", None)
         turret_yaw.parent = root
-        turret_yaw.location = (0, 0, 1.2)
+        turret_yaw.location = (0, 0, 1.1)
         bpy.context.scene.collection.objects.link(turret_yaw)
 
         gun_pitch = bpy.data.objects.new("GunPitch", None)
         gun_pitch.parent = turret_yaw
-        gun_pitch.location = (0, 0.5, 0.3)
+        gun_pitch.location = (0, 0.4, 0.25)
         bpy.context.scene.collection.objects.link(gun_pitch)
 
         if muzzle:
             muzzle_node = bpy.data.objects.new("Muzzle", None)
             muzzle_node.parent = gun_pitch
-            muzzle_node.location = (0, 2.2, 0)
+            muzzle_node.location = (0, 2.0, 0)
             bpy.context.scene.collection.objects.link(muzzle_node)
 
-    return root, turret_yaw, gun_pitch, muzzle_node
+    return root, turret_yaw, gun_pitch, muzzle_node, col_root
 
-# --- SOVIET UNION (СССР) HIGH-POLY BUILDERS ---
+def add_collision_box(col_root, dimensions, location=(0, 0, 0)):
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=location)
+    cbox = bpy.context.active_object
+    cbox.name = "CollisionBox"
+    cbox.scale = dimensions
+    cbox.parent = col_root
+    cbox.display_type = 'WIRE'
 
-def build_soviet_hq(model_id):
+# --- INFANTRY BUILDER ---
+
+def build_infantry(model_id):
     clear_scene()
     mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("BuildingRoot", turret=False, muzzle=False)
+    root, turret_yaw, gun_pitch, muzzle, col_root = add_sockets("VehicleRoot", turret=False, muzzle=True)
+    add_collision_box(col_root, (0.8, 0.8, 1.8), (0, 0, 0.9))
 
-    bpy.ops.mesh.primitive_cylinder_add(radius=4.0, depth=0.6, vertices=8, location=(0, 0, 0.3))
-    base = bpy.context.active_object
-    base.parent = root
-    base.data.materials.append(mats['dark_steel'])
+    # Boots
+    for side in [-0.22, 0.22]:
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(side, 0.05, 0.15))
+        boot = bpy.context.active_object
+        boot.scale = (0.16, 0.32, 0.3)
+        boot.parent = root
+        boot.data.materials.append(mats['dark_steel'])
 
-    bpy.ops.mesh.primitive_cylinder_add(radius=3.0, depth=1.8, vertices=8, location=(0, 0, 1.5))
-    bunker = bpy.context.active_object
-    bunker.parent = base
-    bunker.data.materials.append(mats['primary'])
+    # Legs & Kneepads
+    for side in [-0.22, 0.22]:
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.1, depth=0.7, location=(side, 0, 0.6))
+        leg = bpy.context.active_object
+        leg.parent = root
+        leg.data.materials.append(mats['primary'])
 
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=1.5, location=(0, 0, 2.8))
-    dome = bpy.context.active_object
-    dome.scale = (1.2, 1.2, 0.8)
-    dome.parent = bunker
-    dome.data.materials.append(mats['accent'])
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(side, 0.1, 0.6))
+        knee = bpy.context.active_object
+        knee.scale = (0.14, 0.08, 0.14)
+        knee.parent = leg
+        knee.data.materials.append(mats['dark_steel'])
 
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.15, depth=1.8, location=(0, 0, 4.0))
-    spire = bpy.context.active_object
-    spire.parent = dome
-    spire.data.materials.append(mats['gold'])
+    # Torso & Tactical Vest
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 1.15))
+    torso = bpy.context.active_object
+    torso.scale = (0.55, 0.35, 0.6)
+    torso.parent = root
+    torso.data.materials.append(mats['primary'])
 
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.4, location=(0, 0, 4.9))
-    star = bpy.context.active_object
-    star.parent = spire
-    star.data.materials.append(mats['accent'])
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0.02, 1.18))
+    vest = bpy.context.active_object
+    vest.scale = (0.58, 0.38, 0.45)
+    vest.parent = torso
+    vest.data.materials.append(mats['dark_steel'])
 
+    # Arms
+    for side in [-0.35, 0.35]:
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.08, depth=0.55, location=(side, 0.1, 1.15))
+        arm = bpy.context.active_object
+        arm.rotation_euler = (math.pi/4, 0, 0)
+        arm.parent = torso
+        arm.data.materials.append(mats['primary'])
 
-def build_soviet_power(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("BuildingRoot", turret=False, muzzle=False)
+    # Head & Helmet
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.18, location=(0, 0, 1.58))
+    head = bpy.context.active_object
+    head.parent = torso
+    head.data.materials.append(mats['dark_steel'])
 
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.3))
-    base = bpy.context.active_object
-    base.scale = (4.2, 3.6, 0.6)
-    base.parent = root
-    base.data.materials.append(mats['dark_steel'])
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.2, location=(0, -0.02, 1.62))
+    helmet = bpy.context.active_object
+    helmet.scale = (1.05, 1.05, 0.9)
+    helmet.parent = head
+    helmet.data.materials.append(mats['primary'])
 
-    for side in [-1.2, 1.2]:
-        bpy.ops.mesh.primitive_cone_add(radius1=1.1, radius2=0.8, depth=3.2, location=(side, 0, 2.2))
-        tower = bpy.context.active_object
-        tower.parent = base
-        tower.data.materials.append(mats['primary'])
-
-        bpy.ops.mesh.primitive_cylinder_add(radius=0.75, depth=0.1, location=(side, 0, 3.75))
-        glow = bpy.context.active_object
-        glow.parent = tower
-        glow.data.materials.append(mats['accent'])
-
-
-def build_soviet_tesla(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("BuildingRoot", turret=True, muzzle=True)
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=1.8, depth=0.4, vertices=6, location=(0, 0, 0.2))
-    base = bpy.context.active_object
-    base.parent = root
-    base.data.materials.append(mats['dark_steel'])
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.5, depth=4.0, location=(0, 0, 2.2))
-    spire = bpy.context.active_object
-    spire.parent = turret_yaw if turret_yaw else base
-    spire.data.materials.append(mats['primary'])
-
-    for z_off in [1.2, 2.0, 2.8, 3.6]:
-        bpy.ops.mesh.primitive_torus_add(major_radius=0.8, minor_radius=0.09, location=(0, 0, z_off))
-        ring = bpy.context.active_object
-        ring.parent = spire
-        ring.data.materials.append(mats['gold'])
-
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.75, location=(0, 0, 4.6))
-    orb = bpy.context.active_object
-    orb.parent = spire
-    orb.data.materials.append(mats['accent'])
-
-
-# --- ALLIANCE BUILDERS ---
-
-def build_alliance_hq(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("BuildingRoot", turret=False, muzzle=False)
-
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.3))
-    base = bpy.context.active_object
-    base.scale = (4.4, 4.4, 0.6)
-    base.parent = root
-    base.data.materials.append(mats['dark_steel'])
-
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 1.6))
-    bridge = bpy.context.active_object
-    bridge.scale = (3.4, 3.4, 2.0)
-    bridge.parent = base
-    bridge.data.materials.append(mats['primary'])
-
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 2.8))
+    # Glowing Visor
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0.16, 1.6))
     visor = bpy.context.active_object
-    visor.scale = (2.6, 2.6, 0.5)
-    visor.parent = bridge
+    visor.scale = (0.26, 0.06, 0.08)
+    visor.parent = helmet
     visor.data.materials.append(mats['accent'])
 
-
-def build_alliance_prism(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("BuildingRoot", turret=True, muzzle=True)
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=1.6, depth=0.4, vertices=4, location=(0, 0, 0.2))
-    base = bpy.context.active_object
-    base.parent = root
-    base.data.materials.append(mats['dark_steel'])
-
-    bpy.ops.mesh.primitive_cone_add(radius1=0.8, radius2=0.3, depth=3.8, location=(0, 0, 2.1))
-    spire = bpy.context.active_object
-    spire.parent = turret_yaw if turret_yaw else base
-    spire.data.materials.append(mats['primary'])
-
-    bpy.ops.mesh.primitive_cone_add(radius1=0.5, radius2=0.0, depth=1.0, location=(0, 0, 4.5))
-    prism = bpy.context.active_object
-    prism.parent = spire
-    prism.data.materials.append(mats['accent'])
-
-
-# --- COALITION BUILDERS ---
-
-def build_coalition_hq(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("BuildingRoot", turret=False, muzzle=False)
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=4.2, depth=0.5, vertices=6, location=(0, 0, 0.25))
-    base = bpy.context.active_object
-    base.parent = root
-    base.data.materials.append(mats['dark_steel'])
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=3.2, depth=1.2, vertices=6, location=(0, 0, 1.1))
-    t1 = bpy.context.active_object
-    t1.parent = base
-    t1.data.materials.append(mats['primary'])
-
-    bpy.ops.mesh.primitive_cone_add(radius1=3.6, radius2=2.6, depth=0.3, location=(0, 0, 1.8))
-    e1 = bpy.context.active_object
-    e1.parent = t1
-    e1.data.materials.append(mats['gold'])
-
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=1.1, location=(0, 0, 2.7))
-    orb = bpy.context.active_object
-    orb.parent = t1
-    orb.data.materials.append(mats['accent'])
-
-
-def build_coalition_walker(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("VehicleRoot", turret=True, muzzle=True)
-
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=1.1, location=(0, 0, 2.2))
-    pod = bpy.context.active_object
-    pod.scale = (1.0, 1.3, 0.9)
-    pod.parent = root
-    pod.data.materials.append(mats['primary'])
-
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.7, location=(0, 0.7, 2.3))
-    visor = bpy.context.active_object
-    visor.scale = (0.9, 0.5, 0.6)
-    visor.parent = pod
-    visor.data.materials.append(mats['glass'])
-
-    for side in [-1.2, 1.2]:
-        bpy.ops.mesh.primitive_cylinder_add(radius=0.2, depth=1.8, location=(side, 0, 1.0))
-        thigh = bpy.context.active_object
-        thigh.rotation_euler = (0.2, 0, side * 0.2)
-        thigh.parent = root
-        thigh.data.materials.append(mats['dark_steel'])
-
-        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(side * 1.2, 0.2, 0.15))
-        foot = bpy.context.active_object
-        foot.scale = (0.6, 1.0, 0.3)
-        foot.parent = thigh
-        foot.data.materials.append(mats['gold'])
-
-    for side in [-1.3, 1.3]:
-        bpy.ops.mesh.primitive_cylinder_add(radius=0.15, depth=2.2, location=(side, 0.5, 2.5))
-        gun = bpy.context.active_object
-        gun.rotation_euler = (math.pi/2, 0, 0)
-        gun.parent = gun_pitch if gun_pitch else pod
-        gun.data.materials.append(mats['accent'])
-
-
-# --- CHRONOLEGION DEDICATED BUILDERS ---
-
-def build_chronolegion_hq(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("BuildingRoot", turret=False, muzzle=False)
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=4.2, depth=0.4, vertices=8, location=(0, 0, 0.2))
-    t1 = bpy.context.active_object
-    t1.parent = root
-    t1.data.materials.append(mats['dark_steel'])
-
-    for i in range(8):
-        angle = i * (2 * math.pi / 8)
-        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(math.cos(angle)*3.4, math.sin(angle)*3.4, 0.42))
-        ch = bpy.context.active_object
-        ch.scale = (0.2, 1.2, 0.05)
-        ch.rotation_euler = (0, 0, angle)
-        ch.parent = t1
-        ch.data.materials.append(mats['accent'])
-
-    bpy.ops.mesh.primitive_cone_add(radius1=3.4, radius2=2.2, depth=1.2, location=(0, 0, 1.0))
-    t2 = bpy.context.active_object
-    t2.parent = t1
-    t2.data.materials.append(mats['primary'])
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=2.0, depth=0.8, vertices=16, location=(0, 0, 1.8))
-    t3 = bpy.context.active_object
-    t3.parent = t2
-    t3.data.materials.append(mats['dark_steel'])
-
-    for ring_idx, (rz, rad, rrot) in enumerate([(2.6, 1.6, (0.4, 0, 0)), (2.6, 1.8, (0, 0.4, 0.4)), (2.6, 2.0, (0.6, 0.6, 0))]):
-        bpy.ops.mesh.primitive_torus_add(major_radius=rad, minor_radius=0.06, location=(0, 0, rz))
-        r = bpy.context.active_object
-        r.rotation_euler = rrot
-        r.parent = t3
-        r.data.materials.append(mats['accent'])
-
-    bpy.ops.mesh.primitive_ico_sphere_add(radius=1.3, subdivisions=4, location=(0, 0, 2.7))
-    core = bpy.context.active_object
-    core.parent = t3
-    core.data.materials.append(mats['core'])
-
-
-def build_chronolegion_reactor(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("BuildingRoot", turret=False, muzzle=False)
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=2.8, depth=0.4, vertices=3, location=(0, 0, 0.2))
-    base = bpy.context.active_object
-    base.parent = root
-    base.data.materials.append(mats['dark_steel'])
-
-    for i in range(3):
-        angle = i * (2 * math.pi / 3) + math.pi/2
-        px, py = math.cos(angle)*2.0, math.sin(angle)*2.0
-        bpy.ops.mesh.primitive_cylinder_add(radius=0.45, depth=2.4, location=(px, py, 1.4))
-        coil = bpy.context.active_object
-        coil.parent = base
-        coil.data.materials.append(mats['primary'])
-
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=1.0, location=(0, 0, 2.2))
-    orb = bpy.context.active_object
-    orb.parent = base
-    orb.data.materials.append(mats['core'])
-
-
-def build_chronolegion_refinery(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("BuildingRoot", turret=False, muzzle=False)
-
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.25))
-    base = bpy.context.active_object
-    base.scale = (4.5, 3.8, 0.5)
-    base.parent = root
-    base.data.materials.append(mats['dark_steel'])
-
-
-def build_chronolegion_barracks(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("BuildingRoot", turret=False, muzzle=False)
-
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.25))
-    base = bpy.context.active_object
-    base.scale = (4.2, 4.2, 0.5)
-    base.parent = root
-    base.data.materials.append(mats['dark_steel'])
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=1.3, depth=0.1, location=(0, 0, 1.8))
-    rift = bpy.context.active_object
-    rift.rotation_euler = (math.pi/2, 0, 0)
-    rift.parent = base
-    rift.data.materials.append(mats['core'])
-
-
-def build_chronolegion_factory(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("BuildingRoot", turret=False, muzzle=False)
-
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.25))
-    base = bpy.context.active_object
-    base.scale = (5.0, 4.2, 0.5)
-    base.parent = root
-    base.data.materials.append(mats['dark_steel'])
-
-
-def build_chronolegion_tech(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("BuildingRoot", turret=False, muzzle=False)
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=2.5, depth=0.4, vertices=6, location=(0, 0, 0.2))
-    base = bpy.context.active_object
-    base.parent = root
-    base.data.materials.append(mats['dark_steel'])
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.6, depth=4.2, location=(0, 0, 2.3))
-    spire = bpy.context.active_object
-    spire.parent = base
-    spire.data.materials.append(mats['primary'])
-
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.7, location=(0, 0, 4.6))
-    top_orb = bpy.context.active_object
-    top_orb.parent = spire
-    top_orb.data.materials.append(mats['core'])
-
-
-def build_chronolegion_turret(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("BuildingRoot", turret=True, muzzle=True)
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=1.8, depth=0.4, vertices=6, location=(0, 0, 0.2))
-    base = bpy.context.active_object
-    base.parent = root
-    base.data.materials.append(mats['dark_steel'])
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.5, depth=3.8, location=(0, 0, 2.1))
-    spire = bpy.context.active_object
-    spire.parent = turret_yaw if turret_yaw else base
-    spire.data.materials.append(mats['primary'])
-
-    bpy.ops.mesh.primitive_cone_add(radius1=0.4, radius2=0.0, depth=0.9, location=(0, 0, 4.3))
-    lens = bpy.context.active_object
-    lens.parent = spire
-    lens.data.materials.append(mats['core'])
-
-
-def build_timeline_tank(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("VehicleRoot", turret=True, muzzle=True)
-
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.7))
-    hull = bpy.context.active_object
-    hull.scale = (2.2, 4.0, 0.75)
-    hull.parent = root
-    hull.data.materials.append(mats['primary'])
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=1.1, depth=0.7, vertices=8, location=(0, -0.2, 1.4))
-    turret = bpy.context.active_object
-    turret.parent = turret_yaw
-    turret.data.materials.append(mats['primary'])
-
-
-def build_probabilist_harvester(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("VehicleRoot", turret=False, muzzle=False)
-
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.8))
-    chassis = bpy.context.active_object
-    chassis.scale = (2.6, 4.4, 0.9)
-    chassis.parent = root
-    chassis.data.materials.append(mats['primary'])
-
-
-def build_parallax_scout(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("VehicleRoot", turret=True, muzzle=True)
-
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.5))
-    body = bpy.context.active_object
-    body.scale = (1.6, 3.2, 0.5)
-    body.parent = root
-    body.data.materials.append(mats['primary'])
-
-
-def build_delay_artillery(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("VehicleRoot", turret=True, muzzle=True)
-
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.6))
-    chassis = bpy.context.active_object
-    chassis.scale = (2.2, 4.6, 0.6)
-    chassis.parent = root
-    chassis.data.materials.append(mats['dark_steel'])
-
-
-def build_trail_gunship(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("VehicleRoot", turret=True, muzzle=True)
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.6, depth=3.6, location=(0, 0, 1.5))
-    fuse = bpy.context.active_object
-    fuse.rotation_euler = (math.pi/2, 0, 0)
-    fuse.parent = root
-    fuse.data.materials.append(mats['primary'])
-
-
-def build_gap_interceptor(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("VehicleRoot", turret=False, muzzle=False)
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.45, depth=4.2, location=(0, 0, 1.4))
-    fuse = bpy.context.active_object
-    fuse.rotation_euler = (math.pi/2, 0, 0)
-    fuse.parent = root
-    fuse.data.materials.append(mats['primary'])
-
-
-def build_generic_structure(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("BuildingRoot", turret='Turret' in model_id or 'Tower' in model_id or 'Pillbox' in model_id, muzzle=False)
-
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.25))
-    base_pad = bpy.context.active_object
-    base_pad.scale = (4.0, 4.0, 0.5)
-    base_pad.parent = root
-    base_pad.data.materials.append(mats['dark_steel'])
-
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 1.4))
-    bldg = bpy.context.active_object
-    bldg.scale = (3.4, 3.4, 1.9)
-    bldg.parent = base_pad
-    bldg.data.materials.append(mats['primary'])
-
+    # Weapon (Assault Rifle / Rocket Launcher)
+    is_rocket = 'Zaslon' in model_id or 'Lancer' in model_id or 'Grenadier' in model_id or 'Pzk' in model_id
+    if is_rocket:
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.14, depth=1.4, location=(0.28, 0.2, 1.25))
+        weapon = bpy.context.active_object
+        weapon.rotation_euler = (math.pi/2 - 0.2, 0, 0)
+        weapon.parent = torso
+        weapon.data.materials.append(mats['dark_steel'])
+    else:
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.15, 0.3, 1.1))
+        weapon = bpy.context.active_object
+        weapon.scale = (0.1, 0.7, 0.16)
+        weapon.parent = torso
+        weapon.data.materials.append(mats['dark_steel'])
+
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.03, depth=0.6, location=(0.15, 0.65, 1.12))
+        barrel = bpy.context.active_object
+        barrel.rotation_euler = (math.pi/2, 0, 0)
+        barrel.parent = weapon
+        barrel.data.materials.append(mats['accent'])
+
+
+# --- TANK & MBT BUILDER ---
 
 def build_heavy_tank(model_id):
     clear_scene()
     mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("VehicleRoot", turret=True, muzzle=True)
+    root, turret_yaw, gun_pitch, muzzle, col_root = add_sockets("VehicleRoot", turret=True, muzzle=True)
+    add_collision_box(col_root, (2.6, 4.6, 1.8), (0, 0, 0.9))
 
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.7))
+    # Angled Lower Hull
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.65))
     hull = bpy.context.active_object
-    hull.scale = (2.4, 4.2, 0.8)
+    hull.scale = (2.2, 4.0, 0.65)
     hull.parent = root
     hull.data.materials.append(mats['primary'])
 
-    for side in [-1.4, 1.4]:
-        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(side, 0, 0.5))
-        tread = bpy.context.active_object
-        tread.scale = (0.7, 4.4, 0.9)
-        tread.parent = root
-        tread.data.materials.append(mats['treads'])
+    # Front Sloped Armor Glacis Plate
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 1.8, 0.75))
+    glacis = bpy.context.active_object
+    glacis.scale = (2.1, 0.8, 0.4)
+    glacis.rotation_euler = (math.pi/6, 0, 0)
+    glacis.parent = hull
+    glacis.data.materials.append(mats['primary'])
 
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, -0.2, 1.4))
+    # Treads & Road Wheels
+    for side in [-1.3, 1.3]:
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(side, 0, 0.55))
+        tread_housing = bpy.context.active_object
+        tread_housing.scale = (0.65, 4.4, 0.75)
+        tread_housing.parent = root
+        tread_housing.data.materials.append(mats['treads'])
+
+        # Side Armor Skirt
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(side * 1.05, 0, 0.65))
+        skirt = bpy.context.active_object
+        skirt.scale = (0.1, 4.2, 0.5)
+        skirt.parent = tread_housing
+        skirt.data.materials.append(mats['primary'])
+
+        # Wheels
+        for y_pos in [-1.6, -0.8, 0.0, 0.8, 1.6]:
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.28, depth=0.55, location=(side, y_pos, 0.45))
+            wheel = bpy.context.active_object
+            wheel.rotation_euler = (0, math.pi/2, 0)
+            wheel.parent = tread_housing
+            wheel.data.materials.append(mats['dark_steel'])
+
+    # Turret
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, -0.15, 1.25))
     turret = bpy.context.active_object
-    turret.scale = (1.9, 2.2, 0.75)
-    turret.parent = turret_yaw
+    turret.scale = (1.8, 2.2, 0.65)
+    turret.parent = turret_yaw if turret_yaw else root
     turret.data.materials.append(mats['primary'])
 
-    is_dual = 'Voevoda' in model_id or 'Apocalypse' in model_id or 'Qinglong' in model_id
-    barrel_offsets = [-0.35, 0.35] if is_dual else [0.0]
+    # Turret Commander Hatch & Sensor Dome
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.35, depth=0.2, location=(0.4, -0.4, 1.65))
+    hatch = bpy.context.active_object
+    hatch.parent = turret
+    hatch.data.materials.append(mats['dark_steel'])
 
-    for offset in barrel_offsets:
-        bpy.ops.mesh.primitive_cylinder_add(radius=0.12, depth=2.8, location=(offset, 1.6, 1.45))
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.18, location=(-0.4, -0.4, 1.68))
+    sensor = bpy.context.active_object
+    sensor.parent = turret
+    sensor.data.materials.append(mats['accent'])
+
+    # Dual or Single Gun Barrels
+    is_dual = 'Voevoda' in model_id or 'Granit' in model_id or 'Qinglong' in model_id or 'Timeline' in model_id
+    offsets = [-0.3, 0.3] if is_dual else [0.0]
+
+    for offset in offsets:
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.1, depth=2.4, location=(offset, 1.4, 1.3))
         barrel = bpy.context.active_object
         barrel.rotation_euler = (math.pi/2, 0, 0)
-        barrel.parent = gun_pitch
+        barrel.parent = gun_pitch if gun_pitch else turret
         barrel.data.materials.append(mats['dark_steel'])
 
+        # Muzzle Brake
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.15, depth=0.35, location=(offset, 2.5, 1.3))
+        muzzle_brake = bpy.context.active_object
+        muzzle_brake.rotation_euler = (math.pi/2, 0, 0)
+        muzzle_brake.parent = barrel
+        muzzle_brake.data.materials.append(mats['accent'])
 
-def build_mlrs_artillery(model_id):
+
+# --- HARVESTER / ORE CARRIER BUILDER ---
+
+def build_harvester(model_id):
     clear_scene()
     mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("VehicleRoot", turret=True, muzzle=True)
+    root, turret_yaw, gun_pitch, muzzle, col_root = add_sockets("VehicleRoot", turret=False, muzzle=False)
+    add_collision_box(col_root, (2.8, 5.0, 2.2), (0, 0, 1.1))
 
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.6))
+    # Heavy Chassis
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.7))
     chassis = bpy.context.active_object
-    chassis.scale = (2.0, 4.6, 0.5)
+    chassis.scale = (2.6, 4.6, 0.7)
     chassis.parent = root
     chassis.data.materials.append(mats['dark_steel'])
 
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 1.6, 1.25))
+    # Large Heavy Wheels
+    for side in [-1.4, 1.4]:
+        for y_pos in [-1.6, 0.0, 1.6]:
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.55, depth=0.6, location=(side, y_pos, 0.55))
+            wheel = bpy.context.active_object
+            wheel.rotation_euler = (0, math.pi/2, 0)
+            wheel.parent = chassis
+            wheel.data.materials.append(mats['rubber'])
+
+    # Driver Cabin
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 1.6, 1.45))
     cabin = bpy.context.active_object
-    cabin.scale = (1.95, 1.3, 0.95)
+    cabin.scale = (2.2, 1.2, 0.8)
     cabin.parent = chassis
     cabin.data.materials.append(mats['primary'])
 
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 2.15, 1.5))
+    windshield = bpy.context.active_object
+    windshield.scale = (1.9, 0.1, 0.55)
+    windshield.parent = cabin
+    windshield.data.materials.append(mats['glass'])
+
+    # Rear Ore Hopper Container
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, -0.8, 1.55))
+    container = bpy.context.active_object
+    container.scale = (2.4, 2.6, 1.0)
+    container.parent = chassis
+    container.data.materials.append(mats['primary'])
+
+    # Ore Fill Socket Anchor
+    fill_anchor = bpy.data.objects.new("OreFillAnchor", None)
+    fill_anchor.parent = container
+    fill_anchor.location = (0, 0, 0.5)
+    bpy.context.scene.collection.objects.link(fill_anchor)
+
+    # Front Drill / Collector Auger
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.45, depth=2.2, location=(0, 2.5, 0.6))
+    drill = bpy.context.active_object
+    drill.rotation_euler = (0, math.pi/2, 0)
+    drill.parent = chassis
+    drill.data.materials.append(mats['gold'])
+
+
+# --- SCOUT / LIGHT VEHICLE BUILDER ---
+
+def build_scout_vehicle(model_id):
+    clear_scene()
+    mats = get_materials_for_model(model_id)
+    root, turret_yaw, gun_pitch, muzzle, col_root = add_sockets("VehicleRoot", turret=True, muzzle=True)
+    add_collision_box(col_root, (2.0, 3.8, 1.5), (0, 0, 0.75))
+
+    # Sleek Chassis
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.55))
+    chassis = bpy.context.active_object
+    chassis.scale = (1.7, 3.4, 0.5)
+    chassis.parent = root
+    chassis.data.materials.append(mats['primary'])
+
+    # Wheels
+    for side in [-1.0, 1.0]:
+        for y_pos in [-1.2, 1.2]:
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.4, depth=0.4, location=(side, y_pos, 0.4))
+            wheel = bpy.context.active_object
+            wheel.rotation_euler = (0, math.pi/2, 0)
+            wheel.parent = chassis
+            wheel.data.materials.append(mats['rubber'])
+
+    # Cabin & Roll Cage
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0.2, 1.0))
+    cabin = bpy.context.active_object
+    cabin.scale = (1.3, 1.6, 0.55)
+    cabin.parent = chassis
+    cabin.data.materials.append(mats['dark_steel'])
+
+    # Turret Machine Gun
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.25, depth=0.2, location=(0, -0.4, 1.35))
+    turret_base = bpy.context.active_object
+    turret_base.parent = turret_yaw if turret_yaw else cabin
+    turret_base.data.materials.append(mats['primary'])
+
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.06, depth=1.2, location=(0, 0.2, 1.35))
+    mg_barrel = bpy.context.active_object
+    mg_barrel.rotation_euler = (math.pi/2, 0, 0)
+    mg_barrel.parent = gun_pitch if gun_pitch else turret_base
+    mg_barrel.data.materials.append(mats['accent'])
+
+
+# --- ARTILLERY & MLRS BUILDER ---
+
+def build_artillery_vehicle(model_id):
+    clear_scene()
+    mats = get_materials_for_model(model_id)
+    root, turret_yaw, gun_pitch, muzzle, col_root = add_sockets("VehicleRoot", turret=True, muzzle=True)
+    add_collision_box(col_root, (2.4, 4.8, 2.0), (0, 0, 1.0))
+
+    # Chassis
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.6))
+    chassis = bpy.context.active_object
+    chassis.scale = (2.1, 4.4, 0.6)
+    chassis.parent = root
+    chassis.data.materials.append(mats['dark_steel'])
+
+    # Front Cabin
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 1.4, 1.3))
+    cabin = bpy.context.active_object
+    cabin.scale = (2.0, 1.2, 0.8)
+    cabin.parent = chassis
+    cabin.data.materials.append(mats['primary'])
+
+    # Missile Launcher Pod / Howitzer
     bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, -0.8, 1.6))
-    pod_box = bpy.context.active_object
-    pod_box.scale = (1.6, 2.2, 0.7)
-    pod_box.rotation_euler = (-math.pi/12, 0, 0)
-    pod_box.parent = gun_pitch
-    pod_box.data.materials.append(mats['primary'])
+    pod = bpy.context.active_object
+    pod.scale = (1.8, 2.0, 0.7)
+    pod.rotation_euler = (-math.pi/10, 0, 0)
+    pod.parent = gun_pitch if gun_pitch else chassis
+    pod.data.materials.append(mats['primary'])
+
+    # Rocket Tubes
+    for x_off in [-0.5, 0.0, 0.5]:
+        for z_off in [0.15, -0.15]:
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.12, depth=0.4, location=(x_off, 0.9, z_off))
+            tube = bpy.context.active_object
+            tube.rotation_euler = (math.pi/2, 0, 0)
+            tube.parent = pod
+            tube.data.materials.append(mats['accent'])
 
 
-def build_aircraft_interceptor(model_id):
+# --- AIR / JET / HELICOPTER BUILDER ---
+
+def build_aircraft(model_id):
     clear_scene()
     mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("VehicleRoot", turret=False, muzzle=False)
+    root, turret_yaw, gun_pitch, muzzle, col_root = add_sockets("VehicleRoot", turret=True, muzzle=True)
+    add_collision_box(col_root, (3.2, 4.5, 1.5), (0, 0, 1.5))
 
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.5, depth=4.5, location=(0, 0, 1.5))
+    # Aerodynamic Fuselage
+    bpy.ops.mesh.primitive_cylinder_add(radius=0.55, depth=4.2, location=(0, 0, 1.5))
     fuse = bpy.context.active_object
     fuse.rotation_euler = (math.pi/2, 0, 0)
     fuse.parent = root
     fuse.data.materials.append(mats['primary'])
 
-    bpy.ops.mesh.primitive_cone_add(radius1=0.35, depth=1.4, location=(0, 2.8, 1.5))
-    nose = bpy.context.active_object
-    nose.rotation_euler = (-math.pi/2, 0, 0)
-    nose.parent = fuse
-    nose.data.materials.append(mats['dark_steel'])
+    # Cockpit Canopy
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.45, location=(0, 0.8, 1.8))
+    canopy = bpy.context.active_object
+    canopy.scale = (0.8, 1.8, 0.7)
+    canopy.parent = fuse
+    canopy.data.materials.append(mats['glass'])
+
+    # Wings
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 1.45))
+    wings = bpy.context.active_object
+    wings.scale = (3.6, 1.0, 0.08)
+    wings.parent = fuse
+    wings.data.materials.append(mats['primary'])
+
+    # Engines / Thrusters with glowing emissions
+    for side in [-1.2, 1.2]:
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.25, depth=1.2, location=(side, -0.6, 1.45))
+        engine = bpy.context.active_object
+        engine.rotation_euler = (math.pi/2, 0, 0)
+        engine.parent = wings
+        engine.data.materials.append(mats['dark_steel'])
+
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.2, depth=0.1, location=(side, -1.22, 1.45))
+        flame = bpy.context.active_object
+        flame.rotation_euler = (math.pi/2, 0, 0)
+        flame.parent = engine
+        flame.data.materials.append(mats['accent'])
 
 
-def build_gunship_helicopter(model_id):
+# --- NAVAL SHIP & SUBMARINE BUILDER ---
+
+def build_naval(model_id):
     clear_scene()
     mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("VehicleRoot", turret=True, muzzle=True)
+    root, turret_yaw, gun_pitch, muzzle, col_root = add_sockets("VehicleRoot", turret=True, muzzle=True)
+    add_collision_box(col_root, (2.2, 6.5, 1.8), (0, 0, 0.9))
 
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.7, depth=3.8, location=(0, 0, 1.6))
-    fuse = bpy.context.active_object
-    fuse.rotation_euler = (math.pi/2, 0, 0)
-    fuse.parent = root
-    fuse.data.materials.append(mats['primary'])
+    is_sub = 'Submarine' in model_id or 'Morok' in model_id or 'Bathys' in model_id
+
+    if is_sub:
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.85, depth=6.2, location=(0, 0, 0.7))
+        hull = bpy.context.active_object
+        hull.rotation_euler = (math.pi/2, 0, 0)
+        hull.parent = root
+        hull.data.materials.append(mats['dark_steel'])
+
+        # Conning Tower
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0.5, 1.6))
+        tower = bpy.context.active_object
+        tower.scale = (0.6, 1.4, 0.7)
+        tower.parent = hull
+        tower.data.materials.append(mats['primary'])
+    else:
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.5))
+        hull = bpy.context.active_object
+        hull.scale = (2.2, 6.2, 0.7)
+        hull.parent = root
+        hull.data.materials.append(mats['primary'])
+
+        # Deck Superstructure
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, -0.2, 1.2))
+        superstruct = bpy.context.active_object
+        superstruct.scale = (1.6, 2.4, 0.8)
+        superstruct.parent = hull
+        superstruct.data.materials.append(mats['dark_steel'])
+
+        # Turrets
+        for y_pos in [-2.0, 1.8]:
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.45, depth=0.3, location=(0, y_pos, 0.95))
+            turret = bpy.context.active_object
+            turret.parent = hull
+            turret.data.materials.append(mats['primary'])
 
 
-def build_kirov_airship(model_id):
+# --- MECHA & WALKER BUILDER ---
+
+def build_walker_mecha(model_id):
     clear_scene()
     mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("VehicleRoot", turret=True, muzzle=True)
+    root, turret_yaw, gun_pitch, muzzle, col_root = add_sockets("VehicleRoot", turret=True, muzzle=True)
+    add_collision_box(col_root, (2.6, 2.6, 3.2), (0, 0, 1.6))
 
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=2.0, location=(0, 0, 3.2))
-    hull = bpy.context.active_object
-    hull.scale = (1.3, 3.2, 1.3)
-    hull.parent = root
-    hull.data.materials.append(mats['primary'])
+    # Legs & Feet
+    for side in [-1.1, 1.1]:
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(side, 0, 0.2))
+        foot = bpy.context.active_object
+        foot.scale = (0.7, 1.0, 0.3)
+        foot.parent = root
+        foot.data.materials.append(mats['dark_steel'])
 
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.18, depth=1.6, location=(side, 0, 1.0))
+        leg = bpy.context.active_object
+        leg.parent = foot
+        leg.data.materials.append(mats['primary'])
 
-def build_naval_ship(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("VehicleRoot", turret=True, muzzle=True)
+    # Central Torso Core
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 2.1))
+    torso = bpy.context.active_object
+    torso.scale = (1.8, 1.6, 1.1)
+    torso.parent = root
+    torso.data.materials.append(mats['primary'])
 
-    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.5))
-    hull = bpy.context.active_object
-    hull.scale = (2.2, 6.5, 0.8)
-    hull.parent = root
-    hull.data.materials.append(mats['dark_steel'])
-
-
-def build_submarine(model_id):
-    clear_scene()
-    mats = get_materials_for_model(model_id)
-    root, turret_yaw, gun_pitch, muzzle = add_sockets("VehicleRoot", turret=False, muzzle=False)
-
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.9, depth=6.2, location=(0, 0, 0.6))
-    hull = bpy.context.active_object
-    hull.rotation_euler = (math.pi/2, 0, 0)
-    hull.parent = root
-    hull.data.materials.append(mats['dark_steel'])
+    # Arm Guns
+    for side in [-1.3, 1.3]:
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.15, depth=1.8, location=(side, 0.6, 2.0))
+        cannon = bpy.context.active_object
+        cannon.rotation_euler = (math.pi/2, 0, 0)
+        cannon.parent = torso
+        cannon.data.materials.append(mats['dark_steel'])
 
 
 def export_model_files(model_name, category='unit'):
@@ -740,11 +589,11 @@ def export_model_files(model_name, category='unit'):
     bpy.ops.export_scene.gltf(filepath=glb_lod1, export_format='GLB', use_selection=True)
     bpy.ops.export_scene.gltf(filepath=glb_lod2, export_format='GLB', use_selection=True)
 
-    print(f"✅ Generated & Exported AAA FBX/GLB for {model_name}")
+    print(f"✅ Generated & Exported AAA 3D Model GLB/FBX for {model_name}")
 
 
 def main():
-    print("🚀 Starting AAA procedural 3D asset generation for ALL factions (USSR, Alliance, Coalition, Chronolegion)...")
+    print("🚀 Starting AAA 3D asset generation for ALL faction units...")
 
     models_to_generate = []
 
@@ -755,75 +604,34 @@ def main():
                 if model_base not in PRESERVE_MODELS and model_base not in [m[0] for m in models_to_generate]:
                     models_to_generate.append((model_base, category))
 
-    print(f"Found {len(models_to_generate)} models to build & export...")
+    print(f"Found {len(models_to_generate)} models to generate...")
 
     for model_name, category in models_to_generate:
-        # USSR Buildings
-        if model_name in ['SU_RedHQ', 'SU_ConYard']:
-            build_soviet_hq(model_name)
-        elif model_name in ['SU_ThermalPower', 'SU_PowerPlant']:
-            build_soviet_power(model_name)
-        elif model_name in ['SU_TeslaTower']:
-            build_soviet_tesla(model_name)
-        # Alliance Buildings
-        elif model_name in ['AL_CommandHQ', 'AL_ConYard']:
-            build_alliance_hq(model_name)
-        elif model_name in ['AL_PrismTower']:
-            build_alliance_prism(model_name)
-        # Coalition Buildings & Mecha
-        elif model_name in ['CO_DynastyHQ', 'CO_ConYard']:
-            build_coalition_hq(model_name)
-        elif 'Walker' in model_name:
-            build_coalition_walker(model_name)
-        # Chronolegion Buildings
-        elif model_name in ['CH_TemporalHQ', 'CH_ConYard']:
-            build_chronolegion_hq(model_name)
-        elif model_name in ['CH_SingularityCore', 'CH_PowerPlant']:
-            build_chronolegion_reactor(model_name)
-        elif model_name in ['CH_FluxRefinery', 'CH_Refinery']:
-            build_chronolegion_refinery(model_name)
-        elif model_name in ['CH_AssemblyNode', 'CH_Barracks']:
-            build_chronolegion_barracks(model_name)
-        elif model_name in ['CH_Chronoworks', 'CH_WarFactory']:
-            build_chronolegion_factory(model_name)
-        elif model_name in ['CH_CausalityLab', 'CH_TechCenter']:
-            build_chronolegion_tech(model_name)
-        elif 'EchoTurret' in model_name or 'Stasis' in model_name:
-            build_chronolegion_turret(model_name)
-        # Chronolegion Vehicles
-        elif model_name == 'CH_TimelineTank':
-            build_timeline_tank(model_name)
-        elif model_name == 'CH_ProbabilistHarvester':
-            build_probabilist_harvester(model_name)
-        elif model_name == 'CH_ParallaxScout':
-            build_parallax_scout(model_name)
-        elif model_name == 'CH_DeltaDelayArtillery':
-            build_delay_artillery(model_name)
-        elif model_name == 'CH_TrailGunship':
-            build_trail_gunship(model_name)
-        elif model_name == 'CH_GapInterceptor' or 'Bomber' in model_name:
-            build_gap_interceptor(model_name)
-        # Faction Generics
-        elif 'Airship' in model_name or 'Kirov' in model_name:
-            build_kirov_airship(model_name)
-        elif 'Gunship' in model_name or 'VTOL' in model_name:
-            build_gunship_helicopter(model_name)
-        elif 'Interceptor' in model_name or 'Jet' in model_name:
-            build_aircraft_interceptor(model_name)
-        elif 'Submarine' in model_name or 'Morok' in model_name or 'Bathys' in model_name:
-            build_submarine(model_name)
-        elif 'Cruiser' in model_name or 'Destroyer' in model_name or 'Boat' in model_name or 'Carrier' in model_name or 'Frigate' in model_name or 'Corvette' in model_name:
-            build_naval_ship(model_name)
-        elif 'MLRS' in model_name or 'Artillery' in model_name or 'Rocket' in model_name:
-            build_mlrs_artillery(model_name)
-        elif category == 'building':
-            build_generic_structure(model_name)
+        # Check model types by naming pattern
+        if 'Rifleman' in model_name or 'Trooper' in model_name or 'Engineer' in model_name or 'Medic' in model_name or 'Sniper' in model_name or 'Grenadier' in model_name or 'Lancer' in model_name or 'Officer' in model_name or 'Hero' in model_name:
+            build_infantry(model_name)
+        elif 'Harvester' in model_name or 'Carrier' in model_name or 'Collector' in model_name or 'Bogatyr' in model_name or 'Pioneer' in model_name or 'Yuan' in model_name or 'Probabilist' in model_name:
+            build_harvester(model_name)
+        elif 'Tank' in model_name or 'MBT' in model_name or 'Granit' in model_name or 'Bulwark' in model_name or 'Qinglong' in model_name or 'Timeline' in model_name or 'Voevoda' in model_name:
+            build_heavy_tank(model_name)
+        elif 'Scout' in model_name or 'Sickle' in model_name or 'Rys' in model_name or 'Parallax' in model_name or 'Kestrel' in model_name or 'Corvette' in model_name:
+            build_scout_vehicle(model_name)
+        elif 'Artillery' in model_name or 'MLRS' in model_name or 'Zarevo' in model_name or 'Monsoon' in model_name or 'Delta' in model_name:
+            build_artillery_vehicle(model_name)
+        elif 'Walker' in model_name or 'Airavata' in model_name or 'Kamakiri' in model_name:
+            build_walker_mecha(model_name)
+        elif 'Gunship' in model_name or 'Interceptor' in model_name or 'VTOL' in model_name or 'Airship' in model_name or 'Jet' in model_name or 'Krechet' in model_name or 'Korshun' in model_name or 'Trail' in model_name or 'Gap' in model_name:
+            build_aircraft(model_name)
+        elif 'Submarine' in model_name or 'Cruiser' in model_name or 'Destroyer' in model_name or 'Boat' in model_name or 'Carrier' in model_name or 'Frigate' in model_name:
+            build_naval(model_name)
+        elif category == 'unit':
+            build_heavy_tank(model_name)
         else:
             build_heavy_tank(model_name)
 
         export_model_files(model_name, category)
 
-    print("🎉 All 3D FBX and GLB models for all 4 factions generated successfully!")
+    print("🎉 All 3D unit models generated successfully!")
 
 if __name__ == '__main__':
     main()
