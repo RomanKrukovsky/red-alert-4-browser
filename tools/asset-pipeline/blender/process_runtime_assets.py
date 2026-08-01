@@ -45,7 +45,7 @@ def decimate(ratio):
     if ratio >= .999:
         return
     for obj in bpy.context.scene.objects:
-        if obj.type != "MESH" or len(obj.data.polygons) < 80 or obj.find_armature():
+        if obj.type != "MESH" or len(obj.data.polygons) < 12 or (MODE == "infantry" and obj.find_armature()):
             continue
         modifier = obj.modifiers.new(name="RA4_LOD", type="DECIMATE")
         modifier.ratio = max(.12, ratio)
@@ -149,7 +149,8 @@ def prepare_factory():
         for obj in imported:
             if obj.parent is None:
                 preserve_parent(obj, piece_root)
-    empty("UnitExit", (0, -5.4, 0), root)
+    empty("ExitPoint", (0, -5.4, 0), root)
+    empty("RallyPoint", (0, -7.0, 0), root)
     empty("SelectionAnchor", parent=root)
     empty("HealthBarAnchor", (0, 0, 6.0), root)
     add_collision(root, (9.5, 10.5, 4.5))
@@ -184,6 +185,7 @@ def prepare_static(source, root_name, scale=1.0):
         if obj.parent is None:
             preserve_parent(obj, root)
     root.scale = (scale, scale, scale)
+    add_collision(root, (1.4, 1.4, 1.4))
 
 
 if MODE == "tank":

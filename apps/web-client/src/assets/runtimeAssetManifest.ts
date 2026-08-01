@@ -27,4 +27,3 @@ export const runtimeAssetManifest: RuntimeAssetDefinition[] = [
 ];
 
 export const runtimeAssetById = new Map(runtimeAssetManifest.map((asset) => [asset.id, asset]));
-

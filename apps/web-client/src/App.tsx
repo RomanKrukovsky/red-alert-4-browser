@@ -11,6 +11,7 @@ import { LoadingScreen, SkirmishSetupScreen } from './ui/screens/SkirmishScreens
 import { FrontendScreen, LoadingStage, MatchSetup } from './ui/types.js';
 import { MusicManager } from './audio/musicManager.js';
 import { MusicPlayerWidget } from './ui/components/MusicPlayerWidget.js';
+import { AssetGalleryView } from './ui/AssetGalleryView.js';
 import './ui/ra4-ui.css';
 
 const defaultSetup: MatchSetup = {
@@ -41,6 +42,7 @@ export const App: React.FC = () => {
   const [setup, setSetup] = useState<MatchSetup>(() => ({ ...defaultSetup, faction: factionByHash[window.location.hash] ?? defaultSetup.faction }));
   const [loadingStages, setLoadingStages] = useState<LoadingStage[]>([]);
   const [paused, setPaused] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(window.location.hash === '#/asset-gallery');
   const snapshot = useUIStore((state) => state.snapshot);
   const selectedEntityIds = useUIStore((state) => state.selectedEntityIds);
 
@@ -120,6 +122,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     const onHashChange = () => {
+      setGalleryOpen(window.location.hash === '#/asset-gallery');
       const nextScreen = screenByHash[window.location.hash];
       if (!nextScreen) return;
       const directFaction = factionByHash[window.location.hash];
@@ -165,6 +168,8 @@ export const App: React.FC = () => {
     disposeMatch();
     navigate('MAIN_MENU', '#/menu');
   };
+
+  if (galleryOpen) return <AssetGalleryView onClose={() => { window.location.hash = '#/menu'; setGalleryOpen(false); }} />;
 
   return (
     <div className="ra4-app-shell">

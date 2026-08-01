@@ -49,6 +49,11 @@ export class RuntimeAssetRegistry {
     const instantiated = loaded.containers.map((container, lodIndex) => container.instantiateModelsToScene((name) => `${instanceName}_${lodIndex}_${name}`, false));
     for (const entry of instantiated) for (const node of entry.rootNodes) node.parent = root;
 
+    const collisionMeshes = instantiated.flatMap((entry) => collectMeshes(entry.rootNodes)).filter((mesh) => mesh.name.includes('CollisionRoot'));
+    for (const mesh of collisionMeshes) {
+      mesh.isPickable = false;
+      mesh.setEnabled(false);
+    }
     const baseMeshes = collectMeshes(instantiated[0].rootNodes).filter((mesh) => !mesh.name.includes('CollisionRoot'));
     for (let lodIndex = 1; lodIndex < instantiated.length; lodIndex += 1) {
       const lodMeshes = collectMeshes(instantiated[lodIndex].rootNodes).filter((mesh) => !mesh.name.includes('CollisionRoot'));
@@ -70,7 +75,7 @@ export class RuntimeAssetRegistry {
     for (const group of instantiated[0].animationGroups) animations.set(group.name.replace(`${instanceName}_0_`, ''), group);
     const sockets = new Map<string, Node>();
     for (const socketName of Object.values(loaded.definition.sockets ?? {})) {
-      const node = root.getChildren((child) => child.name.endsWith(socketName), false)[0];
+      const node = root.getDescendants(false).find((child) => child.name.endsWith(socketName));
       if (node) sockets.set(socketName, node);
     }
 
