@@ -1,4 +1,4 @@
-import { ArmorType, BuildingCategory, CommandType, FactionId, MatchState, PassabilityType, PlayerCommand, PlayerEconomyState, PlayerType, TechTier, UnitCategory, VeterancyRank, WorldSnapshot } from '@ra4/shared-types';
+import { ArmorType, assertNever, BuildingCategory, CommandType, FactionId, MatchState, PassabilityType, PlayerCommand, PlayerEconomyState, PlayerType, TechTier, UnitCategory, VeterancyRank, WorldSnapshot } from '@ra4/shared-types';
 import { DEFAULT_DATABASE } from '@ra4/content-runtime';
 import { Mulberry32PRNG } from './prng.js';
 import { SpatialHashGrid } from './spatialGrid.js';
@@ -30,6 +30,7 @@ export interface SimEntity {
   isBuilding: boolean;
   isPowered: boolean;
   isDisabled: boolean;
+  disabledTicksRemaining: number;
   attackCooldown: number;
   targetEntityId?: number;
   moveSpeed: number; // scaled int per tick
@@ -73,6 +74,9 @@ export class GameSimulation {
   public resourceNodes: Map<string, ResourceNodeState> = new Map();
   public aiAgents: Map<number, SkirmishAIAgent> = new Map();
   public playerTeams: number[] = [];
+  public playerFactions: FactionId[] = [];
+  public surrenderedPlayers: Set<number> = new Set();
+  private pendingShotFX: { startX: number; startY: number; targetX: number; targetY: number }[] = [];
 
   public nextEntityId: number = 1;
   public matchState: MatchState = MatchState.IN_GAME;
@@ -87,7 +91,19 @@ export class GameSimulation {
   }
 
   public initMatch(playerConfigs: { name: string; factionId: FactionId; type: PlayerType; team: number }[], startingCredits: number = 10000): void {
+    this.tickIndex = 0;
+    this.entities.clear();
+    this.players = [];
+    this.resourceNodes.clear();
+    this.aiAgents.clear();
+    this.superweaponManager.superweaponStates.clear();
+    this.surrenderedPlayers.clear();
+    this.pendingShotFX = [];
+    this.matchState = MatchState.IN_GAME;
+    this.winnerTeam = -1;
+    this.nextEntityId = 1;
     this.playerTeams = playerConfigs.map(config => config.team);
+    this.playerFactions = playerConfigs.map(config => config.factionId);
     this.players = playerConfigs.map(cfg => ({
       credits: startingCredits,
       powerProduced: 100,
@@ -130,9 +146,12 @@ export class GameSimulation {
       const p = playerConfigs[idx];
       const faction = DEFAULT_DATABASE.factions.find(f => f.id === p.factionId)!;
 
-      // Spawn HQ
-      const hqSpec = DEFAULT_DATABASE.buildings.find(b => b.id === faction.hqBuildingId)!;
-      const hqId = this.spawnBuilding(hqSpec.id, idx, sp.x * 1000, sp.y * 1000);
+      // Start with a usable RTS base so the player can command units immediately.
+      this.spawnBuilding(faction.hqBuildingId, idx, sp.x * 1000, sp.y * 1000);
+      this.spawnBuilding(faction.refineryBuildingId, idx, (sp.x + 5) * 1000, sp.y * 1000);
+      this.spawnBuilding(faction.barracksBuildingId, idx, (sp.x - 5) * 1000, sp.y * 1000);
+      this.spawnBuilding(faction.factoryBuildingId, idx, sp.x * 1000, (sp.y + 5) * 1000);
+      this.spawnBuilding(faction.techBuildingId, idx, (sp.x + 5) * 1000, (sp.y + 5) * 1000);
 
       // Spawn Starting Harvester
       const harvestSpec = DEFAULT_DATABASE.units.find(u => u.factionId === p.factionId && u.harvesterCapacity)!;
@@ -166,6 +185,7 @@ export class GameSimulation {
       isBuilding: true,
       isPowered: true,
       isDisabled: false,
+      disabledTicksRemaining: 0,
       attackCooldown: 0,
       sightRange: spec.sightRange,
       weaponId: spec.weaponId,
@@ -203,6 +223,7 @@ export class GameSimulation {
       isBuilding: false,
       isPowered: true,
       isDisabled: false,
+      disabledTicksRemaining: 0,
       attackCooldown: 0,
       sightRange: spec.sightRange,
       weaponId: spec.weaponId,
@@ -248,9 +269,11 @@ export class GameSimulation {
         break;
       }
       case CommandType.ATTACK: {
+        const target = this.entities.get(cmd.targetEntityId);
+        if (!target || target.hp <= 0) break;
         for (const id of cmd.entityIds) {
           const e = this.entities.get(id);
-          if (e && e.playerIndex === cmd.playerIndex && !e.isBuilding) {
+          if (e && e.playerIndex === cmd.playerIndex && !e.isBuilding && this.isEnemy(e, target)) {
             e.targetEntityId = cmd.targetEntityId;
             e.targetX = undefined;
             e.targetY = undefined;
@@ -328,7 +351,17 @@ export class GameSimulation {
       }
       case CommandType.BUILD_STRUCTURE: {
         const structSpec = DEFAULT_DATABASE.buildings.find(b => b.id === cmd.structureId);
-        if (structSpec && p.credits >= structSpec.cost) {
+        if (!structSpec) break;
+        const ownedSpecIds = new Set(
+          Array.from(this.entities.values())
+            .filter((entity) => entity.playerIndex === cmd.playerIndex)
+            .map((entity) => entity.specId)
+        );
+        const canBuild = structSpec.factionId === this.playerFactions[cmd.playerIndex]
+          && structSpec.prerequisites.every((id) => ownedSpecIds.has(id))
+          && p.credits >= structSpec.cost
+          && this.isBuildLocationValid(structSpec, cmd.gridX, cmd.gridY);
+        if (canBuild) {
           p.credits -= structSpec.cost;
           this.spawnBuilding(cmd.structureId, cmd.playerIndex, cmd.gridX * 1000, cmd.gridY * 1000);
         }
@@ -339,16 +372,54 @@ export class GameSimulation {
         break;
       }
       case CommandType.SURRENDER: {
-        p.hasHQ = false;
+        this.surrenderedPlayers.add(cmd.playerIndex);
         break;
       }
-      default:
+      case CommandType.CANCEL_PRODUCTION: {
+        const producer = this.entities.get(cmd.producerEntityId);
+        if (producer && producer.playerIndex === cmd.playerIndex) {
+          const index = cmd.queueIndex;
+          if (index >= 0 && index < producer.productionQueue.length) {
+            const item = producer.productionQueue.splice(index, 1)[0];
+            if (item) {
+              this.players[cmd.playerIndex].credits += item.costPaid;
+              this.recalculateEconomy();
+            }
+          }
+        }
         break;
+      }
+      case CommandType.HOLD:
+      case CommandType.SELL_STRUCTURE:
+      case CommandType.REPAIR_STRUCTURE:
+      case CommandType.CAPTURE_BUILDING:
+        break;
+      default:
+        assertNever(cmd);
     }
+  }
+
+  private isBuildLocationValid(structSpec: { gridWidth: number; gridHeight: number }, gridX: number, gridY: number): boolean {
+    const halfWidth = Math.max(1, Math.ceil(structSpec.gridWidth / 2));
+    const halfHeight = Math.max(1, Math.ceil(structSpec.gridHeight / 2));
+    if (gridX - halfWidth < 1 || gridY - halfHeight < 1 || gridX + halfWidth > 63 || gridY + halfHeight > 63) return false;
+
+    return !Array.from(this.entities.values()).some((entity) => {
+      if (!entity.isBuilding) return false;
+      const existingSpec = DEFAULT_DATABASE.buildings.find((building) => building.id === entity.specId);
+      if (!existingSpec) return false;
+      const existingHalfWidth = Math.max(1, Math.ceil(existingSpec.gridWidth / 2));
+      const existingHalfHeight = Math.max(1, Math.ceil(existingSpec.gridHeight / 2));
+      const existingX = entity.x / 1000;
+      const existingY = entity.y / 1000;
+      return Math.abs(existingX - gridX) < existingHalfWidth + halfWidth
+        && Math.abs(existingY - gridY) < existingHalfHeight + halfHeight;
+    });
   }
 
   public step(): WorldSnapshot {
     this.tickIndex++;
+    this.pendingShotFX = [];
     this.superweaponManager.update(this);
     this.updateFogOfWar();
 
@@ -370,17 +441,32 @@ export class GameSimulation {
     for (const e of this.entities.values()) {
       if (e.productionQueue.length > 0 && e.isPowered) {
         const item = e.productionQueue[0];
-        item.progressTicks++;
-        if (item.progressTicks >= item.totalTicks) {
-          e.productionQueue.shift();
-          this.spawnUnit(item.specId, e.playerIndex, e.x + 2000, e.y + 2000);
+        const p = this.players[e.playerIndex];
+        const unitSpec = DEFAULT_DATABASE.units.find(u => u.id === item.specId);
+        if (unitSpec) {
+          if (item.progressTicks >= item.totalTicks) {
+            if (p.commandCapUsed + unitSpec.commandCapCost <= p.commandCapMax) {
+              e.productionQueue.shift();
+              p.commandCapUsed += unitSpec.commandCapCost;
+              this.spawnUnit(item.specId, e.playerIndex, Math.min(e.x + 2000, 63000), Math.min(e.y + 2000, 63000));
+            }
+          } else {
+            item.progressTicks++;
+          }
+        } else {
+          e.productionQueue.shift(); // Invalid spec, discard
         }
       }
     }
 
     // 3. Movement Logic with Waypoints
     for (const e of this.entities.values()) {
+      if (e.disabledTicksRemaining > 0) {
+        e.disabledTicksRemaining--;
+        e.isDisabled = e.disabledTicksRemaining > 0;
+      }
       if (!e.isBuilding) {
+        if (e.isDisabled) continue;
         let currTargetX = e.targetX;
         let currTargetY = e.targetY;
 
@@ -450,6 +536,7 @@ export class GameSimulation {
             } else if (e.targetX === undefined) {
               e.targetX = nearestNode.x;
               e.targetY = nearestNode.y;
+              e.waypoints = this.navigation.findPath(e.x, e.y, e.targetX, e.targetY);
             }
           }
         } else {
@@ -475,6 +562,7 @@ export class GameSimulation {
               } else if (e.targetX === undefined) {
                 e.targetX = ref.x;
                 e.targetY = ref.y;
+                e.waypoints = this.navigation.findPath(e.x, e.y, e.targetX, e.targetY);
               }
             }
           }
@@ -488,7 +576,7 @@ export class GameSimulation {
         e.attackCooldown--;
       }
 
-      if (e.weaponId && e.attackCooldown === 0) {
+      if (e.weaponId && e.attackCooldown === 0 && !e.isDisabled) {
         const weapon = DEFAULT_DATABASE.weapons.find(w => w.id === e.weaponId);
         if (!weapon) continue;
 
@@ -496,14 +584,20 @@ export class GameSimulation {
 
         if (e.targetEntityId) {
           target = this.entities.get(e.targetEntityId);
-        } else {
+          if (!target || target.hp <= 0 || !this.isEnemy(e, target)) {
+            e.targetEntityId = undefined;
+            target = undefined;
+          }
+        }
+
+        if (!target) {
           // Auto-target nearest enemy
           const candidates = this.spatialGrid.queryRadius(e.x, e.y, weapon.range);
           let minDistSq = weapon.range * weapon.range;
 
           for (const candId of candidates) {
             const cand = this.entities.get(candId);
-            if (cand && cand.playerIndex !== e.playerIndex && cand.hp > 0) {
+            if (cand && this.isEnemy(e, cand) && cand.hp > 0) {
               const dSq = fixedDistanceSq(e.x, e.y, cand.x, cand.y);
               if (dSq <= minDistSq) {
                 minDistSq = dSq;
@@ -518,6 +612,7 @@ export class GameSimulation {
           if (dSq <= weapon.range * weapon.range) {
             // Fire weapon
             e.attackCooldown = weapon.cooldownTicks;
+            this.pendingShotFX.push({ startX: e.x, startY: e.y, targetX: target.x, targetY: target.y });
             const dmg = calculateDamage(weapon.baseDamage, weapon.damageType, target.armorType);
 
             // Shield absorption
@@ -538,10 +633,17 @@ export class GameSimulation {
                 e.veterancy = Math.min(VeterancyRank.Heroic, e.veterancy + 1);
               }
             }
-          } else if (!e.isBuilding && e.targetX === undefined) {
+          } else if (!e.isBuilding) {
             // Move into attack range
-            e.targetX = target.x;
-            e.targetY = target.y;
+            const targetDistSq = e.targetX !== undefined && e.targetY !== undefined
+              ? fixedDistanceSq(e.targetX, e.targetY, target.x, target.y)
+              : Infinity;
+
+            if (e.targetX === undefined || targetDistSq > 2000 * 2000) {
+              e.targetX = target.x;
+              e.targetY = target.y;
+              e.waypoints = this.navigation.findPath(e.x, e.y, e.targetX, e.targetY);
+            }
           }
         }
       }
@@ -573,7 +675,7 @@ export class GameSimulation {
               powerConsumed += spec.powerConsumed;
               commandCapMax += spec.commandCapGranted;
               techTier = Math.max(techTier, spec.tier) as TechTier;
-              if (spec.category === BuildingCategory.HQ) hasHQ = true;
+              if (spec.category === BuildingCategory.HQ && !this.surrenderedPlayers.has(pIdx)) hasHQ = true;
             }
           } else {
             const spec = DEFAULT_DATABASE.units.find(u => u.id === e.specId);
@@ -621,7 +723,15 @@ export class GameSimulation {
     if (activeTeams.size === 1 && this.matchState === MatchState.IN_GAME) {
       this.matchState = MatchState.FINISHED;
       this.winnerTeam = Array.from(activeTeams)[0];
+    } else if (activeTeams.size === 0 && this.matchState === MatchState.IN_GAME) {
+      // Mutual destruction — team 0 (player) loses
+      this.matchState = MatchState.FINISHED;
+      this.winnerTeam = 1;
     }
+  }
+
+  private isEnemy(source: SimEntity, target: SimEntity): boolean {
+    return this.playerTeams[source.playerIndex] !== this.playerTeams[target.playerIndex];
   }
 
   public calculateChecksum(): number {
@@ -671,7 +781,8 @@ export class GameSimulation {
       checksum: this.calculateChecksum(),
       seed: this.seed,
       entities: entitySnapshots,
-      players: this.players
+      players: this.players,
+      shotFX: this.pendingShotFX.length > 0 ? [...this.pendingShotFX] : undefined
     };
   }
 }
