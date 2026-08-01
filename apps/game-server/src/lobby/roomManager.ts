@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'node:crypto';
 import { FactionId, MatchState, PlayerSlot, PlayerType, LobbyState } from '@ra4/shared-types';
 
 export interface RoomConfig {
@@ -24,7 +24,7 @@ export class RoomManager {
   }
 
   public createRoom(name: string, hostUserId: string, isPrivate: boolean = false, mapId: string = 'map_red_square_duel'): RoomConfig {
-    const id = uuidv4().slice(0, 8);
+    const id = crypto.randomUUID().slice(0, 8);
     const inviteCode = isPrivate ? Math.random().toString(36).substring(2, 8).toUpperCase() : undefined;
 
     const defaultSlots: PlayerSlot[] = [

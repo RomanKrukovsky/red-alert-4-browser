@@ -1,6 +1,5 @@
 import argon2 from 'argon2';
-import crypto from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'node:crypto';
 import { db, isDbConnected } from '../persistence/db.js';
 import { users, sessions, playerProfiles, playerSettings, auditLogs } from '../persistence/schema.js';
 import { eq } from 'drizzle-orm';
@@ -74,7 +73,7 @@ export class AuthService {
     }
 
     const passwordHash = await hashPassword(password);
-    const userId = uuidv4();
+    const userId = crypto.randomUUID();
 
     if (isDbConnected && db) {
       const [newUser] = await db.insert(users).values({
@@ -153,7 +152,7 @@ export class AuthService {
    * Create a temporary Guest session
    */
   public static async createGuestSession(): Promise<UserRecord> {
-    const guestId = uuidv4();
+    const guestId = crypto.randomUUID();
     const nickname = `Commander_${guestId.slice(0, 6)}`;
     const passwordHash = await hashPassword(guestId);
 
