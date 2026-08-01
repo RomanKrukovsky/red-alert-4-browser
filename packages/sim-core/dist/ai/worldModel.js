@@ -8,6 +8,13 @@ export class AIWorldModel {
                 bb.intelEntries.delete(id);
             }
         }
+        // Update own HQ position from live entity state
+        for (const entity of sim.entities.values()) {
+            if (entity.playerIndex === bb.playerIndex && entity.isBuilding && entity.specId.toUpperCase().includes('HQ')) {
+                bb.hqPosition = { x: entity.x, y: entity.y };
+                break;
+            }
+        }
         // Inspect entities in vision
         for (const entity of sim.entities.values()) {
             if (entity.playerIndex === bb.playerIndex)

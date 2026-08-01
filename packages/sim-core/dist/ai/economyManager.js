@@ -1,20 +1,22 @@
-import { CommandType, FactionId } from '@ra4/shared-types';
+import { CommandType } from '@ra4/shared-types';
 import { DEFAULT_DATABASE } from '@ra4/content-runtime';
+import { getFactionPlan } from './factionPlan.js';
 export class AIEconomyManager {
     update(sim, bb) {
         const commands = [];
         const p = sim.players[bb.playerIndex];
         if (!p)
             return commands;
+        const plan = getFactionPlan(bb.factionId);
         const myEntities = Array.from(sim.entities.values()).filter(e => e.playerIndex === bb.playerIndex);
         const myBuildings = myEntities.filter(e => e.isBuilding);
         const myHarvesters = myEntities.filter(e => !e.isBuilding && e.maxOre > 0);
-        const factories = myBuildings.filter(b => b.specId.includes('Factory') || b.specId.includes('Works'));
+        const factories = myBuildings.filter((building) => building.specId === plan.factoryBuildingId);
         // Harvester Replacement Logic
         if (myHarvesters.length < bb.targetHarvesterCount && factories.length > 0) {
             const factory = factories[0];
             if (factory.productionQueue.length < 2) {
-                const harvesterSpec = bb.factionId === FactionId.ALLIANCE ? 'AL_PioneerHarvester' : 'SU_BogatyrOreCarrier';
+                const harvesterSpec = plan.harvesterUnitId;
                 const harvesterCost = DEFAULT_DATABASE.units.find(unit => unit.id === harvesterSpec)?.cost;
                 if (harvesterCost !== undefined && p.credits >= harvesterCost) {
                     commands.push({

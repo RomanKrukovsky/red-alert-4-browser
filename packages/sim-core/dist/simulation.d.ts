@@ -29,6 +29,7 @@ export interface SimEntity {
     isBuilding: boolean;
     isPowered: boolean;
     isDisabled: boolean;
+    disabledTicksRemaining: number;
     attackCooldown: number;
     targetEntityId?: number;
     moveSpeed: number;
@@ -69,6 +70,9 @@ export declare class GameSimulation {
     resourceNodes: Map<string, ResourceNodeState>;
     aiAgents: Map<number, SkirmishAIAgent>;
     playerTeams: number[];
+    playerFactions: FactionId[];
+    surrenderedPlayers: Set<number>;
+    private pendingShotFX;
     nextEntityId: number;
     matchState: MatchState;
     winnerTeam: number;
@@ -83,10 +87,12 @@ export declare class GameSimulation {
     spawnUnit(specId: string, playerIndex: number, x: number, y: number): number;
     processCommands(commands: PlayerCommand[]): void;
     private executeCommand;
+    private isBuildLocationValid;
     step(): WorldSnapshot;
     recalculateEconomy(): void;
     private updateFogOfWar;
     checkVictory(): void;
+    private isEnemy;
     calculateChecksum(): number;
     createSnapshot(): WorldSnapshot;
 }

@@ -1,5 +1,5 @@
 import { GameSimulation } from './simulation.js';
-import { PlayerCommand } from '@ra4/shared-types';
+import { FactionId, PlayerCommand } from '@ra4/shared-types';
 export interface SuperweaponState {
     id: string;
     name: string;
@@ -10,7 +10,7 @@ export interface SuperweaponState {
 }
 export declare class SuperweaponManager {
     superweaponStates: Map<number, SuperweaponState[]>;
-    initPlayerSuperweapons(playerIndex: number, factionId: string): void;
+    initPlayerSuperweapons(playerIndex: number, factionId: FactionId): void;
     update(sim: GameSimulation): void;
     executeSuperweaponCommand(sim: GameSimulation, cmd: PlayerCommand): boolean;
 }

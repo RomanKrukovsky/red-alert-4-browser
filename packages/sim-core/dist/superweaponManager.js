@@ -1,19 +1,19 @@
-import { CommandType } from '@ra4/shared-types';
+import { CommandType, FactionId } from '@ra4/shared-types';
 export class SuperweaponManager {
     superweaponStates = new Map();
     initPlayerSuperweapons(playerIndex, factionId) {
         const swList = [];
-        if (factionId === 'USSR') {
-            swList.push({ id: 'sw_iron_curtain', name: 'Железный Занавес', factionId: 'USSR', cooldownTicksTotal: 3600, cooldownTicksRemaining: 0, isReady: true });
+        if (factionId === FactionId.USSR) {
+            swList.push({ id: 'sw_iron_curtain', name: 'Железный Занавес', factionId, cooldownTicksTotal: 3600, cooldownTicksRemaining: 0, isReady: true });
         }
-        else if (factionId === 'ALLIANCE') {
-            swList.push({ id: 'sw_chronosphere', name: 'Хроносфера', factionId: 'ALLIANCE', cooldownTicksTotal: 3600, cooldownTicksRemaining: 0, isReady: true });
+        else if (factionId === FactionId.ALLIANCE) {
+            swList.push({ id: 'sw_chronosphere', name: 'Хроносфера', factionId, cooldownTicksTotal: 3600, cooldownTicksRemaining: 0, isReady: true });
         }
-        else if (factionId === 'COALITION') {
-            swList.push({ id: 'sw_solar_array', name: 'Орбитальный Солнечный Луч', factionId: 'COALITION', cooldownTicksTotal: 4500, cooldownTicksRemaining: 0, isReady: true });
+        else if (factionId === FactionId.ORIENTAL_COALITION) {
+            swList.push({ id: 'sw_solar_array', name: 'Орбитальный Солнечный Луч', factionId, cooldownTicksTotal: 4500, cooldownTicksRemaining: 0, isReady: true });
         }
-        else if (factionId === 'CHRONO') {
-            swList.push({ id: 'sw_temporal_rift', name: 'Временной Разлом', factionId: 'CHRONO', cooldownTicksTotal: 4500, cooldownTicksRemaining: 0, isReady: true });
+        else if (factionId === FactionId.CHRONOLEGION) {
+            swList.push({ id: 'sw_temporal_rift', name: 'Временной Разлом', factionId, cooldownTicksTotal: 4500, cooldownTicksRemaining: 0, isReady: true });
         }
         this.superweaponStates.set(playerIndex, swList);
     }
@@ -90,11 +90,14 @@ export class SuperweaponManager {
                         const dy = e.y - ty;
                         if (dx * dx + dy * dy <= 225000000) {
                             e.isDisabled = true;
+                            e.disabledTicksRemaining = 600;
                         }
                     }
                 }
                 break;
             }
+            default:
+                return false;
         }
         // Reset cooldown
         sw.isReady = false;
