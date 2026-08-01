@@ -25,6 +25,7 @@ export class RTSRenderer {
   private entityPresenters: Map<number, GameplayAssetPresenter> = new Map();
   private environmentAssets: RuntimeAssetInstance[] = [];
   private assetRegistry: RuntimeAssetRegistry;
+  private previousHp: Map<number, number> = new Map();
 
   constructor(canvas: HTMLCanvasElement) {
     this.engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
@@ -199,8 +200,17 @@ export class RTSRenderer {
   public updateScene(snapshot: WorldSnapshot): void {
     const activeIds = new Set<number>();
     const selectedIds = new Set(useUIStore.getState().selectedEntityIds);
+    const visualShots: Array<{ startX: number; startY: number; targetX: number; targetY: number }> = [...(snapshot.shotFX ?? [])];
+    if (visualShots.length === 0) {
+      for (const target of snapshot.entities) {
+        const previousHp = this.previousHp.get(target.id);
+        if (previousHp === undefined || target.hp >= previousHp) continue;
+        const attacker = snapshot.entities.find((entity) => entity.targetEntityId === target.id && Boolean(getGameplayAssetProfile(entity.specId)?.muzzle));
+        if (attacker) visualShots.push({ startX: attacker.position.x, startY: attacker.position.y, targetX: target.position.x, targetY: target.position.y });
+      }
+    }
     const shotByEntity = new Map<number, { target: Vector3 }>();
-    for (const shot of snapshot.shotFX ?? []) {
+    for (const shot of visualShots) {
       const shooter = findNearestShooter(snapshot.entities, shot, 2.5);
       if (shooter) shotByEntity.set(shooter.id, { target: new Vector3(shot.targetX / 1000, 0, shot.targetY / 1000) });
     }
@@ -234,8 +244,10 @@ export class RTSRenderer {
 
       const presenter = this.entityPresenters.get(e.id);
       const shot = shotByEntity.get(e.id);
+      const targetEntity = e.targetEntityId === undefined ? undefined : snapshot.entities.find((candidate) => candidate.id === e.targetEntityId);
+      const aimTarget = shot?.target ?? (targetEntity ? new Vector3(targetEntity.position.x / 1000, 0, targetEntity.position.y / 1000) : undefined);
       if (presenter) {
-        presenter.update(e, { firing: Boolean(shot), shotTarget: shot?.target, productionActive: e.productionQueue.length > 0 });
+        presenter.update(e, { firing: Boolean(shot), shotTarget: aimTarget, productionActive: e.productionQueue.length > 0 });
       } else {
         node.position.x = wx;
         node.position.z = wz;
@@ -261,8 +273,8 @@ export class RTSRenderer {
     }
 
     // Render Tracer Lines & Muzzle Light Flashes for Shot FX
-    if (snapshot.shotFX) {
-      for (const shot of snapshot.shotFX) {
+    if (visualShots.length > 0) {
+      for (const shot of visualShots) {
         const shooter = findNearestShooter(snapshot.entities, shot, 2.5);
         const presenter = shooter ? this.entityPresenters.get(shooter.id) : undefined;
         const start = presenter?.getMuzzleWorldPosition() ?? new Vector3(shot.startX / 1000, 1.2, shot.startY / 1000);
@@ -301,6 +313,7 @@ export class RTSRenderer {
         }
       }
     }
+    this.previousHp = new Map(snapshot.entities.map((entity) => [entity.id, entity.hp]));
   }
 
   public ghostMesh: Mesh | null = null;
@@ -335,6 +348,7 @@ export class RTSRenderer {
     }
     for (const presenter of this.entityPresenters.values()) presenter.dispose();
     this.entityPresenters.clear();
+    this.previousHp.clear();
     this.entityMeshes.clear();
     for (const asset of this.environmentAssets) asset.dispose();
     this.environmentAssets = [];
