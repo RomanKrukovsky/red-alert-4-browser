@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { AuthoritativeMatchRuntime } from '../matches/matchRuntime.ts';
+import { AuthoritativeMatchRuntime } from '../matches/matchRuntime';
 import { FactionId, PlayerType, CommandType } from '@ra4/shared-types';
 
 describe('Authoritative Match Runtime & Anti-Cheat Suite', () => {

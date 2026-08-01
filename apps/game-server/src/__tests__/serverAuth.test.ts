@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { AuthService } from '../auth/service.ts';
-import { env } from '../config/env.ts';
+import { AuthService } from '../auth/service';
+import { env } from '../config/env';
 
 describe('Server Auth & Account Security Suite', () => {
   it('should create guest sessions with unique IDs and player role', async () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { AdminService } from '../admin/adminService.ts';
+import { AdminService } from '../admin/adminService';
 
 describe('Server Admin Command Authorization & Audit Suite', () => {
   it('should deny non-admin users from executing admin commands', async () => {

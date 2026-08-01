@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { AuthoritativeMatchRuntime } from '../matches/matchRuntime.ts';
+import { AuthoritativeMatchRuntime } from '../matches/matchRuntime';
 import { FactionId, PlayerType } from '@ra4/shared-types';
 
 describe('Server Reconnect & Snapshot Recovery Suite', () => {

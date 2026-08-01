@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { RoomManager } from '../lobby/roomManager.ts';
+import { RoomManager } from '../lobby/roomManager';
 import { FactionId, PlayerType } from '@ra4/shared-types';
 
 describe('Server Lobby & Room Lifecycle Suite', () => {
