@@ -1,0 +1,119 @@
+import { GameSimulation, SimEntity } from './simulation.js';
+import { PlayerCommand, CommandType } from '@ra4/shared-types';
+
+export interface SuperweaponState {
+  id: string;
+  name: string;
+  factionId: string;
+  cooldownTicksTotal: number;
+  cooldownTicksRemaining: number;
+  isReady: boolean;
+}
+
+export class SuperweaponManager {
+  public superweaponStates: Map<number, SuperweaponState[]> = new Map();
+
+  public initPlayerSuperweapons(playerIndex: number, factionId: string): void {
+    const swList: SuperweaponState[] = [];
+
+    if (factionId === 'USSR') {
+      swList.push({ id: 'sw_iron_curtain', name: 'Железный Занавес', factionId: 'USSR', cooldownTicksTotal: 3600, cooldownTicksRemaining: 0, isReady: true });
+    } else if (factionId === 'ALLIANCE') {
+      swList.push({ id: 'sw_chronosphere', name: 'Хроносфера', factionId: 'ALLIANCE', cooldownTicksTotal: 3600, cooldownTicksRemaining: 0, isReady: true });
+    } else if (factionId === 'COALITION') {
+      swList.push({ id: 'sw_solar_array', name: 'Орбитальный Солнечный Луч', factionId: 'COALITION', cooldownTicksTotal: 4500, cooldownTicksRemaining: 0, isReady: true });
+    } else if (factionId === 'CHRONO') {
+      swList.push({ id: 'sw_temporal_rift', name: 'Временной Разлом', factionId: 'CHRONO', cooldownTicksTotal: 4500, cooldownTicksRemaining: 0, isReady: true });
+    }
+
+    this.superweaponStates.set(playerIndex, swList);
+  }
+
+  public update(sim: GameSimulation): void {
+    for (const [pIdx, swList] of this.superweaponStates.entries()) {
+      for (const sw of swList) {
+        if (sw.cooldownTicksRemaining > 0) {
+          sw.cooldownTicksRemaining--;
+          if (sw.cooldownTicksRemaining === 0) {
+            sw.isReady = true;
+          }
+        }
+      }
+    }
+  }
+
+  public executeSuperweaponCommand(sim: GameSimulation, cmd: PlayerCommand): boolean {
+    if (cmd.type !== CommandType.USE_ABILITY || !cmd.abilityId) return false;
+
+    const playerSWs = this.superweaponStates.get(cmd.playerIndex);
+    if (!playerSWs) return false;
+
+    const sw = playerSWs.find(s => s.id === cmd.abilityId);
+    if (!sw || !sw.isReady) return false;
+
+    const tx = cmd.targetX ?? 32000;
+    const ty = cmd.targetY ?? 32000;
+
+    switch (sw.id) {
+      case 'sw_iron_curtain': {
+        // Grant 15s invulnerability to units in 10m radius
+        for (const e of sim.entities.values()) {
+          if (e.playerIndex === cmd.playerIndex && !e.isBuilding) {
+            const dx = e.x - tx;
+            const dy = e.y - ty;
+            if (dx * dx + dy * dy <= 100000000) {
+              e.shield = e.maxShield = 10000; // Invulnerability shield buffer
+            }
+          }
+        }
+        break;
+      }
+      case 'sw_chronosphere': {
+        // Teleport targeted units to target coordinates
+        const targets = cmd.entityIds.map(id => sim.entities.get(id)).filter((e): e is SimEntity => !!e && e.playerIndex === cmd.playerIndex);
+        targets.forEach((e, idx) => {
+          e.x = tx + (idx % 3) * 2000;
+          e.y = ty + Math.floor(idx / 3) * 2000;
+          e.waypoints = undefined;
+          e.targetX = undefined;
+          e.targetY = undefined;
+        });
+        break;
+      }
+      case 'sw_solar_array': {
+        // Deal 2500 damage to enemies in 12m radius
+        for (const e of sim.entities.values()) {
+          if (e.playerIndex !== cmd.playerIndex) {
+            const dx = e.x - tx;
+            const dy = e.y - ty;
+            if (dx * dx + dy * dy <= 144000000) {
+              e.hp = Math.max(0, e.hp - 2500);
+              if (e.hp === 0) {
+                sim.entities.delete(e.id);
+              }
+            }
+          }
+        }
+        break;
+      }
+      case 'sw_temporal_rift': {
+        // Freeze enemies in 15m radius for 20 seconds
+        for (const e of sim.entities.values()) {
+          if (e.playerIndex !== cmd.playerIndex) {
+            const dx = e.x - tx;
+            const dy = e.y - ty;
+            if (dx * dx + dy * dy <= 225000000) {
+              e.isDisabled = true;
+            }
+          }
+        }
+        break;
+      }
+    }
+
+    // Reset cooldown
+    sw.isReady = false;
+    sw.cooldownTicksRemaining = sw.cooldownTicksTotal;
+    return true;
+  }
+}

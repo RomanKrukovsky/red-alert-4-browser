@@ -55,6 +55,7 @@ export interface ResourceNodeState {
     isRich: boolean;
     creditsRemaining: number;
 }
+import { SuperweaponManager } from './superweaponManager.js';
 export declare class GameSimulation {
     tickIndex: number;
     seed: number;
@@ -62,6 +63,7 @@ export declare class GameSimulation {
     spatialGrid: SpatialHashGrid;
     fogOfWar: FogOfWarManager;
     navigation: NavigationService;
+    superweaponManager: SuperweaponManager;
     entities: Map<number, SimEntity>;
     players: PlayerEconomyState[];
     resourceNodes: Map<string, ResourceNodeState>;

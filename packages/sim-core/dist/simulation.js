@@ -7,6 +7,7 @@ import { calculateDamage } from './combat.js';
 import { fixedDistanceSq } from './fixedMath.js';
 import { NavigationService } from './navigation.js';
 import { SkirmishAIAgent } from './aiAgent.js';
+import { SuperweaponManager } from './superweaponManager.js';
 export class GameSimulation {
     tickIndex = 0;
     seed;
@@ -14,6 +15,7 @@ export class GameSimulation {
     spatialGrid;
     fogOfWar;
     navigation;
+    superweaponManager = new SuperweaponManager();
     entities = new Map();
     players = [];
     resourceNodes = new Map();
@@ -42,8 +44,9 @@ export class GameSimulation {
         }));
         playerConfigs.forEach((p, idx) => {
             this.fogOfWar.registerTeam(p.team);
+            this.superweaponManager.initPlayerSuperweapons(idx, p.factionId);
             if (p.type !== PlayerType.HUMAN && p.type !== PlayerType.SPECTATOR) {
-                this.aiAgents.set(idx, new SkirmishAIAgent(idx));
+                this.aiAgents.set(idx, new SkirmishAIAgent(idx, p.factionId));
             }
         });
         // Spawn Resource Nodes from default map
@@ -239,6 +242,10 @@ export class GameSimulation {
                 }
                 break;
             }
+            case CommandType.USE_ABILITY: {
+                this.superweaponManager.executeSuperweaponCommand(this, cmd);
+                break;
+            }
             case CommandType.SURRENDER: {
                 p.hasHQ = false;
                 break;
@@ -249,6 +256,7 @@ export class GameSimulation {
     }
     step() {
         this.tickIndex++;
+        this.superweaponManager.update(this);
         // 0. AI Agents Decision Loop
         for (const agent of this.aiAgents.values()) {
             const aiCmds = agent.update(this);

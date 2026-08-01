@@ -58,6 +58,8 @@ export interface ResourceNodeState {
   creditsRemaining: number;
 }
 
+import { SuperweaponManager } from './superweaponManager.js';
+
 export class GameSimulation {
   public tickIndex: number = 0;
   public seed: number;
@@ -65,7 +67,7 @@ export class GameSimulation {
   public spatialGrid: SpatialHashGrid;
   public fogOfWar: FogOfWarManager;
   public navigation: NavigationService;
-
+  public superweaponManager: SuperweaponManager = new SuperweaponManager();
   public entities: Map<number, SimEntity> = new Map();
   public players: PlayerEconomyState[] = [];
   public resourceNodes: Map<string, ResourceNodeState> = new Map();
@@ -98,8 +100,9 @@ export class GameSimulation {
 
     playerConfigs.forEach((p, idx) => {
       this.fogOfWar.registerTeam(p.team);
+      this.superweaponManager.initPlayerSuperweapons(idx, p.factionId);
       if (p.type !== PlayerType.HUMAN && p.type !== PlayerType.SPECTATOR) {
-        this.aiAgents.set(idx, new SkirmishAIAgent(idx));
+        this.aiAgents.set(idx, new SkirmishAIAgent(idx, p.factionId));
       }
     });
 
@@ -307,6 +310,10 @@ export class GameSimulation {
         }
         break;
       }
+      case CommandType.USE_ABILITY: {
+        this.superweaponManager.executeSuperweaponCommand(this, cmd);
+        break;
+      }
       case CommandType.SURRENDER: {
         p.hasHQ = false;
         break;
@@ -318,6 +325,7 @@ export class GameSimulation {
 
   public step(): WorldSnapshot {
     this.tickIndex++;
+    this.superweaponManager.update(this);
 
     // 0. AI Agents Decision Loop
     for (const agent of this.aiAgents.values()) {
