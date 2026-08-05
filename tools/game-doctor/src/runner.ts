@@ -138,7 +138,7 @@ export class GameDoctorRunner {
     return passed;
   }
 
-  private async startDevServer(port: number): Promise<void> {
+  public async startDevServer(port: number = 5173): Promise<void> {
     const isRunning = await this.checkPort(port);
     if (isRunning) {
       console.log(`ℹ️ [DevServer] Web server already responding on port ${port}. Using active server.`);
@@ -169,7 +169,7 @@ export class GameDoctorRunner {
     });
   }
 
-  private stopDevServer(): void {
+  public stopDevServer(): void {
     if (this.serverProcess) {
       console.log('🛑 [DevServer] Stopping dev server...');
       this.serverProcess.kill('SIGTERM');

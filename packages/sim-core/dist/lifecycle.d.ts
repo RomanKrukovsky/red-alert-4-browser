@@ -21,6 +21,23 @@ export interface MatchConfig {
     tickRate?: number;
     startingCredits?: number;
 }
+export interface AdvanceResult {
+    /** Snapshot of the last executed tick this advance, or null when no tick ran. */
+    snapshot: WorldSnapshot | null;
+    /** Interpolation alpha [0..1] — fraction of a tick accumulated after the last executed tick. */
+    alpha: number;
+    /** Number of simulation ticks executed during this advance call. */
+    ticksExecuted: number;
+}
+/**
+ * Pure, clock-agnostic match lifecycle.
+ *
+ * IMPORTANT ARCHITECTURAL BOUNDARY: sim-core must never read wall-clock time
+ * (`performance.now`, `Date.now`) or schedule frames (`requestAnimationFrame`).
+ * The host environment (browser main thread, Web Worker, Node server, headless
+ * test runner) owns the clock and drives the simulation by calling
+ * `advance(elapsedMs)` with measured elapsed time, or `tickOnce()` directly.
+ */
 export declare class MatchLifecycleManager {
     state: MatchLifecycleState;
     sim: GameSimulation | null;
@@ -28,13 +45,20 @@ export declare class MatchLifecycleManager {
     events: SimEventEmitter;
     private tickMs;
     private accumulator;
-    private lastTime;
-    private animationFrameId;
     private catchUpLimit;
+    get tickIntervalMs(): number;
     initialize(config: MatchConfig): void;
-    start(onTickRender?: (snapshot: WorldSnapshot, alphaInterp: number) => void): void;
+    /** Transition to RUNNING. The host is responsible for calling advance() afterwards. */
+    start(): void;
+    /**
+     * Advance the simulation by `elapsedMs` of host time using a fixed-step
+     * accumulator. Executes zero or more ticks and returns the latest snapshot.
+     */
+    advance(elapsedMs: number): AdvanceResult;
+    /** Execute exactly one simulation tick (flushing queued commands first). */
+    tickOnce(): WorldSnapshot | null;
     pause(): void;
-    resume(onTickRender?: (snapshot: WorldSnapshot, alphaInterp: number) => void): void;
+    resume(): void;
     stop(): void;
     dispose(): void;
 }

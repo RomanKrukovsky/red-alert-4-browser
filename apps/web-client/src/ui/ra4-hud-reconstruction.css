@@ -3,6 +3,19 @@
   Overrides basic flat styles with AAA industrial design, bevels, inner shadows, and metallic gradients.
 */
 
+.ra4-gameplay-hud {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Let clicks pass through empty areas */
+  zoom: var(--ui-scale, 1);
+}
+
+.ra4-gameplay-hud > * {
+  pointer-events: auto; /* Re-enable pointer events for actual panels */
+}
+
 /* 
   1. Base Panel Styling (AAA Metal)
   We use a heavily textured background and inset shadows to simulate a physical panel.
@@ -118,6 +131,26 @@
   border: 1px solid rgba(var(--accent-rgb), 0.4) !important;
   box-shadow: inset 0 0 10px rgba(0,0,0,0.8) !important;
   border-radius: 2px;
+  transition: all 0.2s ease-out;
+  cursor: pointer;
+}
+.ra4-production-grid > button:hover:not(:disabled) {
+  background: 
+    linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 40%, rgba(var(--accent-rgb), 0.3) 100%),
+    var(--panel) !important;
+  border-color: var(--accent-bright) !important;
+  box-shadow: inset 0 0 20px rgba(var(--accent-rgb), 0.5), 0 0 8px rgba(var(--accent-rgb), 0.5) !important;
+  transform: translateY(-1px);
+}
+.ra4-production-grid > button:active:not(:disabled) {
+  background: #000 !important;
+  box-shadow: inset 0 3px 10px rgba(0,0,0,0.9) !important;
+  transform: translateY(1px);
+}
+.ra4-production-grid > button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(80%);
 }
 .ra4-production-grid > button b {
   font-size: 10px !important;

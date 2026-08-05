@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { MatchLifecycleManager } from '@ra4/sim-core';
 import { CommandType, FactionId, MatchState, PlayerCommand, PlayerType, WorldSnapshot } from '@ra4/shared-types';
+import { SimWorkerClient, SimFrame } from './sim/SimWorkerClient.js';
 import { useUIStore, AdminConsole, AdminConsoleService } from '@ra4/ui';
 import { InputManager } from './inputManager.js';
 import { RTSRenderer } from './renderer.js';
@@ -36,8 +36,7 @@ export const App: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<RTSRenderer | null>(null);
   const inputManagerRef = useRef<InputManager | null>(null);
-  const managerRef = useRef<MatchLifecycleManager | null>(null);
-  const snapshotHandlerRef = useRef<(snapshot: WorldSnapshot) => void>(() => undefined);
+  const simClientRef = useRef<SimWorkerClient | null>(null);
   const hasReceivedSnapshotRef = useRef(false);
   const [currentScreen, setCurrentScreen] = useState<FrontendScreen>(() => resolveScreen(window.location.hash));
   const [setup, setSetup] = useState<MatchSetup>(() => ({ ...defaultSetup, faction: factionByHash[window.location.hash] ?? defaultSetup.faction }));
@@ -54,10 +53,10 @@ export const App: React.FC = () => {
 
   const disposeMatch = useCallback(() => {
     inputManagerRef.current?.dispose();
-    managerRef.current?.dispose();
+    simClientRef.current?.dispose();
     rendererRef.current?.dispose();
     inputManagerRef.current = null;
-    managerRef.current = null;
+    simClientRef.current = null;
     rendererRef.current = null;
     hasReceivedSnapshotRef.current = false;
     useUIStore.getState().setSnapshot(null as any);
@@ -84,12 +83,12 @@ export const App: React.FC = () => {
     renderer.rtsCamera.camera.beta = Math.PI / 3.5; // ~51° — shows more of the map
     setLoadingStages((stages) => stages.map((stage) => stage.id === 'renderer' ? { ...stage, status: 'complete', progress: 38 } : stage.id === 'simulation' ? { ...stage, status: 'active', progress: 50 } : stage));
 
-    const manager = new MatchLifecycleManager();
-    managerRef.current = manager;
+    const simClient = new SimWorkerClient();
+    simClientRef.current = simClient;
     useUIStore.getState().setActiveFaction(matchSetup.faction);
     useUIStore.getState().setActivePlayerIndex(0);
     useUIStore.getState().setSelectedEntityIds([]);
-    manager.initialize({
+    await simClient.initialize({
       seed: Math.floor(Math.random() * 1_000_000),
       tickRate: matchSetup.gameSpeed === 'FAST' ? 36 : matchSetup.gameSpeed === 'SLOW' ? 24 : 30,
       startingCredits: matchSetup.startingCredits,
@@ -98,9 +97,10 @@ export const App: React.FC = () => {
         { name: 'ИИ-Соперник', factionId: matchSetup.opponentFaction, type: matchSetup.difficulty === 'HARD' ? PlayerType.AI_HARD : matchSetup.difficulty === 'EASY' ? PlayerType.AI_EASY : PlayerType.AI_MEDIUM, team: 1 },
       ],
     });
+    if (simClientRef.current !== simClient) return;
     setLoadingStages((stages) => stages.map((stage) => stage.id === 'simulation' ? { ...stage, status: 'complete', progress: 63 } : stage.id === 'input' ? { ...stage, status: 'active', progress: 72 } : stage));
 
-    const inputManager = new InputManager(renderer, canvasRef.current, (command) => manager.commandBus.dispatch(command));
+    const inputManager = new InputManager(renderer, canvasRef.current, (command) => simClient.dispatchCommand(command));
     inputManagerRef.current = inputManager;
     setLoadingStages((stages) => stages.map((stage) => stage.id === 'input' ? { ...stage, status: 'complete', progress: 82 } : stage.id === 'snapshot' ? { ...stage, status: 'active', progress: 90 } : stage));
 
@@ -116,20 +116,15 @@ export const App: React.FC = () => {
           heap: (performance as any).memory?.usedJSHeapSize ?? 0,
         }),
         triggerVictory: () => {
-          if (manager.sim) {
-            for (const entity of manager.sim.entities.values()) {
-              if (entity.playerIndex === 1) {
-                entity.hp = 0;
-              }
-            }
-          }
+          simClient.debugEliminatePlayer(1);
         },
       };
     }
 
     let prevEntities = new Map<number, { hp: number; isBuilding: boolean; specId: string; playerIndex: number }>();
 
-    const handleSnapshot = (nextSnapshot: WorldSnapshot) => {
+    const handleFrame = (frame: SimFrame) => {
+      const nextSnapshot: WorldSnapshot = frame.snapshot;
       renderer.updateScene(nextSnapshot);
       useUIStore.getState().setSnapshot(nextSnapshot);
 
@@ -174,9 +169,9 @@ export const App: React.FC = () => {
 
       prevEntities = currentEntities;
 
-      if (manager.sim?.matchState === MatchState.FINISHED) {
-        manager.stop();
-        const isVictory = manager.sim.winnerTeam === 0;
+      if (frame.matchState === MatchState.FINISHED) {
+        simClient.stop();
+        const isVictory = frame.winnerTeam === 0;
         VoiceManager.getInstance().playEVAMessage(isVictory ? 'VICTORY' : 'DEFEAT');
         navigate(isVictory ? 'VICTORY' : 'DEFEAT', isVictory ? '#/victory' : '#/defeat');
         return;
@@ -188,8 +183,8 @@ export const App: React.FC = () => {
         window.requestAnimationFrame(() => navigate('MATCH', `#/hud/${matchSetup.faction === FactionId.ALLIANCE ? 'allies' : matchSetup.faction === FactionId.ORIENTAL_COALITION ? 'coalition' : matchSetup.faction === FactionId.CHRONOLEGION ? 'chronolegion' : 'soviet'}`));
       }
     };
-    snapshotHandlerRef.current = handleSnapshot;
-    manager.start(handleSnapshot);
+    simClient.onFrame(handleFrame);
+    simClient.start();
   }, [disposeMatch, navigate]);
 
   const startMatch = useCallback((matchSetup: MatchSetup) => {
@@ -219,7 +214,7 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (currentScreen === 'MATCH' && !managerRef.current) startMatch({ ...setup, faction: factionByHash[window.location.hash] ?? setup.faction });
+    if (currentScreen === 'MATCH' && !simClientRef.current) startMatch({ ...setup, faction: factionByHash[window.location.hash] ?? setup.faction });
   }, [currentScreen, setup, startMatch]);
 
   useEffect(() => {
@@ -229,8 +224,8 @@ export const App: React.FC = () => {
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || currentScreen !== 'MATCH') return;
-      if (paused) managerRef.current?.resume(snapshotHandlerRef.current);
-      else managerRef.current?.pause();
+      if (paused) simClientRef.current?.resume();
+      else simClientRef.current?.pause();
       setPaused((value) => !value);
     };
     window.addEventListener('keydown', handleEscape);
@@ -239,15 +234,15 @@ export const App: React.FC = () => {
 
   useEffect(() => disposeMatch, [disposeMatch]);
 
-  const issueCommand = (command: PlayerCommand) => managerRef.current?.commandBus.dispatch(command);
+  const issueCommand = (command: PlayerCommand) => simClientRef.current?.dispatchCommand(command);
   const beginBuildingPlacement = (structureId: string) => inputManagerRef.current?.beginBuildingPlacement(structureId);
   const beginCommandMode = (mode: CommandType.MOVE | CommandType.ATTACK) => inputManagerRef.current?.beginCommandMode(mode);
   const pauseMatch = () => {
-    managerRef.current?.pause();
+    simClientRef.current?.pause();
     setPaused(true);
   };
   const resumeMatch = () => {
-    managerRef.current?.resume(snapshotHandlerRef.current);
+    simClientRef.current?.resume();
     setPaused(false);
   };
   const returnToMenu = () => {

@@ -122,7 +122,7 @@ export class GameDoctorRunner {
         console.log(`✨ [RA4 Game Doctor] Execution complete. Report written to artifacts/game-doctor/report.md`);
         return passed;
     }
-    async startDevServer(port) {
+    async startDevServer(port = 5173) {
         const isRunning = await this.checkPort(port);
         if (isRunning) {
             console.log(`ℹ️ [DevServer] Web server already responding on port ${port}. Using active server.`);

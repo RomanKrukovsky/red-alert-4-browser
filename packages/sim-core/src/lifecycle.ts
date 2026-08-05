@@ -19,17 +19,37 @@ export interface MatchConfig {
   startingCredits?: number;
 }
 
+export interface AdvanceResult {
+  /** Snapshot of the last executed tick this advance, or null when no tick ran. */
+  snapshot: WorldSnapshot | null;
+  /** Interpolation alpha [0..1] — fraction of a tick accumulated after the last executed tick. */
+  alpha: number;
+  /** Number of simulation ticks executed during this advance call. */
+  ticksExecuted: number;
+}
+
+/**
+ * Pure, clock-agnostic match lifecycle.
+ *
+ * IMPORTANT ARCHITECTURAL BOUNDARY: sim-core must never read wall-clock time
+ * (`performance.now`, `Date.now`) or schedule frames (`requestAnimationFrame`).
+ * The host environment (browser main thread, Web Worker, Node server, headless
+ * test runner) owns the clock and drives the simulation by calling
+ * `advance(elapsedMs)` with measured elapsed time, or `tickOnce()` directly.
+ */
 export class MatchLifecycleManager {
   public state: MatchLifecycleState = MatchLifecycleState.UNINITIALIZED;
   public sim: GameSimulation | null = null;
   public commandBus: CommandBus = new CommandBus();
   public events: SimEventEmitter = new SimEventEmitter();
 
-  private tickMs: number = 33.33; // 30 ticks per second
+  private tickMs: number = 1000 / 30; // 30 ticks per second
   private accumulator: number = 0;
-  private lastTime: number = 0;
-  private animationFrameId: number | null = null;
-  private catchUpLimit: number = 5; // max ticks per frame to prevent spiral of death
+  private catchUpLimit: number = 5; // max ticks per advance to prevent spiral of death
+
+  public get tickIntervalMs(): number {
+    return this.tickMs;
+  }
 
   public initialize(config: MatchConfig): void {
     if (this.state !== MatchLifecycleState.UNINITIALIZED && this.state !== MatchLifecycleState.STOPPED) {
@@ -38,80 +58,73 @@ export class MatchLifecycleManager {
 
     const seed = config.seed ?? 1337;
     this.tickMs = 1000 / (config.tickRate ?? 30);
+    this.accumulator = 0;
     this.sim = new GameSimulation(seed);
     this.sim.initMatch(config.players, config.startingCredits);
 
     this.state = MatchLifecycleState.INITIALIZED;
   }
 
-  public start(onTickRender?: (snapshot: WorldSnapshot, alphaInterp: number) => void): void {
+  /** Transition to RUNNING. The host is responsible for calling advance() afterwards. */
+  public start(): void {
     if (this.state !== MatchLifecycleState.INITIALIZED && this.state !== MatchLifecycleState.PAUSED) {
       throw new Error(`Cannot start match in state: ${this.state}`);
     }
-
     this.state = MatchLifecycleState.RUNNING;
-    this.lastTime = performance.now();
     this.accumulator = 0;
+  }
 
-    const gameLoop = (currentTime: number) => {
-      if (this.state !== MatchLifecycleState.RUNNING) return;
+  /**
+   * Advance the simulation by `elapsedMs` of host time using a fixed-step
+   * accumulator. Executes zero or more ticks and returns the latest snapshot.
+   */
+  public advance(elapsedMs: number): AdvanceResult {
+    if (this.state !== MatchLifecycleState.RUNNING) {
+      return { snapshot: null, alpha: 0, ticksExecuted: 0 };
+    }
 
-      const delta = currentTime - this.lastTime;
-      this.lastTime = currentTime;
-      this.accumulator += delta;
+    this.accumulator += Math.max(0, elapsedMs);
 
-      let ticksExecuted = 0;
-      let snapshot: WorldSnapshot | null = null;
+    let ticksExecuted = 0;
+    let snapshot: WorldSnapshot | null = null;
 
-      while (this.accumulator >= this.tickMs && ticksExecuted < this.catchUpLimit) {
-        if (this.sim) {
-          const pendingCmds = this.commandBus.flush();
-          this.sim.processCommands(pendingCmds);
-          snapshot = this.sim.step();
-        }
-        this.accumulator -= this.tickMs;
-        ticksExecuted++;
-      }
+    while (this.accumulator >= this.tickMs && ticksExecuted < this.catchUpLimit) {
+      snapshot = this.tickOnce();
+      this.accumulator -= this.tickMs;
+      ticksExecuted++;
+    }
 
-      // Spiral of death prevention reset
-      if (this.accumulator > this.tickMs * this.catchUpLimit) {
-        this.accumulator = 0;
-      }
+    // Spiral of death prevention reset
+    if (this.accumulator > this.tickMs * this.catchUpLimit) {
+      this.accumulator = 0;
+    }
 
-      const alphaInterp = Math.min(1.0, Math.max(0.0, this.accumulator / this.tickMs));
+    const alpha = Math.min(1.0, Math.max(0.0, this.accumulator / this.tickMs));
+    return { snapshot, alpha, ticksExecuted };
+  }
 
-      if (onTickRender && snapshot) {
-        onTickRender(snapshot, alphaInterp);
-      }
-
-      this.animationFrameId = requestAnimationFrame(gameLoop);
-    };
-
-    this.animationFrameId = requestAnimationFrame(gameLoop);
+  /** Execute exactly one simulation tick (flushing queued commands first). */
+  public tickOnce(): WorldSnapshot | null {
+    if (!this.sim) return null;
+    const pendingCmds = this.commandBus.flush();
+    this.sim.processCommands(pendingCmds);
+    return this.sim.step();
   }
 
   public pause(): void {
     if (this.state === MatchLifecycleState.RUNNING) {
       this.state = MatchLifecycleState.PAUSED;
-      if (this.animationFrameId !== null) {
-        cancelAnimationFrame(this.animationFrameId);
-        this.animationFrameId = null;
-      }
     }
   }
 
-  public resume(onTickRender?: (snapshot: WorldSnapshot, alphaInterp: number) => void): void {
+  public resume(): void {
     if (this.state === MatchLifecycleState.PAUSED) {
-      this.start(onTickRender);
+      this.start();
     }
   }
 
   public stop(): void {
     this.state = MatchLifecycleState.STOPPED;
-    if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId = null;
-    }
   }
 
   public dispose(): void {

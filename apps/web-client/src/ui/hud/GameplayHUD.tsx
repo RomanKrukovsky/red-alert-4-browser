@@ -92,7 +92,7 @@ const productionTools = [
 
 export const GameplayHUD: React.FC<GameplayHUDProps> = ({ faction, snapshot, selectedEntityIds, onIssueCommand, onBeginBuildingPlacement, onBeginCommandMode, onPause, onMinimapClick }) => {
   const theme = factionThemeById[faction];
-  const [activeTab, setActiveTab] = useState<ProductionTab>(faction === FactionId.ALLIANCE ? 'AIR' : 'BUILDINGS');
+  const [activeTab, setActiveTab] = useState<ProductionTab>('BUILDINGS');
   const [objectivesOpen, setObjectivesOpen] = useState(false);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const producerCategory = activeTab === 'BUILDINGS' ? undefined : unitCategoryByTab[activeTab];
@@ -267,7 +267,7 @@ export const GameplayHUD: React.FC<GameplayHUDProps> = ({ faction, snapshot, sel
             ? !affordable ? 'Недостаточно кредитов' : !prerequisitesMet ? 'Сначала постройте необходимые здания' : ''
             : viewModel.producerEntityId === null ? 'Нет производящего здания' : !affordable ? 'Недостаточно кредитов' : '';
           const available = activeTab === 'BUILDINGS' ? canBuild : canProduce;
-          return <button key={product.id} className={`${available ? '' : 'is-disabled'}${available && index === 1 ? ' is-ready' : ''}`} aria-label={`${product.name}, ${product.cost} кредитов${available ? '' : `. ${unavailableReason}`}`} title={available ? product.name : unavailableReason} onClick={() => activeTab === 'BUILDINGS' ? canBuild && onBeginBuildingPlacement(product.id) : canProduce && issueProduction(product.id)} disabled={!available}><ProductVisual kind={activeTab} variant={index} theme={theme} /><b>{product.name}</b><span><RA4Icon name="credits" size={12} />{product.cost}</span>{available && index === 1 && <em>ГОТОВО</em>}</button>;
+          return <button key={product.id} className={available ? '' : 'is-disabled'} aria-label={`${product.name}, ${product.cost} кредитов${available ? '' : `. ${unavailableReason}`}`} title={available ? product.name : unavailableReason} onClick={() => activeTab === 'BUILDINGS' ? canBuild && onBeginBuildingPlacement(product.id) : canProduce && issueProduction(product.id)} disabled={!available}><ProductVisual kind={activeTab} variant={index} theme={theme} /><b>{product.name}</b><span><RA4Icon name="credits" size={12} />{product.cost}</span></button>;
         })}{products.length === 0 && <div className="ra4-production-empty"><RA4Icon name="gear" size={28} /><span>НЕТ ДОСТУПНЫХ ПРОЕКТОВ</span></div>}</div></div>
         <div className="ra4-production-tools">{productionTools.map(({ icon, label }) => <button key={icon} aria-label={`${label} — пока недоступно`} title={`${label} — пока недоступно`} disabled><RA4Icon name={icon} size={18} /></button>)}</div>
       </MetalPanel>

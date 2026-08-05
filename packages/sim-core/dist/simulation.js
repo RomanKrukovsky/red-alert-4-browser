@@ -8,6 +8,10 @@ import { fixedDistanceSq } from './fixedMath.js';
 import { NavigationService } from './navigation.js';
 import { SkirmishAIAgent } from './aiAgent.js';
 import { SuperweaponManager } from './superweaponManager.js';
+// O(1) content lookup maps (content is immutable at runtime).
+const UNIT_SPEC_BY_ID = new Map(DEFAULT_DATABASE.units.map((u) => [u.id, u]));
+const BUILDING_SPEC_BY_ID = new Map(DEFAULT_DATABASE.buildings.map((b) => [b.id, b]));
+const WEAPON_SPEC_BY_ID = new Map(DEFAULT_DATABASE.weapons.map((w) => [w.id, w]));
 export class GameSimulation {
     tickIndex = 0;
     seed;
@@ -36,6 +40,7 @@ export class GameSimulation {
     }
     initMatch(playerConfigs, startingCredits = 10000) {
         this.tickIndex = 0;
+        this.cachedTeamList = null;
         this.entities.clear();
         this.players = [];
         this.resourceNodes.clear();
@@ -101,7 +106,7 @@ export class GameSimulation {
         this.recalculateEconomy();
     }
     spawnBuilding(specId, playerIndex, x, y) {
-        const spec = DEFAULT_DATABASE.buildings.find(b => b.id === specId);
+        const spec = BUILDING_SPEC_BY_ID.get(specId);
         const id = this.nextEntityId++;
         const entity = {
             id,
@@ -130,14 +135,17 @@ export class GameSimulation {
             currentOre: 0,
             maxOre: 0,
             harvestTimer: 0,
-            productionQueue: []
+            productionQueue: [],
+            gridWidth: spec.gridWidth,
+            gridHeight: spec.gridHeight
         };
         this.entities.set(id, entity);
+        this.navigation.registerObstacle(Math.floor(x / 1000), Math.floor(y / 1000), spec.gridWidth, spec.gridHeight);
         this.recalculateEconomy();
         return id;
     }
     spawnUnit(specId, playerIndex, x, y) {
-        const spec = DEFAULT_DATABASE.units.find(u => u.id === specId);
+        const spec = UNIT_SPEC_BY_ID.get(specId);
         const id = this.nextEntityId++;
         const entity = {
             id,
@@ -188,14 +196,42 @@ export class GameSimulation {
                     .map(id => this.entities.get(id))
                     .filter((e) => !!e && e.playerIndex === cmd.playerIndex && !e.isBuilding);
                 if (movableEntities.length > 0) {
-                    const targets = this.navigation.calculateGroupFormations(cmd.targetX, cmd.targetY, movableEntities.length);
-                    movableEntities.forEach((e, idx) => {
-                        const targetPos = targets[idx] ?? { x: cmd.targetX, y: cmd.targetY };
-                        e.targetX = targetPos.x;
-                        e.targetY = targetPos.y;
-                        e.waypoints = this.navigation.findPath(e.x, e.y, targetPos.x, targetPos.y);
-                        e.targetEntityId = undefined;
-                    });
+                    // Deterministic processing order regardless of input entityIds order.
+                    movableEntities.sort((a, b) => a.id - b.id);
+                    if (movableEntities.length > 8) {
+                        // Large group: shared flow field toward the goal — O(cells) once,
+                        // then O(1) steering per unit per tick.
+                        const field = this.navigation.getFlowField(cmd.targetX, cmd.targetY);
+                        const targets = this.navigation.calculateGroupFormations(cmd.targetX, cmd.targetY, movableEntities.length);
+                        movableEntities.forEach((e, idx) => {
+                            const targetPos = targets[idx] ?? { x: cmd.targetX, y: cmd.targetY };
+                            e.targetX = targetPos.x;
+                            e.targetY = targetPos.y;
+                            e.targetEntityId = undefined;
+                            e.waypoints = undefined;
+                            if (field && this.navigation.isReachable(field, e.x, e.y)) {
+                                e.flowGoalX = field.goalX * 1000 + 500;
+                                e.flowGoalY = field.goalY * 1000 + 500;
+                            }
+                            else {
+                                e.flowGoalX = undefined;
+                                e.flowGoalY = undefined;
+                                e.waypoints = this.navigation.findPath(e.x, e.y, targetPos.x, targetPos.y);
+                            }
+                        });
+                    }
+                    else {
+                        const targets = this.navigation.calculateGroupFormations(cmd.targetX, cmd.targetY, movableEntities.length);
+                        movableEntities.forEach((e, idx) => {
+                            const targetPos = targets[idx] ?? { x: cmd.targetX, y: cmd.targetY };
+                            e.targetX = targetPos.x;
+                            e.targetY = targetPos.y;
+                            e.flowGoalX = undefined;
+                            e.flowGoalY = undefined;
+                            e.waypoints = this.navigation.findPath(e.x, e.y, targetPos.x, targetPos.y);
+                            e.targetEntityId = undefined;
+                        });
+                    }
                 }
                 break;
             }
@@ -210,6 +246,8 @@ export class GameSimulation {
                         e.targetX = undefined;
                         e.targetY = undefined;
                         e.waypoints = undefined;
+                        e.flowGoalX = undefined;
+                        e.flowGoalY = undefined;
                     }
                 }
                 break;
@@ -222,6 +260,8 @@ export class GameSimulation {
                         e.targetY = undefined;
                         e.targetEntityId = undefined;
                         e.waypoints = undefined;
+                        e.flowGoalX = undefined;
+                        e.flowGoalY = undefined;
                     }
                 }
                 break;
@@ -250,8 +290,8 @@ export class GameSimulation {
             case CommandType.PRODUCE_UNIT: {
                 const producer = this.entities.get(cmd.producerEntityId);
                 if (producer && producer.playerIndex === cmd.playerIndex && producer.isBuilding) {
-                    const unitSpec = DEFAULT_DATABASE.units.find(u => u.id === cmd.unitId);
-                    const producerSpec = DEFAULT_DATABASE.buildings.find(building => building.id === producer.specId);
+                    const unitSpec = UNIT_SPEC_BY_ID.get(cmd.unitId);
+                    const producerSpec = BUILDING_SPEC_BY_ID.get(producer.specId);
                     const ownedSpecIds = new Set(Array.from(this.entities.values())
                         .filter(entity => entity.playerIndex === cmd.playerIndex)
                         .map(entity => entity.specId));
@@ -278,7 +318,7 @@ export class GameSimulation {
                 break;
             }
             case CommandType.BUILD_STRUCTURE: {
-                const structSpec = DEFAULT_DATABASE.buildings.find(b => b.id === cmd.structureId);
+                const structSpec = BUILDING_SPEC_BY_ID.get(cmd.structureId);
                 if (!structSpec)
                     break;
                 const ownedSpecIds = new Set(Array.from(this.entities.values())
@@ -333,7 +373,7 @@ export class GameSimulation {
         return !Array.from(this.entities.values()).some((entity) => {
             if (!entity.isBuilding)
                 return false;
-            const existingSpec = DEFAULT_DATABASE.buildings.find((building) => building.id === entity.specId);
+            const existingSpec = BUILDING_SPEC_BY_ID.get(entity.specId);
             if (!existingSpec)
                 return false;
             const existingHalfWidth = Math.max(1, Math.ceil(existingSpec.gridWidth / 2));
@@ -359,14 +399,14 @@ export class GameSimulation {
         // 1. Spatial Grid Reset
         this.spatialGrid.clear();
         for (const e of this.entities.values()) {
-            this.spatialGrid.insert({ id: e.id, x: e.x, y: e.y, radius: 1000 });
+            this.spatialGrid.insert(e); // entity references — zero per-tick allocation
         }
         // 2. Production Queues
         for (const e of this.entities.values()) {
             if (e.productionQueue.length > 0 && e.isPowered) {
                 const item = e.productionQueue[0];
                 const p = this.players[e.playerIndex];
-                const unitSpec = DEFAULT_DATABASE.units.find(u => u.id === item.specId);
+                const unitSpec = UNIT_SPEC_BY_ID.get(item.specId);
                 if (unitSpec) {
                     if (item.progressTicks >= item.totalTicks) {
                         if (p.commandCapUsed + unitSpec.commandCapCost <= p.commandCapMax) {
@@ -395,9 +435,36 @@ export class GameSimulation {
                     continue;
                 let currTargetX = e.targetX;
                 let currTargetY = e.targetY;
-                if (e.waypoints && e.waypoints.length > 0) {
+                // Flow-field steering for large-group movement: follow the shared
+                // field until close to the formation slot, then home in directly.
+                if (e.flowGoalX !== undefined && e.flowGoalY !== undefined && e.targetX !== undefined && e.targetY !== undefined) {
+                    const distToSlotSq = fixedDistanceSq(e.x, e.y, e.targetX, e.targetY);
+                    if (distToSlotSq > 3000 * 3000) {
+                        const field = this.navigation.getFlowField(e.flowGoalX, e.flowGoalY);
+                        const flow = field ? this.navigation.sampleFlow(field, e.x, e.y) : null;
+                        if (flow) {
+                            currTargetX = e.x + flow.dx * 1000;
+                            currTargetY = e.y + flow.dy * 1000;
+                        }
+                    }
+                    else {
+                        e.flowGoalX = undefined;
+                        e.flowGoalY = undefined;
+                    }
+                }
+                else if (e.waypoints && e.waypoints.length > 0) {
                     currTargetX = e.waypoints[0].x;
                     currTargetY = e.waypoints[0].y;
+                }
+                // Escape override: a unit standing on a blocked tile (e.g. spawned
+                // inside a building footprint) must first head to the nearest
+                // walkable tile before pursuing its actual goal.
+                if (currTargetX !== undefined && currTargetY !== undefined && !this.navigation.isWalkableWorld(e.x, e.y)) {
+                    const near = this.navigation.findNearestWalkableTile(Math.floor(e.x / 1000), Math.floor(e.y / 1000));
+                    if (near) {
+                        currTargetX = near.x * 1000 + 500;
+                        currTargetY = near.y * 1000 + 500;
+                    }
                 }
                 if (currTargetX !== undefined && currTargetY !== undefined) {
                     const distSq = fixedDistanceSq(e.x, e.y, currTargetX, currTargetY);
@@ -405,7 +472,10 @@ export class GameSimulation {
                     if (distSq <= stepDistSq) {
                         e.x = currTargetX;
                         e.y = currTargetY;
-                        if (e.waypoints && e.waypoints.length > 0) {
+                        if (e.flowGoalX !== undefined) {
+                            // Reached an intermediate flow step — keep following the field.
+                        }
+                        else if (e.waypoints && e.waypoints.length > 0) {
                             e.waypoints.shift();
                             if (e.waypoints.length === 0) {
                                 e.waypoints = undefined;
@@ -420,10 +490,48 @@ export class GameSimulation {
                     }
                     else {
                         const dist = Math.sqrt(distSq);
-                        const dx = (currTargetX - e.x) / dist;
-                        const dy = (currTargetY - e.y) / dist;
-                        e.x += Math.round(dx * e.moveSpeed);
-                        e.y += Math.round(dy * e.moveSpeed);
+                        let dx = (currTargetX - e.x) / dist;
+                        let dy = (currTargetY - e.y) / dist;
+                        // Soft collision avoidance (Boids separation) — allocation-free scan
+                        let pushAccX = 0;
+                        let pushAccY = 0;
+                        this.spatialGrid.forEachInRadius(e.x, e.y, 1500, (neighbor) => {
+                            if (neighbor.id === e.id || neighbor.isBuilding || neighbor.hp <= 0)
+                                return;
+                            const ndx = e.x - neighbor.x;
+                            const ndy = e.y - neighbor.y;
+                            const nDistSq = ndx * ndx + ndy * ndy;
+                            if (nDistSq > 0 && nDistSq < 1500 * 1500) {
+                                const nDist = Math.sqrt(nDistSq);
+                                const strength = 1 - (nDist / 1500);
+                                pushAccX += (ndx / nDist) * strength * 0.6;
+                                pushAccY += (ndy / nDist) * strength * 0.6;
+                            }
+                        });
+                        dx += pushAccX;
+                        dy += pushAccY;
+                        // Normalize direction after repulsion
+                        const mag = Math.sqrt(dx * dx + dy * dy);
+                        if (mag > 0) {
+                            dx /= mag;
+                            dy /= mag;
+                        }
+                        const nextX = e.x + Math.round(dx * e.moveSpeed);
+                        const nextY = e.y + Math.round(dy * e.moveSpeed);
+                        // Hard constraint: never step into a blocked tile (buildings/terrain).
+                        // Exception: a unit currently standing on a blocked tile (e.g. it
+                        // spawned inside a footprint) may move freely so it can escape.
+                        if (!this.navigation.isWalkableWorld(e.x, e.y) || this.navigation.isWalkableWorld(nextX, nextY)) {
+                            e.x = nextX;
+                            e.y = nextY;
+                        }
+                        else if (this.navigation.isWalkableWorld(nextX, e.y)) {
+                            e.x = nextX; // slide along Y-blocked edge
+                        }
+                        else if (this.navigation.isWalkableWorld(e.x, nextY)) {
+                            e.y = nextY; // slide along X-blocked edge
+                        }
+                        // else: fully blocked this tick — hold position (avoidance/path will resolve)
                         e.rotation = Math.atan2(dy, dx);
                     }
                 }
@@ -500,7 +608,7 @@ export class GameSimulation {
                 e.attackCooldown--;
             }
             if (e.weaponId && e.attackCooldown === 0 && !e.isDisabled) {
-                const weapon = DEFAULT_DATABASE.weapons.find(w => w.id === e.weaponId);
+                const weapon = WEAPON_SPEC_BY_ID.get(e.weaponId);
                 if (!weapon)
                     continue;
                 let target;
@@ -511,20 +619,30 @@ export class GameSimulation {
                         target = undefined;
                     }
                 }
+                // Deterministic retarget throttling: an idle armed entity rescans for
+                // targets every 5 ticks, staggered by id, instead of every tick. This
+                // caps worst-case targeting cost at ~20% of armed entities per tick.
+                if (!target && (this.tickIndex + e.id) % 5 !== 0) {
+                    continue;
+                }
                 if (!target) {
-                    // Auto-target nearest enemy
-                    const candidates = this.spatialGrid.queryRadius(e.x, e.y, weapon.range);
+                    // Auto-target nearest enemy — allocation-free scan with deterministic
+                    // tie-breaking (strictly smaller distance wins; equal distance keeps
+                    // the earlier-visited candidate, and bucket order is insertion order).
                     let minDistSq = weapon.range * weapon.range;
-                    for (const candId of candidates) {
-                        const cand = this.entities.get(candId);
-                        if (cand && this.isEnemy(e, cand) && cand.hp > 0) {
-                            const dSq = fixedDistanceSq(e.x, e.y, cand.x, cand.y);
-                            if (dSq <= minDistSq) {
+                    let best;
+                    this.spatialGrid.forEachInRadius(e.x, e.y, weapon.range, (cand) => {
+                        if (cand.hp > 0 && this.isEnemy(e, cand)) {
+                            const cdx = e.x - cand.x;
+                            const cdy = e.y - cand.y;
+                            const dSq = cdx * cdx + cdy * cdy;
+                            if (dSq < minDistSq || (dSq === minDistSq && best === undefined)) {
                                 minDistSq = dSq;
-                                target = cand;
+                                best = cand;
                             }
                         }
-                    }
+                    });
+                    target = best;
                 }
                 if (target && target.hp > 0) {
                     const dSq = fixedDistanceSq(e.x, e.y, target.x, target.y);
@@ -545,7 +663,7 @@ export class GameSimulation {
                         }
                         // Target killed
                         if (target.hp <= 0) {
-                            this.entities.delete(target.id);
+                            this.removeEntity(target.id);
                             e.expEarned += 10;
                             if (e.expEarned >= 50 && e.veterancy < VeterancyRank.Heroic) {
                                 e.veterancy = Math.min(VeterancyRank.Heroic, e.veterancy + 1);
@@ -571,11 +689,21 @@ export class GameSimulation {
         this.checkVictory();
         return this.createSnapshot();
     }
+    /** Remove an entity, unregistering building obstacles from the nav grid. */
+    removeEntity(id) {
+        const entity = this.entities.get(id);
+        if (!entity)
+            return;
+        if (entity.isBuilding && entity.gridWidth && entity.gridHeight) {
+            this.navigation.unregisterObstacle(Math.floor(entity.x / 1000), Math.floor(entity.y / 1000), entity.gridWidth, entity.gridHeight);
+        }
+        this.entities.delete(id);
+    }
     recalculateEconomy() {
         // Purge any dead entities (hp <= 0)
         for (const [id, entity] of Array.from(this.entities.entries())) {
             if (entity.hp <= 0) {
-                this.entities.delete(id);
+                this.removeEntity(id);
             }
         }
         for (let pIdx = 0; pIdx < this.players.length; pIdx++) {
@@ -588,19 +716,27 @@ export class GameSimulation {
             let techTier = TechTier.T1;
             for (const e of this.entities.values()) {
                 if (e.playerIndex === pIdx && e.hp > 0) {
-                    if (!this.surrenderedPlayers.has(pIdx))
+                    if (!this.surrenderedPlayers.has(pIdx) && e.isBuilding && e.category === BuildingCategory.HQ)
                         hasHQ = true;
                     if (e.isBuilding) {
-                        const spec = DEFAULT_DATABASE.buildings.find(b => b.id === e.specId);
+                        const spec = BUILDING_SPEC_BY_ID.get(e.specId);
                         if (spec) {
                             powerProduced += spec.powerProduced;
                             powerConsumed += spec.powerConsumed;
                             commandCapMax += spec.commandCapGranted;
                             techTier = Math.max(techTier, spec.tier);
                         }
+                        if (e.productionQueue && e.productionQueue.length > 0) {
+                            for (const item of e.productionQueue) {
+                                const unitSpec = UNIT_SPEC_BY_ID.get(item.specId);
+                                if (unitSpec) {
+                                    commandCapUsed += unitSpec.commandCapCost;
+                                }
+                            }
+                        }
                     }
                     else {
-                        const spec = DEFAULT_DATABASE.units.find(u => u.id === e.specId);
+                        const spec = UNIT_SPEC_BY_ID.get(e.specId);
                         if (spec) {
                             commandCapUsed += spec.commandCapCost;
                         }
@@ -616,8 +752,16 @@ export class GameSimulation {
             p.hasHQ = hasHQ;
         }
     }
+    cachedTeamList = null;
     updateFogOfWar() {
-        const teams = Array.from(new Set(this.playerTeams)).sort((a, b) => a - b);
+        // FoW refresh every 3 ticks (100 ms of game time) — visibility changes
+        // slower than movement; deterministic because it depends only on tickIndex.
+        if (this.tickIndex % 3 !== 1 && this.tickIndex > 1)
+            return;
+        if (!this.cachedTeamList) {
+            this.cachedTeamList = Array.from(new Set(this.playerTeams)).sort((a, b) => a - b);
+        }
+        const teams = this.cachedTeamList;
         for (const team of teams)
             this.fogOfWar.resetVisibility(team);
         for (const entity of this.entities.values()) {

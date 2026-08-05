@@ -20,7 +20,8 @@
     "test:protocol": "vitest run apps/game-server/src/__tests__/serverAuth.test.ts",
     "test:reconnect": "vitest run apps/game-server/src/__tests__/serverReconnect.test.ts",
     "test:security": "vitest run apps/game-server/src/__tests__/serverAdmin.test.ts",
-    "test:replay": "vitest run apps/game-server/src/__tests__/serverMatchRuntime.test.ts"
+    "test:replay": "vitest run apps/game-server/src/__tests__/serverMatchRuntime.test.ts",
+    "test:navigation-scale": "node ./dist/navigationScale.test.js"
   },
   "dependencies": {
     "@ra4/shared-types": "workspace:*",

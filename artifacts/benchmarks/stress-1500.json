@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-08-05T20:19:40.169Z",
+  "scenario": "1500 entities (2×750 mixed infantry/tanks), cross-map attack-move collision, 1500 ticks",
+  "entityCountPeak": 1512,
+  "ticksMeasured": 1500,
+  "simTickP50Ms": 4.934,
+  "simTickP95Ms": 5.585,
+  "simTickP99Ms": 5.763,
+  "simTickAvgMs": 4.308,
+  "simTickMaxMs": 10.519,
+  "wasmGateThresholdMs": 8,
+  "wasmGateTriggered": false,
+  "passed": true
+}

@@ -89,7 +89,7 @@ export class SuperweaponManager {
             if (dx * dx + dy * dy <= 144000000) {
               e.hp = Math.max(0, e.hp - 2500);
               if (e.hp === 0) {
-                sim.entities.delete(e.id);
+                sim.removeEntity(e.id);
               }
             }
           }

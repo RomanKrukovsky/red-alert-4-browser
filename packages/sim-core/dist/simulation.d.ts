@@ -18,6 +18,12 @@ export interface SimEntity {
         x: number;
         y: number;
     }[];
+    /** Active flow-field goal (tile-center world coords) for large group moves. */
+    flowGoalX?: number;
+    flowGoalY?: number;
+    /** Building footprint in grid tiles (buildings only) for obstacle removal. */
+    gridWidth?: number;
+    gridHeight?: number;
     rotation: number;
     hp: number;
     maxHp: number;
@@ -61,7 +67,7 @@ export declare class GameSimulation {
     tickIndex: number;
     seed: number;
     prng: Mulberry32PRNG;
-    spatialGrid: SpatialHashGrid;
+    spatialGrid: SpatialHashGrid<SimEntity>;
     fogOfWar: FogOfWarManager;
     navigation: NavigationService;
     superweaponManager: SuperweaponManager;
@@ -89,7 +95,10 @@ export declare class GameSimulation {
     private executeCommand;
     private isBuildLocationValid;
     step(): WorldSnapshot;
+    /** Remove an entity, unregistering building obstacles from the nav grid. */
+    removeEntity(id: number): void;
     recalculateEconomy(): void;
+    private cachedTeamList;
     private updateFogOfWar;
     checkVictory(): void;
     private isEnemy;

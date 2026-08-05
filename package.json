@@ -11,6 +11,9 @@
     "lint": "turbo run lint",
     "content:validate": "pnpm --filter @ra4/content-runtime validate",
     "test:determinism": "pnpm --filter @ra4/testing test:determinism",
+    "check:sim-purity": "node tools/check-sim-purity.mjs",
+    "test:determinism:cross-env": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js cross-env-determinism",
+    "benchmark:stress-1500": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js stress-1500",
     "test:lifecycle": "pnpm --filter @ra4/testing test:lifecycle",
     "test:server": "vitest run apps/game-server/src/__tests__/server*.test.ts",
     "test:protocol": "vitest run apps/game-server/src/__tests__/serverAuth.test.ts",
@@ -18,6 +21,7 @@
     "test:security": "vitest run apps/game-server/src/__tests__/serverAdmin.test.ts",
     "test:replay": "vitest run apps/game-server/src/__tests__/serverMatchRuntime.test.ts",
     "test:navigation": "pnpm --filter @ra4/testing test:navigation",
+    "test:navigation-scale": "pnpm --filter @ra4/testing test:navigation-scale",
     "test:combat": "pnpm --filter @ra4/testing test:combat",
     "test:economy": "pnpm --filter @ra4/testing test:economy",
     "test:building": "pnpm --filter @ra4/testing test:building",
@@ -40,8 +44,9 @@
     "game-doctor:visual": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js visual",
     "game-doctor:stress": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js stress",
     "game-doctor:soak": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js soak",
-    "game-doctor:report": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js report",
-    "test:ci": "pnpm build && pnpm lint && pnpm test:determinism && pnpm test:economy && pnpm test:building && pnpm test:ai && pnpm game-doctor:headless"
+    "game-doctor:report": "node tools/game-doctor/dist/cli.js report",
+    "game-doctor:visual-audit": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js visual-audit",
+    "test:ci": "turbo run build && turbo run lint && pnpm run check:sim-purity && pnpm --filter @ra4/testing test:determinism && node tools/game-doctor/dist/cli.js cross-env-determinism && pnpm --filter @ra4/testing test:economy && pnpm --filter @ra4/testing test:building && pnpm --filter @ra4/testing test:navigation-scale && pnpm --filter @ra4/testing test:ai && pnpm run game-doctor:headless"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

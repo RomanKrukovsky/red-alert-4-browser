@@ -1,5 +1,5 @@
 export interface GameDoctorOptions {
-  mode: 'audit' | 'play' | 'headless' | 'visual' | 'stress' | 'soak' | 'report';
+  mode: 'audit' | 'play' | 'headless' | 'visual' | 'stress' | 'soak' | 'report' | 'visual-audit';
   port?: number;
   baseUrl?: string;
   timeoutMs?: number;

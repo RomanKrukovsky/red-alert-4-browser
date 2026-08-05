@@ -337,7 +337,7 @@ export class InputManager {
           entityIds: selectedIds,
           targetEntityId: targetId,
           playerIndex: playerIdx,
-          tick: snapshot?.tick ?? 0,
+          tick: (snapshot?.tick ?? 0) + 1,
         });
         if (leadUnit) {
           VoiceManager.getInstance().playUnitBark(leadUnit.specId, 'Attack');
@@ -370,7 +370,7 @@ export class InputManager {
             targetX,
             targetY,
             playerIndex: playerIdx,
-            tick: snapshot?.tick ?? 0,
+            tick: (snapshot?.tick ?? 0) + 1,
           });
           if (leadUnit) VoiceManager.getInstance().playUnitBark(leadUnit.specId, 'Attack');
         } else {
@@ -390,7 +390,7 @@ export class InputManager {
       targetX,
       targetY,
       playerIndex: playerIdx,
-      tick: snapshot?.tick ?? 0,
+      tick: (snapshot?.tick ?? 0) + 1,
     });
     if (leadUnit) VoiceManager.getInstance().playUnitBark(leadUnit.specId, 'Move');
   }
@@ -413,7 +413,7 @@ export class InputManager {
         entityIds: [this.controlledEntityId],
         targetEntityId: targetId,
         playerIndex: playerIdx,
-        tick: snapshot?.tick ?? 0,
+        tick: (snapshot?.tick ?? 0) + 1,
       });
       if (unit) {
         VoiceManager.getInstance().playUnitBark(unit.specId, 'Attack');
@@ -427,7 +427,7 @@ export class InputManager {
         targetX,
         targetY,
         playerIndex: playerIdx,
-        tick: snapshot?.tick ?? 0,
+        tick: (snapshot?.tick ?? 0) + 1,
       });
       if (unit) {
         VoiceManager.getInstance().playUnitBark(unit.specId, 'Move');

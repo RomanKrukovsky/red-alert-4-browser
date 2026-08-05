@@ -7,7 +7,7 @@ export declare class GameDoctorRunner {
     private artifactsDir;
     constructor(options: GameDoctorOptions);
     run(): Promise<boolean>;
-    private startDevServer;
-    private stopDevServer;
+    startDevServer(port?: number): Promise<void>;
+    stopDevServer(): void;
     private checkPort;
 }
