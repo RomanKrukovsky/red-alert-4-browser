@@ -62,6 +62,9 @@ export interface WorldSnapshot {
   tick: number;
   checksum: number;
   seed: number;
+  /** Map dimensions in grid tiles (1 tile = 1000 scaled units). */
+  mapWidth: number;
+  mapHeight: number;
   entities: EntityStateSnapshot[];
   players: PlayerEconomyState[];
   shotFX?: { startX: number; startY: number; targetX: number; targetY: number }[];

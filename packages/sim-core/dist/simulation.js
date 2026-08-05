@@ -31,12 +31,17 @@ export class GameSimulation {
     nextEntityId = 1;
     matchState = MatchState.IN_GAME;
     winnerTeam = -1;
-    constructor(seed = 1337, mapWidth = 64, mapHeight = 64) {
+    /** Map dimensions in grid tiles (1 tile = 1000 scaled units). */
+    mapWidth;
+    mapHeight;
+    constructor(seed = 1337, mapWidth, mapHeight) {
         this.seed = seed;
+        this.mapWidth = mapWidth ?? DEFAULT_DATABASE.maps[0].width;
+        this.mapHeight = mapHeight ?? DEFAULT_DATABASE.maps[0].height;
         this.prng = new Mulberry32PRNG(seed);
-        this.spatialGrid = new SpatialHashGrid(4000);
-        this.fogOfWar = new FogOfWarManager(mapWidth, mapHeight);
-        this.navigation = new NavigationService(mapWidth, mapHeight);
+        this.spatialGrid = new SpatialHashGrid(4000, this.mapWidth * 1000);
+        this.fogOfWar = new FogOfWarManager(this.mapWidth, this.mapHeight);
+        this.navigation = new NavigationService(this.mapWidth, this.mapHeight);
     }
     initMatch(playerConfigs, startingCredits = 10000) {
         this.tickIndex = 0;
@@ -368,7 +373,7 @@ export class GameSimulation {
     isBuildLocationValid(structSpec, gridX, gridY) {
         const halfWidth = Math.max(1, Math.ceil(structSpec.gridWidth / 2));
         const halfHeight = Math.max(1, Math.ceil(structSpec.gridHeight / 2));
-        if (gridX - halfWidth < 1 || gridY - halfHeight < 1 || gridX + halfWidth > 63 || gridY + halfHeight > 63)
+        if (gridX - halfWidth < 1 || gridY - halfHeight < 1 || gridX + halfWidth > this.mapWidth - 1 || gridY + halfHeight > this.mapHeight - 1)
             return false;
         return !Array.from(this.entities.values()).some((entity) => {
             if (!entity.isBuilding)
@@ -412,7 +417,7 @@ export class GameSimulation {
                         if (p.commandCapUsed + unitSpec.commandCapCost <= p.commandCapMax) {
                             e.productionQueue.shift();
                             p.commandCapUsed += unitSpec.commandCapCost;
-                            this.spawnUnit(item.specId, e.playerIndex, Math.min(e.x + 2000, 63000), Math.min(e.y + 2000, 63000));
+                            this.spawnUnit(item.specId, e.playerIndex, Math.min(e.x + 2000, (this.mapWidth - 1) * 1000), Math.min(e.y + 2000, (this.mapHeight - 1) * 1000));
                         }
                     }
                     else {
@@ -835,6 +840,8 @@ export class GameSimulation {
             tick: this.tickIndex,
             checksum: this.calculateChecksum(),
             seed: this.seed,
+            mapWidth: this.mapWidth,
+            mapHeight: this.mapHeight,
             entities: entitySnapshots,
             players: this.players,
             shotFX: this.pendingShotFX.length > 0 ? [...this.pendingShotFX] : undefined

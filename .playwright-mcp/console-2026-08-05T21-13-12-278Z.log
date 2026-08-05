@@ -1,0 +1,31 @@
+[     643ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/chunk-WJHFZ4MN.js?v=f67520e5:21608
+[   10873ms] [LOG] BJS - [00:13:23]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://localhost:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=f67520e5:44
+[   11112ms] [WARNING] [RuntimeAssetRegistry] Failed to load SU_TeslaTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/SU_TeslaTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at errorHandler (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:32157:36)
+    at errorCallback (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:31840:9)
+    at http://localhost:5173/node_modules/.vite/deps/chunk-7BVFKVOR.js?v=f67520e5:598:33 @ http://localhost:5173/src/assets/RuntimeAssetRegistry.ts:39
+[   11127ms] [WARNING] [RuntimeAssetRegistry] Failed to load AL_PrismTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/AL_PrismTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at errorHandler (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:32157:36)
+    at errorCallback (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:31840:9)
+    at http://localhost:5173/node_modules/.vite/deps/chunk-7BVFKVOR.js?v=f67520e5:598:33 @ http://localhost:5173/src/assets/RuntimeAssetRegistry.ts:39
+[  177248ms] [WARNING] [.WebGL-0x13c005aea00] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://localhost:5173/#/hud/soviet:0
+[  177248ms] [WARNING] [.WebGL-0x13c005aea00] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://localhost:5173/#/hud/soviet:0
+[  177248ms] [WARNING] [.WebGL-0x13c005aea00] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://localhost:5173/#/hud/soviet:0
+[  177248ms] [WARNING] [.WebGL-0x13c005aea00] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://localhost:5173/#/hud/soviet:0
+[  177248ms] [WARNING] [.WebGL-0x13c005aea00] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://localhost:5173/#/hud/soviet:0
+[  177248ms] [WARNING] [.WebGL-0x13c005aea00] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://localhost:5173/#/hud/soviet:0
+[  177248ms] [WARNING] [.WebGL-0x13c005aea00] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://localhost:5173/#/hud/soviet:0
+[  177248ms] [WARNING] [.WebGL-0x13c005aea00] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://localhost:5173/#/hud/soviet:0
+[  177248ms] [WARNING] [.WebGL-0x13c005aea00] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://localhost:5173/#/hud/soviet:0
+[  177248ms] [WARNING] [.WebGL-0x13c005aea00] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://localhost:5173/#/hud/soviet:0
+[  177248ms] [WARNING] [.WebGL-0x13c005aea00] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://localhost:5173/#/hud/soviet:0
+[  177248ms] [WARNING] [.WebGL-0x13c005aea00] GL_INVALID_VALUE: glGetProgramiv: Program object expected. @ http://localhost:5173/#/hud/soviet:0
+[  324510ms] [LOG] BJS - [00:18:36]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://localhost:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=f67520e5:44
+[  324662ms] [WARNING] [RuntimeAssetRegistry] Failed to load SU_TeslaTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/SU_TeslaTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at errorHandler (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:32157:36)
+    at errorCallback (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:31840:9)
+    at http://localhost:5173/node_modules/.vite/deps/chunk-7BVFKVOR.js?v=f67520e5:598:33 @ http://localhost:5173/src/assets/RuntimeAssetRegistry.ts:39
+[  324668ms] [WARNING] [RuntimeAssetRegistry] Failed to load AL_PrismTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/AL_PrismTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at errorHandler (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:32157:36)
+    at errorCallback (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:31840:9)
+    at http://localhost:5173/node_modules/.vite/deps/chunk-7BVFKVOR.js?v=f67520e5:598:33 @ http://localhost:5173/src/assets/RuntimeAssetRegistry.ts:39

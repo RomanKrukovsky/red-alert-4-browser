@@ -1,0 +1,18 @@
+[    4116ms] [LOG] BJS - [01:05:35]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://localhost:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=f67520e5:44
+[    4262ms] [WARNING] [RuntimeAssetRegistry] Failed to load SU_TeslaTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/SU_TeslaTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at errorHandler (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:32157:36)
+    at errorCallback (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:31840:9)
+    at http://localhost:5173/node_modules/.vite/deps/chunk-7BVFKVOR.js?v=f67520e5:598:33 @ http://localhost:5173/src/assets/RuntimeAssetRegistry.ts:39
+[    4271ms] [WARNING] [RuntimeAssetRegistry] Failed to load AL_PrismTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/AL_PrismTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at errorHandler (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:32157:36)
+    at errorCallback (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:31840:9)
+    at http://localhost:5173/node_modules/.vite/deps/chunk-7BVFKVOR.js?v=f67520e5:598:33 @ http://localhost:5173/src/assets/RuntimeAssetRegistry.ts:39
+[   69309ms] [LOG] BJS - [01:06:40]: Babylon.js v7.54.3 - WebGL2 - Parallel shader compilation @ http://localhost:5173/node_modules/.vite/deps/chunk-XD76EL76.js?v=f67520e5:44
+[   69375ms] [WARNING] [RuntimeAssetRegistry] Failed to load SU_TeslaTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/SU_TeslaTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at errorHandler (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:32157:36)
+    at errorCallback (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:31840:9)
+    at http://localhost:5173/node_modules/.vite/deps/chunk-7BVFKVOR.js?v=f67520e5:598:33 @ http://localhost:5173/src/assets/RuntimeAssetRegistry.ts:39
+[   69385ms] [WARNING] [RuntimeAssetRegistry] Failed to load AL_PrismTower; fallback will be used. RuntimeError: Unable to load from /assets/models/buildings/AL_PrismTower_LOD0.glb: RuntimeError: Unexpected magic: 1329865020
+    at errorHandler (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:32157:36)
+    at errorCallback (http://localhost:5173/node_modules/.vite/deps/chunk-F7VQRLPJ.js?v=f67520e5:31840:9)
+    at http://localhost:5173/node_modules/.vite/deps/chunk-7BVFKVOR.js?v=f67520e5:598:33 @ http://localhost:5173/src/assets/RuntimeAssetRegistry.ts:39

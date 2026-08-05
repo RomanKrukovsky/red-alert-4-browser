@@ -25,11 +25,10 @@ export class SpatialHashGrid<T extends SpatialEntity = SpatialEntity> {
   private dirty: number[] = [];
 
   private static readonly MAX_ENTITY_RADIUS = 1000;
-  private static readonly WORLD_SIZE = 64000; // scaled units (64 tiles)
 
-  constructor(cellSize: number = 4000) {
+  constructor(cellSize: number = 4000, worldSize: number = 128000) {
     this.cellSize = cellSize;
-    this.cols = Math.ceil(SpatialHashGrid.WORLD_SIZE / cellSize) + 2;
+    this.cols = Math.ceil(worldSize / cellSize) + 2;
     this.rows = this.cols;
     this.buckets = new Array(this.cols * this.rows);
     for (let i = 0; i < this.buckets.length; i++) this.buckets[i] = [];

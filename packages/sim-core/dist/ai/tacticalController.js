@@ -11,12 +11,15 @@ export class AITacticalController {
                 return entity && entity.targetX === undefined && entity.targetEntityId === undefined;
             });
             if (idleReconIds.length > 0) {
+                // Map-relative scout circuit: center + four quadrant expansions.
+                const w = sim.mapWidth * 1000;
+                const h = sim.mapHeight * 1000;
                 const scoutWaypoints = [
-                    { x: 32_000, y: 32_000 },
-                    { x: 12_000, y: 52_000 },
-                    { x: 52_000, y: 12_000 },
-                    { x: 52_000, y: 52_000 },
-                    { x: 12_000, y: 12_000 }
+                    { x: Math.floor(w / 2), y: Math.floor(h / 2) },
+                    { x: Math.floor(w * 0.19), y: Math.floor(h * 0.81) },
+                    { x: Math.floor(w * 0.81), y: Math.floor(h * 0.19) },
+                    { x: Math.floor(w * 0.81), y: Math.floor(h * 0.81) },
+                    { x: Math.floor(w * 0.19), y: Math.floor(h * 0.19) }
                 ];
                 const waypointIndex = (Math.floor(sim.tickIndex / 300) + idleReconIds[0]) % scoutWaypoints.length;
                 const waypoint = scoutWaypoints[waypointIndex];

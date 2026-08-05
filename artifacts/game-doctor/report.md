@@ -1,16 +1,16 @@
 # RA4 Game Doctor Autonomous QA Report
 
 **Status**: ✅ PASSED  
-**Timestamp**: 2026-08-05T20:29:51.308Z  
-**Execution Mode**: `headless`  
-**Duration**: 0.16 seconds  
+**Timestamp**: 2026-08-05T22:33:48.804Z  
+**Execution Mode**: `play`  
+**Duration**: 41.13 seconds  
 
 ---
 
 ## Executive Summary
 
-- **Total Scenarios Executed**: 8
-- **Scenarios Passed**: 8
+- **Total Scenarios Executed**: 1
+- **Scenarios Passed**: 1
 - **Issues Found**: 0
 - **Issues Fixed**: 0
 
@@ -20,14 +20,7 @@
 
 | Scenario Name | Status | Duration (ms) | Checksum | Details / Error |
 |---|---|---|---|---|
-| **Harvester Economic Cycle** | ✅ PASS | 23 | `440232693` | - |
-| **Base Building Chain** | ✅ PASS | 13 | `1421027624` | - |
-| **Army Production & Combat** | ✅ PASS | 6 | `531987549` | - |
-| **HQ Destruction & Victory/Defeat Trigger** | ✅ PASS | 0 | `1219677817` | - |
-| **Loss of Asset Recovery** | ✅ PASS | 7 | `1706539768` | - |
-| **AI Agent Recovery & Development** | ✅ PASS | 6 | `438914823` | - |
-| **Seed Determinism Checksum Verification** | ✅ PASS | 22 | `1035897955` | - |
-| **30-Minute Simulation Soak Test (3000 fast ticks)** | ✅ PASS | 82 | `1444100279` | - |
+| **Full E2E Playwright Browser Playtest Match** | ✅ PASS | 41132 | N/A | - |
 
 ---
 

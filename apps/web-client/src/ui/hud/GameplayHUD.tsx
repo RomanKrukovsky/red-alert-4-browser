@@ -115,7 +115,6 @@ export const GameplayHUD: React.FC<GameplayHUDProps> = ({ faction, snapshot, sel
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    const mapMax = 64000;
 
     const renderMinimap = () => {
       const currentSnapshot = useUIStore.getState().snapshot;
@@ -123,6 +122,7 @@ export const GameplayHUD: React.FC<GameplayHUDProps> = ({ faction, snapshot, sel
         animationFrameId = requestAnimationFrame(renderMinimap);
         return;
       }
+      const mapMax = (currentSnapshot.mapWidth ?? 64) * 1000;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
@@ -156,9 +156,11 @@ export const GameplayHUD: React.FC<GameplayHUDProps> = ({ faction, snapshot, sel
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    const worldX = (x / rect.width) * 64000;
-    const worldY = (y / rect.height) * 64000;
-    
+    const snapshot = useUIStore.getState().snapshot;
+    const mapMax = (snapshot?.mapWidth ?? 64) * 1000;
+    const worldX = (x / rect.width) * mapMax;
+    const worldY = (y / rect.height) * mapMax;
+
     onMinimapClick(worldX, worldY);
   };
 

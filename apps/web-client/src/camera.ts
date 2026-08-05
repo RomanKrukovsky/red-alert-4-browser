@@ -29,9 +29,15 @@ export class RTSCamera {
   private keysPressed: Set<string> = new Set();
   private isEdgePanEnabled: boolean = true;
   private mapMinX: number = 0;
-  private mapMaxX: number = 64;
+  private mapMaxX: number = 128;
   private mapMinZ: number = 0;
-  private mapMaxZ: number = 64;
+  private mapMaxZ: number = 128;
+
+  /** Clamp camera panning to the actual map bounds (grid tiles). */
+  public setMapBounds(width: number, height: number): void {
+    this.mapMaxX = width;
+    this.mapMaxZ = height;
+  }
 
   constructor(scene: Scene, canvas: HTMLCanvasElement) {
     this.camera = new ArcRotateCamera(

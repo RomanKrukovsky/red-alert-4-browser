@@ -18,10 +18,9 @@ export class SpatialHashGrid {
     /** Cells that received at least one entity this tick (for cheap clear). */
     dirty = [];
     static MAX_ENTITY_RADIUS = 1000;
-    static WORLD_SIZE = 64000; // scaled units (64 tiles)
-    constructor(cellSize = 4000) {
+    constructor(cellSize = 4000, worldSize = 128000) {
         this.cellSize = cellSize;
-        this.cols = Math.ceil(SpatialHashGrid.WORLD_SIZE / cellSize) + 2;
+        this.cols = Math.ceil(worldSize / cellSize) + 2;
         this.rows = this.cols;
         this.buckets = new Array(this.cols * this.rows);
         for (let i = 0; i < this.buckets.length; i++)

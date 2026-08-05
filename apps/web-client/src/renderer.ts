@@ -5,6 +5,7 @@ import {
 } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF/index.js';
 import { WorldSnapshot } from '@ra4/shared-types';
+import { DEFAULT_DATABASE } from '@ra4/content-runtime';
 import { RTSCamera } from './camera.js';
 import { useUIStore } from '@ra4/ui';
 import { RuntimeAssetInstance, RuntimeAssetRegistry } from './assets/RuntimeAssetRegistry.js';
@@ -15,6 +16,8 @@ export class RTSRenderer {
   public engine: Engine;
   public scene: Scene;
   public rtsCamera: RTSCamera;
+  /** Map size in grid tiles (world units), sourced from content data. */
+  public readonly mapSize: number = DEFAULT_DATABASE.maps[0].width;
   public entityMeshes: Map<number, TransformNode> = new Map();
   public selectionRings: Map<number, Mesh> = new Map();
   public healthBars: Map<number, { bg: Mesh, fill: Mesh }> = new Map();
@@ -34,19 +37,21 @@ export class RTSRenderer {
   constructor(canvas: HTMLCanvasElement) {
     this.engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
     this.scene = new Scene(this.engine);
-    this.scene.clearColor = new Color4(.018, .022, .025, 1);
+    this.scene.clearColor = new Color4(.045, .05, .062, 1);
 
     // RTS Camera
     this.rtsCamera = new RTSCamera(this.scene, canvas);
 
     // Dynamic Directional Sunlight with Cascaded Soft Shadows
     const hemiLight = new HemisphericLight('hemi', new Vector3(0, 1, 0), this.scene);
-    hemiLight.intensity = .45;
-    hemiLight.groundColor = new Color3(.05, .03, .08);
+    hemiLight.intensity = .85;
+    hemiLight.diffuse = new Color3(.92, .9, .98);
+    hemiLight.groundColor = new Color3(.28, .24, .3);
 
     const dirLight = new DirectionalLight('dir', new Vector3(-1.2, -2.5, -1.0), this.scene);
     dirLight.position = new Vector3(50, 90, 50);
-    dirLight.intensity = 1.35;
+    dirLight.intensity = 1.7;
+    dirLight.diffuse = new Color3(1.0, .96, .88);
 
     this.shadowGenerator = new ShadowGenerator(2048, dirLight);
     this.shadowGenerator.useBlurExponentialShadowMap = true;
@@ -64,8 +69,8 @@ export class RTSRenderer {
       this.rtsCamera.update();
       
       // Camera bounds and elevation clamping
-      this.camera.target.x = Math.max(0, Math.min(64, this.camera.target.x));
-      this.camera.target.z = Math.max(0, Math.min(64, this.camera.target.z));
+      this.camera.target.x = Math.max(0, Math.min(this.mapSize, this.camera.target.x));
+      this.camera.target.z = Math.max(0, Math.min(this.mapSize, this.camera.target.z));
       if (this.camera.position.y < 5) {
         this.camera.setPosition(new Vector3(this.camera.position.x, 5, this.camera.position.z));
       }
@@ -105,8 +110,8 @@ export class RTSRenderer {
   private initPostProcessing(): void {
     try {
       this.scene.imageProcessingConfiguration.toneMappingEnabled = true;
-      this.scene.imageProcessingConfiguration.exposure = .68;
-      this.scene.imageProcessingConfiguration.contrast = 1.18;
+      this.scene.imageProcessingConfiguration.exposure = 1.12;
+      this.scene.imageProcessingConfiguration.contrast = 1.12;
       this.pipeline = new DefaultRenderingPipeline('ra4Pipeline', true, this.scene, [this.camera]);
       this.pipeline.bloomEnabled = true;
       this.pipeline.bloomThreshold = .94;
@@ -117,9 +122,9 @@ export class RTSRenderer {
       this.pipeline.imageProcessingEnabled = true;
       this.pipeline.imageProcessing.toneMappingEnabled = true;
       this.pipeline.imageProcessing.vignetteEnabled = true;
-      this.pipeline.imageProcessing.exposure = .68;
-      this.pipeline.imageProcessing.contrast = 1.18;
-      this.pipeline.imageProcessing.vignetteWeight = .72;
+      this.pipeline.imageProcessing.exposure = 1.12;
+      this.pipeline.imageProcessing.contrast = 1.12;
+      this.pipeline.imageProcessing.vignetteWeight = .3;
       this.pipeline.imageProcessing.vignetteColor = new Color4(0.02, 0.01, 0.04, 0.8);
     } catch (e) {
       console.warn('[RTSRenderer] Post-processing pipeline initialization warning:', e);
@@ -158,85 +163,89 @@ export class RTSRenderer {
   }
 
   private createTacticalTerrain(): void {
-    const terrainSkirt = MeshBuilder.CreateGround('terrain-skirt', { width: 180, height: 180, subdivisions: 32 }, this.scene);
-    terrainSkirt.position = new Vector3(32, -.04, 32);
+    const M = this.mapSize;          // map size in world units (tiles)
+    const C = M / 2;                 // map center
+    const terrainSkirt = MeshBuilder.CreateGround('terrain-skirt', { width: M * 2.8, height: M * 2.8, subdivisions: 32 }, this.scene);
+    terrainSkirt.position = new Vector3(C, -.04, C);
     terrainSkirt.receiveShadows = true;
     const terrainSkirtMaterial = new StandardMaterial('terrain-skirt-material', this.scene);
-    terrainSkirtMaterial.diffuseColor = new Color3(.06, .05, .09);
-    terrainSkirtMaterial.ambientColor = new Color3(.02, .015, .03);
+    // Diffuse tint multiplies the texture — keep it near-white so the mud reads.
+    terrainSkirtMaterial.diffuseColor = new Color3(.5, .46, .44);
+    terrainSkirtMaterial.ambientColor = new Color3(.2, .18, .18);
     terrainSkirtMaterial.diffuseTexture = this.createTerrainTexture('/assets/textures/terrain/brown_mud_02_diff_1k.jpg', 28);
     terrainSkirtMaterial.bumpTexture = this.createTerrainTexture('/assets/textures/terrain/brown_mud_02_nor_gl_1k.jpg', 28);
-    terrainSkirtMaterial.emissiveColor = new Color3(.015, .01, .025);
     terrainSkirtMaterial.specularColor = new Color3(.06, .05, .08);
     terrainSkirt.material = terrainSkirtMaterial;
     this.tacticalMeshes.push(terrainSkirt);
 
-    const ground = MeshBuilder.CreateGround('ground', { width: 64, height: 64, subdivisions: 64 }, this.scene);
-    ground.position = new Vector3(32, 0, 32);
+    const ground = MeshBuilder.CreateGround('ground', { width: M, height: M, subdivisions: 64 }, this.scene);
+    ground.position = new Vector3(C, 0, C);
     ground.receiveShadows = true;
 
     const groundMaterial = new StandardMaterial('ground-material', this.scene);
-    groundMaterial.diffuseColor = new Color3(.08, .07, .12);
-    groundMaterial.ambientColor = new Color3(.025, .02, .04);
+    // Near-white multiplier: let the mud diffuse texture carry the color.
+    groundMaterial.diffuseColor = new Color3(.85, .8, .74);
+    groundMaterial.ambientColor = new Color3(.3, .28, .26);
     groundMaterial.diffuseTexture = this.createTerrainTexture('/assets/textures/terrain/brown_mud_02_diff_1k.jpg', 14);
     groundMaterial.bumpTexture = this.createTerrainTexture('/assets/textures/terrain/brown_mud_02_nor_gl_1k.jpg', 14);
-    groundMaterial.emissiveColor = new Color3(.02, .012, .035);
-    groundMaterial.specularColor = new Color3(.12, .1, .15);
+    groundMaterial.specularColor = new Color3(.1, .09, .08);
     ground.material = groundMaterial;
 
-    const road = MeshBuilder.CreateGround('asphalt-road', { width: 10, height: 64 }, this.scene);
-    road.position = new Vector3(31, .018, 32);
+    const road = MeshBuilder.CreateGround('asphalt-road', { width: 10, height: M }, this.scene);
+    road.position = new Vector3(C - 1, .018, C);
     road.receiveShadows = true;
     const roadMaterial = new StandardMaterial('road-material', this.scene);
-    roadMaterial.diffuseColor = new Color3(.06, .06, .09);
+    roadMaterial.diffuseColor = new Color3(.62, .62, .66);
     roadMaterial.diffuseTexture = this.createTerrainTexture('/assets/textures/terrain/asphalt_01_diff_1k.jpg', 8);
     roadMaterial.bumpTexture = this.createTerrainTexture('/assets/textures/terrain/asphalt_01_nor_gl_1k.jpg', 8);
-    roadMaterial.emissiveColor = new Color3(.015, .01, .025);
     roadMaterial.specularColor = new Color3(.08, .08, .12);
     road.material = roadMaterial;
 
-    const crossRoad = MeshBuilder.CreateGround('asphalt-cross-road', { width: 64, height: 10 }, this.scene);
-    crossRoad.position = new Vector3(32, .02, 31);
+    const crossRoad = MeshBuilder.CreateGround('asphalt-cross-road', { width: M, height: 10 }, this.scene);
+    crossRoad.position = new Vector3(C, .02, C - 1);
     crossRoad.receiveShadows = true;
     crossRoad.material = roadMaterial;
     this.tacticalMeshes.push(crossRoad);
 
+    // Worn yellow road markings (was neon purple — visually alien to a war zone).
     const laneMaterial = new StandardMaterial('lane-marking-material', this.scene);
-    laneMaterial.diffuseColor = new Color3(.65, .2, .95);
-    laneMaterial.emissiveColor = new Color3(.4, .08, .75);
-    for (let index = 0; index < 11; index += 1) {
+    laneMaterial.diffuseColor = new Color3(.75, .68, .38);
+    laneMaterial.emissiveColor = new Color3(.12, .1, .04);
+    const laneCount = Math.floor(M / 5.7) - 1;
+    for (let index = 0; index < laneCount; index += 1) {
       const verticalMark = MeshBuilder.CreateBox(`vertical-lane-mark-${index}`, { width: .14, height: .025, depth: 2.6 }, this.scene);
-      verticalMark.position.set(31, .055, 3.5 + index * 5.7);
+      verticalMark.position.set(C - 1, .055, 3.5 + index * 5.7);
       verticalMark.material = laneMaterial;
       verticalMark.isPickable = false;
       this.tacticalMeshes.push(verticalMark);
 
       const horizontalMark = MeshBuilder.CreateBox(`horizontal-lane-mark-${index}`, { width: 2.6, height: .025, depth: .14 }, this.scene);
-      horizontalMark.position.set(3.5 + index * 5.7, .057, 31);
+      horizontalMark.position.set(3.5 + index * 5.7, .057, C - 1);
       horizontalMark.material = laneMaterial;
       horizontalMark.isPickable = false;
       this.tacticalMeshes.push(horizontalMark);
     }
 
-    for (const [index, position] of [[10, 10], [54, 54]].entries()) {
+    for (const [index, position] of DEFAULT_DATABASE.maps[0].spawnPoints.map((sp) => [sp.x, sp.y] as [number, number]).entries()) {
       const pad = MeshBuilder.CreateGround(`concrete-pad-${index}`, { width: 22, height: 22 }, this.scene);
       pad.position = new Vector3(position[0], .026, position[1]);
       pad.receiveShadows = true;
       const material = new StandardMaterial(`concrete-material-${index}`, this.scene);
-      material.diffuseColor = new Color3(.12, .11, .16);
+      material.diffuseColor = new Color3(.72, .7, .68);
       material.diffuseTexture = this.createTerrainTexture('/assets/textures/terrain/concrete_floor_01_diff_1k.jpg', 3);
       material.bumpTexture = this.createTerrainTexture('/assets/textures/terrain/concrete_floor_01_nor_gl_1k.jpg', 3);
-      material.emissiveColor = new Color3(.03, .015, .05);
-      material.specularColor = new Color3(.15, .15, .2);
+      material.specularColor = new Color3(.12, .12, .14);
       pad.material = material;
       this.tacticalMeshes.push(pad);
     }
 
-    const water = MeshBuilder.CreateGround('central-river', { width: 64, height: 3.2 }, this.scene);
-    water.position = new Vector3(32, .035, 32);
+    const water = MeshBuilder.CreateGround('central-river', { width: M, height: 3.2 }, this.scene);
+    water.position = new Vector3(C, .035, C);
     const waterMaterial = new StandardMaterial('central-river-material', this.scene);
-    waterMaterial.diffuseColor = new Color3(.012, .026, .03);
-    waterMaterial.emissiveColor = new Color3(.002, .006, .008);
+    waterMaterial.diffuseColor = new Color3(.09, .16, .2);
+    waterMaterial.emissiveColor = new Color3(.015, .04, .055);
+    waterMaterial.specularColor = new Color3(.5, .55, .6);
+    waterMaterial.specularPower = 96;
     waterMaterial.alpha = .92;
     water.material = waterMaterial;
     this.tacticalMeshes.push(water);
@@ -245,23 +254,24 @@ export class RTSRenderer {
     bridgeMaterial.albedoColor = new Color3(.22, .24, .24);
     bridgeMaterial.metallic = .7;
     bridgeMaterial.roughness = .62;
-    for (const [index, x] of [14, 50].entries()) {
+    for (const [index, x] of [Math.round(M * 0.22), Math.round(M * 0.78)].entries()) {
       const bridge = MeshBuilder.CreateBox(`river-bridge-${index}`, { width: 7, height: .16, depth: 9 }, this.scene);
-      bridge.position = new Vector3(x, .14, 32);
+      bridge.position = new Vector3(x, .14, C);
       bridge.material = bridgeMaterial;
       bridge.receiveShadows = true;
       this.tacticalMeshes.push(bridge);
     }
 
     const oreMaterial = new StandardMaterial('ore-field-material', this.scene);
-    oreMaterial.diffuseColor = new Color3(.26, .15, .04);
-    oreMaterial.emissiveColor = new Color3(.025, .012, .002);
-    oreMaterial.alpha = .58;
+    oreMaterial.diffuseColor = new Color3(.55, .34, .1);
+    oreMaterial.emissiveColor = new Color3(.14, .07, .012);
+    oreMaterial.alpha = .8;
     const crystalMaterial = new StandardMaterial('ore-crystal-material', this.scene);
-    crystalMaterial.diffuseColor = new Color3(.62, .36, .10);
-    crystalMaterial.emissiveColor = new Color3(.09, .028, .004);
-    for (const [index, [x, z]] of [[14, 14], [50, 50], [50, 14], [14, 50], [32, 32]].entries()) {
-      const field = MeshBuilder.CreateCylinder(`ore-field-${index}`, { diameter: index === 4 ? 7 : 5, height: .06, tessellation: 32 }, this.scene);
+    crystalMaterial.diffuseColor = new Color3(.85, .55, .16);
+    crystalMaterial.emissiveColor = new Color3(.32, .16, .03);
+    for (const [index, [x, z]] of DEFAULT_DATABASE.maps[0].resourceNodes.map((rn) => [rn.x, rn.y] as [number, number]).entries()) {
+      const isRich = DEFAULT_DATABASE.maps[0].resourceNodes[index]?.isRich ?? false;
+      const field = MeshBuilder.CreateCylinder(`ore-field-${index}`, { diameter: isRich ? 7 : 5, height: .06, tessellation: 32 }, this.scene);
       field.position = new Vector3(x, .08, z);
       field.material = oreMaterial;
       this.tacticalMeshes.push(field);
@@ -278,7 +288,7 @@ export class RTSRenderer {
     const boundaryMaterial = new StandardMaterial('map-boundary-material', this.scene);
     boundaryMaterial.diffuseColor = new Color3(.12, .14, .15);
     boundaryMaterial.emissiveColor = new Color3(.025, .01, .008);
-    for (const [index, [x, z, width, depth]] of [[32, .2, 64, .4], [32, 63.8, 64, .4], [.2, 32, .4, 64], [63.8, 32, .4, 64]].entries()) {
+    for (const [index, [x, z, width, depth]] of [[C, .2, M, .4], [C, M - .2, M, .4], [.2, C, .4, M], [M - .2, C, .4, M]].entries()) {
       const border = MeshBuilder.CreateBox(`map-boundary-${index}`, { width, height: .35, depth }, this.scene);
       border.position = new Vector3(x, .18, z);
       border.material = boundaryMaterial;
@@ -328,10 +338,10 @@ export class RTSRenderer {
   private async initializeAssets(): Promise<void> {
     const environment = new HDRCubeTexture('/assets/environments/industrial_sunset_puresky_1k.hdr', this.scene, 128, false, true, false, true);
     this.scene.environmentTexture = environment;
-    this.scene.environmentIntensity = .24;
+    this.scene.environmentIntensity = .55;
     this.scene.fogMode = Scene.FOGMODE_EXP2;
-    this.scene.fogDensity = .005;
-    this.scene.fogColor = new Color3(.035, .041, .044);
+    this.scene.fogDensity = .0028;
+    this.scene.fogColor = new Color3(.1, .11, .125);
     // Preload all assets in the background; synchronously await the HQ buildings
     // and basic infantry for all four factions so the first frame already shows models.
     const criticalIds = [

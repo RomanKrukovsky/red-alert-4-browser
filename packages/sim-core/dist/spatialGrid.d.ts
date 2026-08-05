@@ -23,8 +23,7 @@ export declare class SpatialHashGrid<T extends SpatialEntity = SpatialEntity> {
     /** Cells that received at least one entity this tick (for cheap clear). */
     private dirty;
     private static readonly MAX_ENTITY_RADIUS;
-    private static readonly WORLD_SIZE;
-    constructor(cellSize?: number);
+    constructor(cellSize?: number, worldSize?: number);
     clear(): void;
     private cellIndex;
     insert(entity: T): void;

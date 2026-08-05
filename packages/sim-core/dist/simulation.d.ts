@@ -82,6 +82,9 @@ export declare class GameSimulation {
     nextEntityId: number;
     matchState: MatchState;
     winnerTeam: number;
+    /** Map dimensions in grid tiles (1 tile = 1000 scaled units). */
+    mapWidth: number;
+    mapHeight: number;
     constructor(seed?: number, mapWidth?: number, mapHeight?: number);
     initMatch(playerConfigs: {
         name: string;

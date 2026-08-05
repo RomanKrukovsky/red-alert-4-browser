@@ -15,8 +15,8 @@ const initialCredits = p0.credits;
 sim.processCommands([{
   type: CommandType.BUILD_STRUCTURE,
   structureId: 'SU_ThermalPower',
-  gridX: 20,
-  gridY: 20,
+  gridX: 34,
+  gridY: 34,
   entityIds: [],
   playerIndex: 0,
   tick: 0

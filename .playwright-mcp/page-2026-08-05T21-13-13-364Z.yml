@@ -1,0 +1,138 @@
+- generic [ref=e3]:
+  - main [ref=e5]:
+    - generic [ref=e6]:
+      - heading "НАСТРОЙКА СХВАТКИ" [level=1] [ref=e7]
+      - generic [ref=e8]:
+        - text: COMMAND & CONQUER
+        - generic [ref=e9]: RED ALERT 4
+      - generic [ref=e10]: 2 / 2 ИГРОКОВ ГОТОВЫ
+    - generic [ref=e11]:
+      - heading "СХВАТКА" [level=2] [ref=e18]
+      - generic [ref=e19]:
+        - text: КАРТА
+        - combobox "КАРТА" [ref=e20]:
+          - option "АЛЯСКА — ХОЛОДНАЯ ВЕРШИНА" [selected]
+          - option "КИЕВ — КРАСНЫЙ РУБЕЖ"
+          - option "ОСТРОВА — СИНЯЯ БУРЯ"
+      - heading "ПОБЕДНЫЕ УСЛОВИЯ" [level=3] [ref=e21]
+      - paragraph [ref=e22]: УНИЧТОЖИТЬ ВСЕХ ПРОТИВНИКОВ
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - text: ДРУЖЕСКИЙ ОГОНЬ
+          - generic [ref=e25]: ВЫКЛ.
+        - generic [ref=e26]:
+          - text: ОГРАНИЧЕНИЕ ВРЕМЕНИ
+          - generic [ref=e27]: НЕТ
+        - generic [ref=e28]:
+          - text: СУПЕРОРУЖИЕ
+          - generic [ref=e29]: ВКЛ.
+      - button "ПОКИНУТЬ ЛОББИ" [ref=e30] [cursor=pointer]
+    - generic [ref=e34]:
+      - generic [ref=e37]:
+        - generic [ref=e38]: "#"
+        - generic [ref=e39]: ИГРОК
+        - generic [ref=e40]: ФРАКЦИЯ
+        - generic [ref=e41]: ЦВЕТ
+        - generic [ref=e42]: КОМАНДА
+        - generic [ref=e43]: ГОТОВНОСТЬ
+      - generic [ref=e44]:
+        - generic [ref=e45]: "1"
+        - generic [ref=e46]: SOKOLOV_1945
+        - combobox [ref=e47]:
+          - option "СССР" [selected]
+          - option "АЛЬЯНС"
+          - option "ВОСТОЧНАЯ КОАЛИЦИЯ"
+          - option "ХРОНОЛЕГИОН"
+        - generic [ref=e49]: "1"
+        - generic [ref=e50]: ○ ГОТОВ
+      - generic [ref=e51]:
+        - generic [ref=e52]: "2"
+        - generic [ref=e53]: ИИ — NORMAL
+        - combobox [ref=e54]:
+          - option "СССР"
+          - option "АЛЬЯНС" [selected]
+          - option "ВОСТОЧНАЯ КОАЛИЦИЯ"
+          - option "ХРОНОЛЕГИОН"
+        - generic [ref=e56]: "2"
+        - generic [ref=e57]: ○ ГОТОВ
+      - generic [ref=e58]:
+        - generic [ref=e59]: "3"
+        - generic [ref=e60]: ЗАКРЫТО
+        - generic [ref=e61]: —
+        - generic [ref=e63]: —
+        - generic [ref=e64]: —
+      - generic [ref=e65]:
+        - generic [ref=e66]: "4"
+        - generic [ref=e67]: ЗАКРЫТО
+        - generic [ref=e68]: —
+        - generic [ref=e70]: —
+        - generic [ref=e71]: —
+      - generic [ref=e72]:
+        - generic [ref=e73]: "5"
+        - generic [ref=e74]: ЗАКРЫТО
+        - generic [ref=e75]: —
+        - generic [ref=e77]: —
+        - generic [ref=e78]: —
+      - generic [ref=e79]:
+        - generic [ref=e80]: "6"
+        - generic [ref=e81]: ЗАКРЫТО
+        - generic [ref=e82]: —
+        - generic [ref=e84]: —
+        - generic [ref=e85]: —
+      - generic [ref=e86]:
+        - generic [ref=e87]: "7"
+        - generic [ref=e88]: ЗАКРЫТО
+        - generic [ref=e89]: —
+        - generic [ref=e91]: —
+        - generic [ref=e92]: —
+      - generic [ref=e93]:
+        - generic [ref=e94]: "8"
+        - generic [ref=e95]: ЗАКРЫТО
+        - generic [ref=e96]: —
+        - generic [ref=e98]: —
+        - generic [ref=e99]: —
+      - generic [ref=e100]:
+        - paragraph [ref=e101]: "SOKOLOV_1945: За Родину!"
+        - paragraph [ref=e102]: "БОЕВАЯ СЕТЬ: Настройки синхронизированы."
+        - textbox "Сообщение" [ref=e103]:
+          - /placeholder: НАПИСАТЬ СООБЩЕНИЕ…
+    - generic [ref=e104]:
+      - heading "КАРТА" [level=2] [ref=e107]
+      - heading "АЛЯСКА — ХОЛОДНАЯ ВЕРШИНА" [level=2] [ref=e108]
+      - generic [ref=e109]:
+        - generic [ref=e110]: "1"
+        - generic [ref=e111]: "2"
+      - generic [ref=e112]:
+        - generic [ref=e113]:
+          - text: СЛОЖНОСТЬ
+          - combobox "СЛОЖНОСТЬ" [ref=e114]:
+            - option "ЛЕГКО"
+            - option "НОРМАЛЬНО" [selected]
+            - option "ВЕТЕРАН"
+        - generic [ref=e115]:
+          - text: НАЧАЛЬНЫЕ РЕСУРСЫ
+          - combobox "НАЧАЛЬНЫЕ РЕСУРСЫ" [ref=e116]:
+            - option "5 000"
+            - option "10 000" [selected]
+            - option "20 000"
+        - generic [ref=e117]:
+          - text: СКОРОСТЬ ИГРЫ
+          - combobox "СКОРОСТЬ ИГРЫ" [ref=e118]:
+            - option "НИЗКАЯ"
+            - option "НОРМАЛЬНАЯ" [selected]
+            - option "ВЫСОКАЯ"
+      - paragraph [ref=e119]:
+        - text: "ИГРОК:"
+        - generic [ref=e120]: СССР
+      - paragraph [ref=e121]:
+        - text: "ПРОТИВНИК:"
+        - generic [ref=e122]: АЛЬЯНС
+    - button "НАЧАТЬ БИТВУ" [ref=e124] [cursor=pointer]
+  - generic [ref=e128]:
+    - generic [ref=e129]: 🎵
+    - generic [ref=e130]:
+      - generic [ref=e131]: СУНДТРЕК — RED ALERT 4
+      - generic [ref=e132]: Command Overdrive
+    - button "⏭️" [ref=e133] [cursor=pointer]
+    - button "🔊" [ref=e134] [cursor=pointer]
+    - button "▼" [ref=e135] [cursor=pointer]

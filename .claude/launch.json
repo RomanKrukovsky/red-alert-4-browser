@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web-client",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@ra4/web-client", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "game-server",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@ra4/game-server", "dev"],
+      "port": 8080
+    }
+  ]
+}

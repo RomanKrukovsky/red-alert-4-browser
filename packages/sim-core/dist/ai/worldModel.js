@@ -42,11 +42,13 @@ export class AIWorldModel {
                 bb.threatGrid[r][c] = 0;
             }
         }
+        // Threat grid is 32x32 regardless of map size — cell size scales with the map.
+        const threatCellSize = (sim.mapWidth * 1000) / 32;
         for (const intel of bb.intelEntries.values()) {
             if (intel.certainty < 0.2)
                 continue;
-            const gx = Math.min(31, Math.max(0, Math.floor(intel.x / 2000)));
-            const gz = Math.min(31, Math.max(0, Math.floor(intel.y / 2000)));
+            const gx = Math.min(31, Math.max(0, Math.floor(intel.x / threatCellSize)));
+            const gz = Math.min(31, Math.max(0, Math.floor(intel.y / threatCellSize)));
             // Add threat score based on entity type
             const threatScore = intel.isBuilding ? 2 : 5;
             bb.threatGrid[gz][gx] += threatScore * intel.certainty;

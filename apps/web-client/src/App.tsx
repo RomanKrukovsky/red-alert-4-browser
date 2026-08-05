@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { CommandType, FactionId, MatchState, PlayerCommand, PlayerType, WorldSnapshot } from '@ra4/shared-types';
 import { SimWorkerClient, SimFrame } from './sim/SimWorkerClient.js';
+import { DEFAULT_DATABASE } from '@ra4/content-runtime';
 import { useUIStore, AdminConsole, AdminConsoleService } from '@ra4/ui';
 import { InputManager } from './inputManager.js';
 import { RTSRenderer } from './renderer.js';
@@ -78,7 +79,9 @@ export const App: React.FC = () => {
     await renderer.ready;
     if (rendererRef.current !== renderer) return;
     // Start camera at player spawn (10,10), pulled back enough to see the base
-    renderer.rtsCamera.focusOnPosition(10, 10);
+    const spawn = DEFAULT_DATABASE.maps[0].spawnPoints[0];
+    renderer.rtsCamera.setMapBounds(DEFAULT_DATABASE.maps[0].width, DEFAULT_DATABASE.maps[0].height);
+    renderer.rtsCamera.focusOnPosition(spawn.x + 2, spawn.y + 2);
     renderer.rtsCamera.camera.radius = 40;
     renderer.rtsCamera.camera.beta = Math.PI / 3.5; // ~51° — shows more of the map
     setLoadingStages((stages) => stages.map((stage) => stage.id === 'renderer' ? { ...stage, status: 'complete', progress: 38 } : stage.id === 'simulation' ? { ...stage, status: 'active', progress: 50 } : stage));

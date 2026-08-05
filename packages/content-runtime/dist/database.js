@@ -1398,28 +1398,32 @@ export const OFFICIAL_FACTIONS = [
 export const OFFICIAL_MAP_DUEL = {
     id: 'map_red_square_duel',
     name: 'Красный Рубеж (1v1 / 2v2)',
-    width: 64,
-    height: 64,
+    width: 128,
+    height: 128,
     maxPlayers: 4,
     spawnPoints: [
-        { index: 0, x: 8, y: 8 },
-        { index: 1, x: 56, y: 56 },
-        { index: 2, x: 56, y: 8 },
-        { index: 3, x: 8, y: 56 }
+        { index: 0, x: 14, y: 14 },
+        { index: 1, x: 114, y: 114 },
+        { index: 2, x: 114, y: 14 },
+        { index: 3, x: 14, y: 114 }
     ],
     resourceNodes: [
-        { id: 'node_1', x: 14, y: 14, isRich: false, creditsRemaining: 45000 },
-        { id: 'node_2', x: 50, y: 50, isRich: false, creditsRemaining: 45000 },
-        { id: 'node_3', x: 50, y: 14, isRich: false, creditsRemaining: 45000 },
-        { id: 'node_4', x: 14, y: 50, isRich: false, creditsRemaining: 45000 },
-        { id: 'node_center_rich', x: 32, y: 32, isRich: true, creditsRemaining: 75000 }
+        // Home fields near each spawn
+        { id: 'node_1', x: 26, y: 26, isRich: false, creditsRemaining: 45000 },
+        { id: 'node_2', x: 102, y: 102, isRich: false, creditsRemaining: 45000 },
+        { id: 'node_3', x: 102, y: 26, isRich: false, creditsRemaining: 45000 },
+        { id: 'node_4', x: 26, y: 102, isRich: false, creditsRemaining: 45000 },
+        // Contested mid-map expansions
+        { id: 'node_mid_w', x: 40, y: 64, isRich: false, creditsRemaining: 55000 },
+        { id: 'node_mid_e', x: 88, y: 64, isRich: false, creditsRemaining: 55000 },
+        { id: 'node_center_rich', x: 64, y: 64, isRich: true, creditsRemaining: 90000 }
     ],
     neutralStructures: [
-        { id: 'oil_1', type: 'OIL_DERRICK', x: 32, y: 14 },
-        { id: 'oil_2', type: 'OIL_DERRICK', x: 32, y: 50 }
+        { id: 'oil_1', type: 'OIL_DERRICK', x: 64, y: 30 },
+        { id: 'oil_2', type: 'OIL_DERRICK', x: 64, y: 98 }
     ],
-    heightMap: Array(64).fill(0).map(() => Array(64).fill(0)),
-    passabilityGrid: Array(64).fill(0).map(() => Array(64).fill(0))
+    heightMap: Array(128).fill(0).map(() => Array(128).fill(0)),
+    passabilityGrid: Array(128).fill(0).map(() => Array(128).fill(0))
 };
 export const DEFAULT_DATABASE = {
     factions: OFFICIAL_FACTIONS,

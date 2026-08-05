@@ -46,9 +46,9 @@ console.log('Running Navigation Scale & Determinism Tests...');
 // ── Test 1: single unit routes around a wall ────────────────────────────────
 {
   const sim = createSim(1001);
-  // Wall of "buildings" across x=30 between y=20..44, with a gap at y=32
-  for (let gy = 20; gy <= 44; gy += 3) {
-    if (gy === 32) continue;
+  // Wall of "buildings" across x=30 over most of the map height, gap at y=32
+  for (let gy = 6; gy <= sim.mapHeight - 6; gy += 3) {
+    if (gy >= 31 && gy <= 33) continue;
     sim.navigation.registerObstacle(30, gy, 3, 3);
   }
   const unitId = sim.spawnUnit('SU_RubezhRifleman', 0, 25000, 32000);
@@ -117,7 +117,7 @@ console.log('Running Navigation Scale & Determinism Tests...');
 {
   const sim = createSim(4004);
   // Corridor: block everything across x=30 except the corridor tile row y=32
-  for (let gy = 1; gy < 63; gy++) {
+  for (let gy = 1; gy < sim.mapHeight - 1; gy++) {
     if (gy >= 31 && gy <= 33) continue;
     sim.navigation.registerObstacle(30, gy, 3, 3);
   }

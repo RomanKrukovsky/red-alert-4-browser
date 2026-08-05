@@ -1,58 +1,15 @@
 {
-  "timestamp": "2026-08-05T20:29:51.308Z",
-  "durationSeconds": 0.159,
-  "mode": "headless",
+  "timestamp": "2026-08-05T22:33:48.804Z",
+  "durationSeconds": 41.132,
+  "mode": "play",
   "passed": true,
   "issuesFoundCount": 0,
   "issuesFixedCount": 0,
   "scenarios": [
     {
-      "name": "Harvester Economic Cycle",
+      "name": "Full E2E Playwright Browser Playtest Match",
       "passed": true,
-      "durationMs": 23,
-      "checksum": 440232693
-    },
-    {
-      "name": "Base Building Chain",
-      "passed": true,
-      "durationMs": 13,
-      "checksum": 1421027624
-    },
-    {
-      "name": "Army Production & Combat",
-      "passed": true,
-      "durationMs": 6,
-      "checksum": 531987549
-    },
-    {
-      "name": "HQ Destruction & Victory/Defeat Trigger",
-      "passed": true,
-      "durationMs": 0,
-      "checksum": 1219677817
-    },
-    {
-      "name": "Loss of Asset Recovery",
-      "passed": true,
-      "durationMs": 7,
-      "checksum": 1706539768
-    },
-    {
-      "name": "AI Agent Recovery & Development",
-      "passed": true,
-      "durationMs": 6,
-      "checksum": 438914823
-    },
-    {
-      "name": "Seed Determinism Checksum Verification",
-      "passed": true,
-      "durationMs": 22,
-      "checksum": 1035897955
-    },
-    {
-      "name": "30-Minute Simulation Soak Test (3000 fast ticks)",
-      "passed": true,
-      "durationMs": 82,
-      "checksum": 1444100279
+      "durationMs": 41132
     }
   ],
   "screenshots": [
