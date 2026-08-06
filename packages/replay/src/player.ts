@@ -34,7 +34,10 @@ export class ReplayPlayerV2 {
   }
 
   private freshSim(): GameSimulation {
-    const sim = new GameSimulation(this.data.header.seed);
+    // The header's map is part of the recorded match identity: replaying on
+    // a different map changes spawns and resource nodes, so the command log
+    // would diverge immediately.
+    const sim = new GameSimulation(this.data.header.seed, undefined, undefined, this.data.header.mapId);
     sim.initMatch(this.data.header.players, this.data.header.startingCredits);
     return sim;
   }

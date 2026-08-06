@@ -51,7 +51,8 @@
     "test:server-auth": "vitest run apps/game-server/src/__tests__/serverAuthoritativeV1.test.ts",
     "test:multiplayer-e2e": "vitest run apps/game-server/src/__tests__/multiplayerE2E.test.ts",
     "test:ci": "turbo run build && turbo run lint && pnpm run check:sim-purity && pnpm --filter @ra4/testing test:determinism && node tools/game-doctor/dist/cli.js cross-env-determinism && pnpm --filter @ra4/testing test:economy && pnpm --filter @ra4/testing test:building && pnpm --filter @ra4/testing test:navigation-scale && pnpm --filter @ra4/testing test:protocol-v1 && pnpm --filter @ra4/testing test:replay-v2 && vitest run apps/game-server/src/__tests__ && pnpm --filter @ra4/testing test:ai && pnpm run game-doctor:headless",
-    "test:multiplayer-two-browsers": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js multiplayer-two-browsers"
+    "test:multiplayer-two-browsers": "pnpm --filter @ra4/game-doctor build && node tools/game-doctor/dist/cli.js multiplayer-two-browsers",
+    "test:replay-download": "vitest run apps/game-server/src/__tests__/replayDownload.test.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

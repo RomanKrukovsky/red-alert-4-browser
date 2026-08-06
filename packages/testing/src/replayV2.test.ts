@@ -118,6 +118,44 @@ check(`Replay exported (${(bytes.byteLength / 1024).toFixed(1)} KiB)`, bytes.byt
   }
 }
 
+// ── Map identity: a replay must re-simulate on its RECORDED map ──────────
+{
+  // Regression: the player used to construct its sim without the header's
+  // mapId, so any replay of a non-default map silently replayed on the
+  // default one and diverged.
+  const SECOND_MAP = 'map_iron_crossroads';
+  const sim = new GameSimulation(818181, undefined, undefined, SECOND_MAP);
+  sim.initMatch(players, 10000);
+  const recorder = new ReplayRecorderV2({
+    mapId: SECOND_MAP,
+    seed: 818181,
+    tickRate: 30,
+    simVersion: '1.0.0',
+    contentHash: 'test',
+    protocolVersion: PROTOCOL_VERSION,
+    players,
+    startingCredits: 10000,
+    recordedAtIso: '2026-08-06T00:00:00.000Z',
+    checkpointIntervalTicks: 200,
+    keyframeIntervalTicks: 1000,
+  });
+  for (let t = 0; t < 1200; t++) {
+    sim.processCommands([]);
+    sim.step();
+    recorder.recordTick(sim, sim.tickIndex, []);
+  }
+  const bytes2 = recorder.export();
+  const data2 = decodeReplay(bytes2);
+  check('Map identity: header records the selected map', data2.header.mapId === SECOND_MAP);
+
+  const p2 = new ReplayPlayerV2(bytes2);
+  const v2 = p2.verify();
+  check('Map identity: replay of a non-default map verifies', v2.verified,
+    v2.firstDivergenceTick !== null ? `divergence at tick ${v2.firstDivergenceTick}` : 'no checkpoints');
+  check('Map identity: replayed sim loaded the recorded map', p2.sim.mapId === SECOND_MAP && p2.sim.mapWidth === 96);
+  check('Map identity: final checksum matches the live match', p2.sim.calculateChecksum() === sim.calculateChecksum());
+}
+
 if (failures > 0) {
   console.error(`FAILED: ${failures} replay v2 test(s) failed.`);
   process.exit(1);

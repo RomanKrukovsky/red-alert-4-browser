@@ -60,6 +60,45 @@ function broadcastLobbyState(roomId: string, room: Parameters<typeof roomManager
 const matchmaker = new Matchmaker();
 const activeMatches = new Map<string, AuthoritativeMatchRuntime>();
 
+/**
+ * Finished-match replays kept in memory for download.
+ *
+ * Bounded (FIFO, 50 matches) so a long-running server cannot grow without
+ * limit. Durable storage is the object-store work in the backend program;
+ * until then this is what the replay endpoint serves.
+ */
+const REPLAY_RETENTION = 50;
+interface StoredReplay {
+  matchId: string;
+  mapId: string;
+  seed: number;
+  winnerTeam: number;
+  durationTicks: number;
+  bytes: Buffer;
+}
+const finishedReplays = new Map<string, StoredReplay>();
+
+function storeFinishedReplay(runtime: AuthoritativeMatchRuntime): void {
+  try {
+    finishedReplays.set(runtime.matchId, {
+      matchId: runtime.matchId,
+      mapId: runtime.mapId,
+      seed: runtime.seed,
+      winnerTeam: runtime.sim.winnerTeam,
+      durationTicks: runtime.sim.tickIndex,
+      bytes: Buffer.from(runtime.exportReplay()),
+    });
+    while (finishedReplays.size > REPLAY_RETENTION) {
+      const oldest = finishedReplays.keys().next().value;
+      if (oldest === undefined) break;
+      finishedReplays.delete(oldest);
+    }
+    logger.info({ matchId: runtime.matchId }, '[Replay] Stored finished match replay');
+  } catch (err) {
+    logger.error({ err, matchId: runtime.matchId }, '[Replay] Failed to store replay');
+  }
+}
+
 async function main() {
   logger.info({
     serverVersion: SERVER_VERSION,
@@ -108,6 +147,38 @@ async function main() {
   fastify.get('/metrics', async (req, reply) => {
     reply.type(register.contentType);
     return register.metrics();
+  });
+
+  // ── Replay API ──────────────────────────────────────────────────────────
+
+  /** List finished matches whose replay can be downloaded. */
+  fastify.get('/api/v1/replays', async () => ({
+    replays: Array.from(finishedReplays.values()).map((r) => ({
+      matchId: r.matchId,
+      mapId: r.mapId,
+      seed: r.seed,
+      winnerTeam: r.winnerTeam,
+      durationTicks: r.durationTicks,
+      sizeBytes: r.bytes.byteLength,
+    })),
+  }));
+
+  /**
+   * Download one replay as a Replay v2 (`RA4R`) binary container.
+   * Served as an octet-stream so the client decodes the exact recorded bytes.
+   */
+  fastify.get('/api/v1/replays/:matchId', async (req, reply) => {
+    const { matchId } = req.params as { matchId: string };
+    const stored = finishedReplays.get(matchId);
+    if (!stored) {
+      reply.status(404);
+      return { error: 'Replay not found or expired from retention window' };
+    }
+    reply
+      .type('application/octet-stream')
+      .header('Content-Disposition', `attachment; filename="${matchId}.ra4r"`)
+      .header('X-RA4-Replay-Format', '2');
+    return stored.bytes;
   });
 
   // HTTP API V1 Routes
@@ -276,6 +347,13 @@ async function main() {
                 }));
 
                 const runtime = new AuthoritativeMatchRuntime(room.mapId, matchPlayers);
+                // Archive the replay and release the match when it finishes.
+                runtime.onFinished = (finished) => {
+                  storeFinishedReplay(finished);
+                  activeMatches.delete(finished.matchId);
+                  activeMatchesCount.set(activeMatches.size);
+                  if (currentRoomId) roomMatches.delete(currentRoomId);
+                };
                 activeMatches.set(runtime.matchId, runtime);
                 // Room→match binding so every player's socket handler can
                 // resolve the live match, not just the initiator's closure.

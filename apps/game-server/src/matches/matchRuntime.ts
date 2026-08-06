@@ -65,6 +65,8 @@ export class AuthoritativeMatchRuntime {
   public tickBuffer: PlayerCommand[] = [];
   public snapshotHistory: Map<number, WorldSnapshot> = new Map();
   public desyncEvents: DesyncEvent[] = [];
+  /** Invoked once when the match finishes, so the host can archive the replay. */
+  public onFinished: ((runtime: AuthoritativeMatchRuntime) => void) | null = null;
 
   private timer: NodeJS.Timeout | null = null;
   private readonly tickRateHz = 30;
@@ -250,6 +252,7 @@ export class AuthoritativeMatchRuntime {
   }
 
   public async finishMatch(reason: string): Promise<void> {
+    if (this.matchState === MatchState.FINISHED) return; // idempotent
     this.matchState = MatchState.FINISHED;
     if (this.timer) {
       clearInterval(this.timer);
@@ -263,7 +266,16 @@ export class AuthoritativeMatchRuntime {
 
     this.replayRecorder.recordResult(winningTeam, reason);
 
+    // Archive the replay before broadcasting, so a client that immediately
+    // requests it after GAME_OVER always finds it available.
+    try {
+      this.onFinished?.(this);
+    } catch (err) {
+      console.error('[MatchRuntime] onFinished hook failed:', err);
+    }
+
     this.broadcastKind(WireKind.GAME_OVER_JSON, encodeJsonPayload({
+      matchId: this.matchId,
       winnerTeam: winningTeam,
       winningPlayerIndices,
       reason,

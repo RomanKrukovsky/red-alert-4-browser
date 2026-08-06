@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-08-06T09:15:07.395Z",
-  "durationSeconds": 0.287,
+  "timestamp": "2026-08-06T09:25:12.658Z",
+  "durationSeconds": 0.294,
   "mode": "headless",
   "passed": true,
   "issuesFoundCount": 0,
@@ -9,19 +9,19 @@
     {
       "name": "Harvester Economic Cycle",
       "passed": true,
-      "durationMs": 28,
+      "durationMs": 24,
       "checksum": 166439109
     },
     {
       "name": "Base Building Chain",
       "passed": true,
-      "durationMs": 18,
+      "durationMs": 19,
       "checksum": 1803317086
     },
     {
       "name": "Army Production & Combat",
       "passed": true,
-      "durationMs": 11,
+      "durationMs": 10,
       "checksum": 1356458272
     },
     {
@@ -39,19 +39,19 @@
     {
       "name": "AI Agent Recovery & Development",
       "passed": true,
-      "durationMs": 12,
+      "durationMs": 9,
       "checksum": 559623213
     },
     {
       "name": "Seed Determinism Checksum Verification",
       "passed": true,
-      "durationMs": 84,
+      "durationMs": 85,
       "checksum": 1651523780
     },
     {
       "name": "30-Minute Simulation Soak Test (3000 fast ticks)",
       "passed": true,
-      "durationMs": 120,
+      "durationMs": 132,
       "checksum": 797559254
     }
   ],

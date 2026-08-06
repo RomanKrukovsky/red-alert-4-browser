@@ -56,6 +56,8 @@ export declare class AuthoritativeMatchRuntime {
     tickBuffer: PlayerCommand[];
     snapshotHistory: Map<number, WorldSnapshot>;
     desyncEvents: DesyncEvent[];
+    /** Invoked once when the match finishes, so the host can archive the replay. */
+    onFinished: ((runtime: AuthoritativeMatchRuntime) => void) | null;
     private timer;
     private readonly tickRateHz;
     private readonly tickIntervalMs;
