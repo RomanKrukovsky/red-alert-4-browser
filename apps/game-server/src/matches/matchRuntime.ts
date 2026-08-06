@@ -116,6 +116,13 @@ export class AuthoritativeMatchRuntime {
       seed: this.seed,
       tickRate: this.tickRateHz,
       mapId: this.mapId,
+      // Exact player configs in authoritative slot order — the client must
+      // initialize its local simulation from the identical config, never
+      // infer factions from the snapshot.
+      players: Array.from(this.players.values())
+        .sort((a, b) => a.playerIndex - b.playerIndex)
+        .map((p) => ({ name: p.name, factionId: p.factionId, type: p.type, team: p.team })),
+      startingCredits: 10000,
       initialSnapshot,
     }));
 

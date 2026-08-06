@@ -25,6 +25,24 @@ const fastify = Fastify({
 });
 
 const roomManager = new RoomManager();
+/**
+ * Live sockets per room slot. Needed so START_MATCH can attach EVERY
+ * connected player's socket to the match runtime — otherwise only the
+ * initiating player would receive the authoritative tick stream.
+ */
+const roomSockets = new Map<string, Map<number, WebSocket>>();
+/** Room id → live authoritative match, so all sockets in a room resolve it. */
+const roomMatches = new Map<string, AuthoritativeMatchRuntime>();
+
+function registerRoomSocket(roomId: string, slotIndex: number, socket: WebSocket): void {
+  let slots = roomSockets.get(roomId);
+  if (!slots) { slots = new Map(); roomSockets.set(roomId, slots); }
+  slots.set(slotIndex, socket);
+}
+
+function unregisterRoomSocket(roomId: string, slotIndex: number): void {
+  roomSockets.get(roomId)?.delete(slotIndex);
+}
 const matchmaker = new Matchmaker();
 const activeMatches = new Map<string, AuthoritativeMatchRuntime>();
 
@@ -138,11 +156,15 @@ async function main() {
         if (Buffer.isBuffer(data) && data.length >= 2 && data[0] === 0x52 && data[1] === 0x41) {
           const { decodeEnvelope, decodeCommandList, decodeChecksum, WireKind } = await import('@ra4/netcode');
           const envelope = decodeEnvelope(new Uint8Array(data));
+          // Resolve the live match from the room binding: a non-initiating
+          // player's socket closure has no currentMatch of its own.
+          const match = currentMatch ?? (currentRoomId ? roomMatches.get(currentRoomId) ?? null : null);
+          if (match && !currentMatch) currentMatch = match;
           switch (envelope.kind) {
             case WireKind.SUBMIT_COMMANDS: {
-              if (currentMatch) {
+              if (match) {
                 for (const command of decodeCommandList(envelope.payload)) {
-                  const res = currentMatch.submitCommand(playerIndex, command);
+                  const res = match.submitCommand(playerIndex, command);
                   if (!res.valid) {
                     rejectedCommandsTotal.inc({ reason: res.reason || 'invalid' });
                   }
@@ -151,9 +173,9 @@ async function main() {
               break;
             }
             case WireKind.CHECKSUM_REPORT: {
-              if (currentMatch) {
+              if (match) {
                 const report = decodeChecksum(envelope.payload);
-                currentMatch.reportChecksum(playerIndex, report.tick, report.checksum);
+                match.reportChecksum(playerIndex, report.tick, report.checksum);
               }
               break;
             }
@@ -172,11 +194,15 @@ async function main() {
             const result = roomManager.joinRoom(msg.roomId || 'default-room', msg.playerName, userId);
             currentRoomId = result.room.id;
             playerIndex = result.slotIndex;
+            registerRoomSocket(currentRoomId, playerIndex, socket);
 
-            socket.send(JSON.stringify({
-              type: 'LOBBY_STATE',
-              state: roomManager.getLobbyState(result.room),
-            } as ServerMessage));
+            // Broadcast the updated lobby to every player in the room so
+            // joins/leaves are visible to all, not just the joiner.
+            const lobbyState = roomManager.getLobbyState(result.room);
+            const lobbyFrame = JSON.stringify({ type: 'LOBBY_STATE', state: lobbyState } as ServerMessage);
+            for (const peer of roomSockets.get(currentRoomId)?.values() ?? []) {
+              if (peer.readyState === 1) peer.send(lobbyFrame);
+            }
             break;
           }
 
@@ -200,20 +226,26 @@ async function main() {
             if (currentRoomId) {
               const room = roomManager.getRoom(currentRoomId);
               if (room) {
+                const slotSockets = roomSockets.get(currentRoomId);
+                // Attach EVERY connected player's socket, not just the
+                // initiator's — all clients must receive the tick stream.
                 const matchPlayers = room.slots.map(s => ({
                   playerIndex: s.index,
                   name: s.name,
                   factionId: s.factionId,
                   team: s.team,
                   type: s.type,
-                  ws: s.index === playerIndex ? socket : null,
-                  isConnected: true,
+                  ws: slotSockets?.get(s.index) ?? null,
+                  isConnected: Boolean(slotSockets?.get(s.index)),
                   lastAckTick: 0,
                   reconnectToken: `token-${s.index}`,
                 }));
 
                 const runtime = new AuthoritativeMatchRuntime(room.mapId, matchPlayers);
                 activeMatches.set(runtime.matchId, runtime);
+                // Room→match binding so every player's socket handler can
+                // resolve the live match, not just the initiator's closure.
+                roomMatches.set(currentRoomId, runtime);
                 activeMatchesCount.set(activeMatches.size);
                 currentMatch = runtime;
                 runtime.start();
@@ -237,15 +269,21 @@ async function main() {
           }
 
           case 'RECONNECT': {
-            const match = activeMatches.get(msg.roomId);
+            // activeMatches is keyed by matchId; a reconnecting client only
+            // knows its room, so resolve through the room→match binding.
+            const match = roomMatches.get(msg.roomId) ?? activeMatches.get(msg.roomId);
             if (match) {
               const ok = match.handleReconnect(msg.playerIndex, `token-${msg.playerIndex}`, msg.lastTick, socket);
               if (ok) {
                 currentMatch = match;
+                currentRoomId = msg.roomId;
                 playerIndex = msg.playerIndex;
+                registerRoomSocket(msg.roomId, playerIndex, socket);
               } else {
-                socket.send(JSON.stringify({ type: 'ERROR', message: 'Reconnect failed: invalid token' }));
+                socket.send(JSON.stringify({ type: 'ERROR', message: 'Reconnect failed: invalid token or window expired' }));
               }
+            } else {
+              socket.send(JSON.stringify({ type: 'ERROR', message: 'Reconnect failed: match not found' }));
             }
             break;
           }
@@ -262,10 +300,13 @@ async function main() {
       activeWebSocketConnections.dec();
       logger.info({ userId }, '[WS] Client disconnected');
       if (currentRoomId) {
+        unregisterRoomSocket(currentRoomId, playerIndex);
         roomManager.leaveRoom(currentRoomId, playerIndex);
       }
-      if (currentMatch) {
-        currentMatch.handleDisconnect(playerIndex);
+      const match = currentMatch ?? (currentRoomId ? roomMatches.get(currentRoomId) ?? null : null);
+      if (match) {
+        // Starts the 90 s reconnect window for this player.
+        match.handleDisconnect(playerIndex);
       }
     });
   });

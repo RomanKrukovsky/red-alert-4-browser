@@ -20,6 +20,7 @@ export class SimWorkerClient {
   private worker: Worker;
   private frameHandler: ((frame: SimFrame) => void) | null = null;
   private errorHandler: ((message: string) => void) | null = null;
+  private tickAppliedHandler: ((tick: number, checksum: number) => void) | null = null;
   private readyPromise: Promise<void>;
   private initializedResolve: (() => void) | null = null;
   private disposed = false;
@@ -49,6 +50,9 @@ export class SimWorkerClient {
           this.frameHandler?.(frame);
           break;
         }
+        case 'TICK_APPLIED':
+          this.tickAppliedHandler?.(msg.tick, msg.checksum);
+          break;
         case 'ERROR':
           console.error('[SimWorker]', msg.message, msg.stack);
           this.errorHandler?.(msg.message);
@@ -88,6 +92,29 @@ export class SimWorkerClient {
     await initialized;
   }
 
+  /**
+   * Server-authoritative mode: the worker runs no local clock. Ticks arrive
+   * only via `applyServerTick`, so the server's tick stream is the single
+   * time source and local frame pacing cannot cause divergence.
+   */
+  public async initializeNetworked(config: MatchConfig): Promise<void> {
+    await this.readyPromise;
+    if (this.disposed) return;
+    const initialized = new Promise<void>((resolve) => { this.initializedResolve = resolve; });
+    this.send({ type: 'INIT_NETWORKED', config });
+    await initialized;
+  }
+
+  /** Apply one authoritative tick from the server's TICK_FRAME stream. */
+  public applyServerTick(tick: number, commands: PlayerCommand[]): void {
+    this.send({ type: 'SERVER_TICK', tick, commands });
+  }
+
+  /** Fires after each applied server tick with the locally computed checksum. */
+  public onTickApplied(handler: (tick: number, checksum: number) => void): void {
+    this.tickAppliedHandler = handler;
+  }
+
   public start(): void {
     this.send({ type: 'START' });
   }
@@ -119,6 +146,7 @@ export class SimWorkerClient {
     this.disposed = true;
     this.frameHandler = null;
     this.errorHandler = null;
+    this.tickAppliedHandler = null;
     try {
       this.send({ type: 'DISPOSE' });
     } finally {

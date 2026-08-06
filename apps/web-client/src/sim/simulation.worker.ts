@@ -18,6 +18,12 @@ const manager = new MatchLifecycleManager();
 let loopHandle: ReturnType<typeof setInterval> | null = null;
 let lastTime = 0;
 let tickTimeWindow: number[] = [];
+/**
+ * Server-authoritative mode. When true the worker owns no clock: ticks are
+ * driven exclusively by SERVER_TICK messages, so the authoritative server's
+ * tick stream is the single time source and local time cannot desync us.
+ */
+let networked = false;
 
 function post(message: WorkerToMainMessage): void {
   scope.postMessage(message);
@@ -73,13 +79,37 @@ scope.onmessage = (event: MessageEvent<MainToWorkerMessage>) => {
     switch (msg.type) {
       case 'INIT': {
         manager.initialize(msg.config);
+        networked = false;
         tickTimeWindow = [];
         post({ type: 'INITIALIZED' });
         break;
       }
+      case 'INIT_NETWORKED': {
+        manager.initialize(msg.config);
+        networked = true;
+        tickTimeWindow = [];
+        post({ type: 'INITIALIZED' });
+        break;
+      }
+      case 'SERVER_TICK': {
+        // Authoritative stream: apply the server's validated commands and
+        // advance exactly one tick. No local clock, no catch-up guessing.
+        const sim = manager.sim;
+        if (!sim) break;
+        const before = performance.now();
+        sim.processCommands(msg.commands);
+        sim.step();
+        const after = performance.now();
+        tickTimeWindow.push(after - before);
+        if (tickTimeWindow.length > 30) tickTimeWindow.shift();
+        post({ type: 'TICK_APPLIED', tick: sim.tickIndex, checksum: sim.calculateChecksum() });
+        emitSnapshotFrame(0);
+        break;
+      }
       case 'START': {
         manager.start();
-        runLoop();
+        // In networked mode the server drives ticks; never start a local loop.
+        if (!networked) runLoop();
         break;
       }
       case 'PAUSE': {
@@ -90,7 +120,7 @@ scope.onmessage = (event: MessageEvent<MainToWorkerMessage>) => {
       case 'RESUME': {
         if (manager.state === MatchLifecycleState.PAUSED) {
           manager.resume();
-          runLoop();
+          if (!networked) runLoop();
         }
         break;
       }

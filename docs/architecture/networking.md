@@ -60,12 +60,53 @@ Binary envelope on every WebSocket frame:
 - Records the match with `ReplayRecorderV2` and persists the binary replay
   (base64 in Postgres for now; object storage lands with the content CDN).
 
+## Browser client (`apps/web-client/src/net/`)
+
+`NetworkMatchClient` — Protocol v1 over the DOM WebSocket:
+- binary frames through `ProtocolChannel` (seq/ack/heartbeat/dedup);
+- `submitCommands` → server validation (never applied locally first);
+- receives `TICK_FRAME`, `CHECKSUM_STATE`, `SNAPSHOT_JSON`,
+  `MATCH_START_JSON`, `GAME_OVER_JSON`;
+- compares the server's checksum against the local one per tick and raises
+  `onDesync`; reports its own checksum back for server-side detection;
+- reconnect with bounded backoff (500 ms → 30 s, ≈60 s of attempts inside
+  the server's 90 s window), resuming via `RECONNECT` + snapshot restore.
+
+`NetworkedMatchSession` binds the client to the simulation Worker:
+
+```
+input → submitCommands → SERVER (validate) → TICK_FRAME
+                                                ↓
+                           sim Worker: processCommands + step (exactly 1 tick)
+                                                ↓
+                           TICK_APPLIED (local checksum) → reportChecksum
+                                                ↓
+                                    SNAPSHOT → renderer / HUD
+```
+
+The Worker runs in **networked mode** (`INIT_NETWORKED`): it owns no clock,
+so the server's tick stream is the only time source and local frame pacing
+cannot cause divergence. Match config comes verbatim from the server's
+`MATCH_START_JSON` (`players`, `seed`, `tickRate`, `startingCredits`) —
+the client never infers factions from a snapshot.
+
+## Gateway fixes landed with the browser client
+
+Three defects that would have broken any real 2+ player match:
+
+1. **`START_MATCH` attached only the initiator's socket** (`ws: s.index === playerIndex ? socket : null`) — every other player would have received zero tick frames. Now a `roomSockets` registry attaches every connected player's socket.
+2. **`currentMatch` was per-socket closure state**, so non-initiating players' command/checksum frames were silently dropped. Now a `roomMatches` (room → match) binding resolves the live match for every socket.
+3. **`RECONNECT` looked up `activeMatches` by roomId** while that map is keyed by matchId — reconnect could never succeed. Now resolved through `roomMatches`, and the socket is re-registered on resume.
+
+Lobby state is also now broadcast to all players in a room, not just the joiner.
+
 ## Tests
 
 | Suite | Command | Covers |
 |---|---|---|
 | Wire format | `pnpm test:protocol-v1` | envelope round-trip/rejection, all 17 command codecs, size budget, JSON/Cyrillic, seq/ack/dedup/heartbeat/timeout |
 | Server authority | `pnpm test:server-auth` | 2 simulated clients re-simulating the binary TICK_FRAME stream to identical checksums; replay verification; cheat rejection (foreign entities, spoofing, unaffordable, wrong faction, missing tech); desync recording; reconnect window |
+| Multiplayer E2E | `pnpm test:multiplayer-e2e` | two clients over a **real WebSocket** to a real runtime: MATCH_START delivery, per-tick client↔client↔server checksum parity across all common ticks, zero desync events, both players' builds accepted, foreign-entity order never entering the authoritative stream |
 | Replay | `pnpm test:replay-v2` | see `docs/architecture/replay.md` |
 
 All are part of `pnpm test:ci`.

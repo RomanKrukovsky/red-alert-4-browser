@@ -10,6 +10,13 @@ import type { MatchConfig } from '@ra4/sim-core';
 
 export type MainToWorkerMessage =
   | { type: 'INIT'; config: MatchConfig }
+  /**
+   * Server-authoritative mode: the simulation is initialized but does NOT
+   * own a clock. It advances exactly one tick per SERVER_TICK message, so
+   * the authoritative server's tick stream is the only time source.
+   */
+  | { type: 'INIT_NETWORKED'; config: MatchConfig }
+  | { type: 'SERVER_TICK'; tick: number; commands: PlayerCommand[] }
   | { type: 'START' }
   | { type: 'PAUSE' }
   | { type: 'RESUME' }
@@ -40,4 +47,9 @@ export type WorkerToMainMessage =
   | { type: 'INITIALIZED' }
   | SnapshotMessage
   | { type: 'DETERMINISM_PROBE_RESULT'; ticks: number; checksum: number; seed: number }
+  /**
+   * Emitted after each applied SERVER_TICK so the network client can report
+   * its local checksum back to the authoritative server (desync detection).
+   */
+  | { type: 'TICK_APPLIED'; tick: number; checksum: number }
   | { type: 'ERROR'; message: string; stack?: string };
