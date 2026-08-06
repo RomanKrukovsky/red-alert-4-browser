@@ -77,8 +77,35 @@ export var CommandType;
     CommandType["CAPTURE_BUILDING"] = "CAPTURE_BUILDING";
     CommandType["DEPOSIT_ORE"] = "DEPOSIT_ORE";
     CommandType["GATHER"] = "GATHER";
+    CommandType["SET_STANCE"] = "SET_STANCE";
     CommandType["SURRENDER"] = "SURRENDER";
 })(CommandType || (CommandType = {}));
+/**
+ * Unit stance — how an entity reacts to enemies without an explicit order.
+ *
+ * AGGRESSIVE: engages and pursues enemies within sight.
+ * DEFENSIVE:  engages enemies in weapon range but never leaves its post.
+ * HOLD_FIRE:  does not fire unless explicitly ordered to attack.
+ */
+export var UnitStance;
+(function (UnitStance) {
+    UnitStance["AGGRESSIVE"] = "AGGRESSIVE";
+    UnitStance["DEFENSIVE"] = "DEFENSIVE";
+    UnitStance["HOLD_FIRE"] = "HOLD_FIRE";
+})(UnitStance || (UnitStance = {}));
+/** What an entity is currently doing, when it is not simply idle or moving. */
+export var OrderMode;
+(function (OrderMode) {
+    OrderMode["NONE"] = "NONE";
+    /** Holding position: fights from where it stands, never pursues. */
+    OrderMode["HOLD"] = "HOLD";
+    /** Cycling between two or more waypoints, engaging on the way. */
+    OrderMode["PATROL"] = "PATROL";
+    /** Guarding an entity or a spot, returning to it after engaging. */
+    OrderMode["GUARD"] = "GUARD";
+    /** Moving to a destination while engaging enemies encountered en route. */
+    OrderMode["ATTACK_MOVE"] = "ATTACK_MOVE";
+})(OrderMode || (OrderMode = {}));
 export var VeterancyRank;
 (function (VeterancyRank) {
     VeterancyRank[VeterancyRank["Rookie"] = 0] = "Rookie";

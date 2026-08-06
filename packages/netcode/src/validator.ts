@@ -71,6 +71,9 @@ export function validatePlayerCommand(cmd: PlayerCommand, sim: GameSimulation, p
       return validateTargetInBounds(cmd.targetX, cmd.targetY);
     }
 
+    case CommandType.SET_STANCE:
+      return validateOwnedMobileEntities();
+
     case CommandType.ATTACK: {
       const owned = validateOwnedMobileEntities();
       if (!owned.valid) return owned;

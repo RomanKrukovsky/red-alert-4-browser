@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-08-06T09:25:12.658Z",
-  "durationSeconds": 0.294,
+  "timestamp": "2026-08-06T12:13:17.116Z",
+  "durationSeconds": 0.311,
   "mode": "headless",
   "passed": true,
   "issuesFoundCount": 0,
@@ -9,50 +9,50 @@
     {
       "name": "Harvester Economic Cycle",
       "passed": true,
-      "durationMs": 24,
-      "checksum": 166439109
+      "durationMs": 41,
+      "checksum": 1063254177
     },
     {
       "name": "Base Building Chain",
       "passed": true,
-      "durationMs": 19,
-      "checksum": 1803317086
+      "durationMs": 27,
+      "checksum": 1872858141
     },
     {
       "name": "Army Production & Combat",
       "passed": true,
-      "durationMs": 10,
-      "checksum": 1356458272
+      "durationMs": 12,
+      "checksum": 504610614
     },
     {
       "name": "HQ Destruction & Victory/Defeat Trigger",
       "passed": true,
       "durationMs": 1,
-      "checksum": 209780074
+      "checksum": 463231359
     },
     {
       "name": "Loss of Asset Recovery",
       "passed": true,
-      "durationMs": 13,
-      "checksum": 1605131783
+      "durationMs": 14,
+      "checksum": 1617072785
     },
     {
       "name": "AI Agent Recovery & Development",
       "passed": true,
-      "durationMs": 9,
-      "checksum": 559623213
+      "durationMs": 11,
+      "checksum": 1015089804
     },
     {
       "name": "Seed Determinism Checksum Verification",
       "passed": true,
-      "durationMs": 85,
-      "checksum": 1651523780
+      "durationMs": 51,
+      "checksum": 1053368897
     },
     {
       "name": "30-Minute Simulation Soak Test (3000 fast ticks)",
       "passed": true,
-      "durationMs": 132,
-      "checksum": 797559254
+      "durationMs": 153,
+      "checksum": 265140802
     }
   ],
   "screenshots": [

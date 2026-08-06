@@ -1,14 +1,14 @@
 {
-  "timestamp": "2026-08-05T22:04:54.296Z",
+  "timestamp": "2026-08-06T12:11:41.480Z",
   "scenario": "1500 entities (2×750 mixed infantry/tanks), cross-map attack-move collision, 1500 ticks",
   "entityCountPeak": 1512,
   "ticksMeasured": 1500,
-  "simTickP50Ms": 5.143,
-  "simTickP95Ms": 6.059,
-  "simTickP99Ms": 7.071,
-  "simTickAvgMs": 4.584,
-  "simTickMaxMs": 15.673,
+  "simTickP50Ms": 6.292,
+  "simTickP95Ms": 17.289,
+  "simTickP99Ms": 33.003,
+  "simTickAvgMs": 7.941,
+  "simTickMaxMs": 141.317,
   "wasmGateThresholdMs": 8,
-  "wasmGateTriggered": false,
+  "wasmGateTriggered": true,
   "passed": true
 }

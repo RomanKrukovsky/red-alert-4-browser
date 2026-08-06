@@ -1,4 +1,4 @@
-import { ArmorType, BuildingCategory, FactionId, MatchState, PlayerCommand, PlayerEconomyState, PlayerType, UnitCategory, VeterancyRank, WorldSnapshot } from '@ra4/shared-types';
+import { ArmorType, BuildingCategory, FactionId, MatchState, OrderMode, PlayerCommand, PlayerEconomyState, PlayerType, UnitCategory, UnitStance, VeterancyRank, WorldSnapshot } from '@ra4/shared-types';
 import { Mulberry32PRNG } from './prng.js';
 import { SpatialHashGrid } from './spatialGrid.js';
 import { FogOfWarManager } from './fogOfWar.js';
@@ -38,6 +38,21 @@ export interface SimEntity {
     disabledTicksRemaining: number;
     attackCooldown: number;
     targetEntityId?: number;
+    /** How this entity reacts to enemies without an explicit order. */
+    stance: UnitStance;
+    /** What it is currently doing (hold / patrol / guard / attack-move). */
+    orderMode: OrderMode;
+    /** Patrol route (world coords) and the leg currently being travelled. */
+    patrolRoute?: {
+        x: number;
+        y: number;
+    }[];
+    patrolIndex?: number;
+    /** Post to return to after engaging: guard point or hold position. */
+    postX?: number;
+    postY?: number;
+    /** Entity being guarded, when guarding a unit rather than a spot. */
+    guardEntityId?: number;
     moveSpeed: number;
     sightRange: number;
     weaponId?: string;
@@ -98,6 +113,28 @@ export declare class GameSimulation {
     spawnUnit(specId: string, playerIndex: number, x: number, y: number): number;
     processCommands(commands: PlayerCommand[]): void;
     private executeCommand;
+    /**
+     * Cancel every movement/attack/standing order, returning the entity to
+     * plain idle. Stance is a persistent preference and is deliberately kept.
+     */
+    private clearOrders;
+    /** Path an entity toward a world position (single-unit path, no flow field). */
+    private setMoveDestination;
+    /**
+     * How far an entity may stray from its post before it must return.
+     *
+     * HOLD units never leave at all; guards get a leash so they can meet an
+     * attacker but still come back instead of being pulled across the map.
+     */
+    private static readonly GUARD_LEASH;
+    /**
+     * Advance standing orders once per tick, before movement executes.
+     *
+     * Iterates `this.entities` in insertion order (deterministic across
+     * environments because ids are allocated deterministically) and only reads
+     * simulation state — no wall clock, no unseeded randomness.
+     */
+    private updateStandingOrders;
     private isBuildLocationValid;
     step(): WorldSnapshot;
     /** Remove an entity, unregistering building obstacles from the nav grid. */

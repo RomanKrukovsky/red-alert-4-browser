@@ -70,7 +70,32 @@ export declare enum CommandType {
     CAPTURE_BUILDING = "CAPTURE_BUILDING",
     DEPOSIT_ORE = "DEPOSIT_ORE",
     GATHER = "GATHER",
+    SET_STANCE = "SET_STANCE",
     SURRENDER = "SURRENDER"
+}
+/**
+ * Unit stance — how an entity reacts to enemies without an explicit order.
+ *
+ * AGGRESSIVE: engages and pursues enemies within sight.
+ * DEFENSIVE:  engages enemies in weapon range but never leaves its post.
+ * HOLD_FIRE:  does not fire unless explicitly ordered to attack.
+ */
+export declare enum UnitStance {
+    AGGRESSIVE = "AGGRESSIVE",
+    DEFENSIVE = "DEFENSIVE",
+    HOLD_FIRE = "HOLD_FIRE"
+}
+/** What an entity is currently doing, when it is not simply idle or moving. */
+export declare enum OrderMode {
+    NONE = "NONE",
+    /** Holding position: fights from where it stands, never pursues. */
+    HOLD = "HOLD",
+    /** Cycling between two or more waypoints, engaging on the way. */
+    PATROL = "PATROL",
+    /** Guarding an entity or a spot, returning to it after engaging. */
+    GUARD = "GUARD",
+    /** Moving to a destination while engaging enemies encountered en route. */
+    ATTACK_MOVE = "ATTACK_MOVE"
 }
 export declare enum VeterancyRank {
     Rookie = 0,

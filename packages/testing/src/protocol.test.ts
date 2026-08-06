@@ -3,7 +3,7 @@ import {
   decodeTickFrame, encodeChecksum, encodeCommandList, encodeEnvelope, encodeJsonPayload,
   encodeTickFrame, ProtocolChannel, PROTOCOL_VERSION, WireError, WireKind,
 } from '@ra4/netcode';
-import { CommandType, PlayerCommand } from '@ra4/shared-types';
+import { CommandType, PlayerCommand, UnitStance } from '@ra4/shared-types';
 
 let failures = 0;
 function check(name: string, cond: boolean, detail?: string): void {
@@ -47,7 +47,12 @@ console.log('Running Protocol v1 Wire Format Tests...');
     { type: CommandType.STOP, entityIds: [7], playerIndex: 3, tick: 103 },
     { type: CommandType.HOLD, entityIds: [8], playerIndex: 0, tick: 104 },
     { type: CommandType.PATROL, entityIds: [9], targetX: 5000, targetY: 6000, playerIndex: 1, tick: 105 },
+    { type: CommandType.PATROL, entityIds: [9], targetX: 7000, targetY: 8000, append: true, playerIndex: 1, tick: 105 },
     { type: CommandType.GUARD, entityIds: [10], targetEntityId: 55, playerIndex: 2, tick: 106 },
+    { type: CommandType.GUARD, entityIds: [11], targetX: 12000, targetY: 13000, playerIndex: 2, tick: 106 },
+    { type: CommandType.SET_STANCE, entityIds: [12], stance: UnitStance.AGGRESSIVE, playerIndex: 0, tick: 106 },
+    { type: CommandType.SET_STANCE, entityIds: [13], stance: UnitStance.DEFENSIVE, playerIndex: 0, tick: 106 },
+    { type: CommandType.SET_STANCE, entityIds: [14], stance: UnitStance.HOLD_FIRE, playerIndex: 0, tick: 106 },
     { type: CommandType.BUILD_STRUCTURE, entityIds: [], structureId: 'SU_ThermalPower', gridX: 30, gridY: 44, playerIndex: 0, tick: 107 },
     { type: CommandType.PRODUCE_UNIT, entityIds: [], producerEntityId: 12, unitId: 'SU_GranitMBT', playerIndex: 1, tick: 108 },
     { type: CommandType.CANCEL_PRODUCTION, entityIds: [], producerEntityId: 12, queueIndex: 2, playerIndex: 1, tick: 109 },
@@ -77,7 +82,7 @@ console.log('Running Protocol v1 Wire Format Tests...');
       console.error(`    mismatch [${i}] (${commands[i].type}):\n      in : ${canon(commands[i])}\n      out: ${canon(decoded[i])}`);
     }
   }
-  check('Command codec: every command type round-trips value-exact (17 types)', same);
+  check('Command codec: every command type round-trips value-exact (all 18 types incl. stances)', same);
 
   // Size sanity: binary must be much smaller than JSON
   const jsonSize = new TextEncoder().encode(JSON.stringify(commands)).byteLength;

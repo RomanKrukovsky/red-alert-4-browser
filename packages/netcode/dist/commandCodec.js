@@ -1,4 +1,4 @@
-import { CommandType } from '@ra4/shared-types';
+import { CommandType, UnitStance } from '@ra4/shared-types';
 import { BinReader, BinWriter, WireError } from './wire.js';
 /**
  * Compact binary codec for PlayerCommand.
@@ -31,6 +31,7 @@ const TYPE_TO_TAG = {
     [CommandType.DEPOSIT_ORE]: 15,
     [CommandType.GATHER]: 16,
     [CommandType.SURRENDER]: 17,
+    [CommandType.SET_STANCE]: 18,
 };
 const TAG_TO_TYPE = Object.fromEntries(Object.entries(TYPE_TO_TAG).map(([k, v]) => [v, k]));
 export const MAX_COMMANDS_PER_FRAME = 256;
@@ -51,15 +52,24 @@ export function encodeCommand(w, cmd) {
     switch (cmd.type) {
         case CommandType.MOVE:
         case CommandType.ATTACK_MOVE:
+            w.i32(cmd.targetX);
+            w.i32(cmd.targetY);
+            break;
         case CommandType.PATROL:
             w.i32(cmd.targetX);
             w.i32(cmd.targetY);
+            w.u8(cmd.append ? 1 : 0);
             break;
         case CommandType.ATTACK:
             w.i32(cmd.targetEntityId);
             break;
         case CommandType.GUARD:
             w.i32(cmd.targetEntityId ?? -1);
+            w.i32(cmd.targetX ?? -1);
+            w.i32(cmd.targetY ?? -1);
+            break;
+        case CommandType.SET_STANCE:
+            w.u8(cmd.stance === UnitStance.AGGRESSIVE ? 1 : cmd.stance === UnitStance.DEFENSIVE ? 2 : 3);
             break;
         case CommandType.STOP:
         case CommandType.HOLD:
@@ -118,13 +128,30 @@ export function decodeCommand(r) {
     switch (type) {
         case CommandType.MOVE:
         case CommandType.ATTACK_MOVE:
-        case CommandType.PATROL:
             return { ...base, type, targetX: r.i32(), targetY: r.i32() };
+        case CommandType.PATROL: {
+            const targetX = r.i32();
+            const targetY = r.i32();
+            const append = r.u8() === 1;
+            return { ...base, type, targetX, targetY, ...(append ? { append: true } : {}) };
+        }
         case CommandType.ATTACK:
             return { ...base, type, targetEntityId: r.i32() };
         case CommandType.GUARD: {
             const targetEntityId = r.i32();
-            return { ...base, type, ...(targetEntityId >= 0 ? { targetEntityId } : {}) };
+            const gx = r.i32();
+            const gy = r.i32();
+            return {
+                ...base, type,
+                ...(targetEntityId >= 0 ? { targetEntityId } : {}),
+                ...(gx >= 0 ? { targetX: gx } : {}),
+                ...(gy >= 0 ? { targetY: gy } : {}),
+            };
+        }
+        case CommandType.SET_STANCE: {
+            const tag = r.u8();
+            const stance = tag === 1 ? UnitStance.AGGRESSIVE : tag === 2 ? UnitStance.DEFENSIVE : UnitStance.HOLD_FIRE;
+            return { ...base, type, stance };
         }
         case CommandType.STOP:
         case CommandType.HOLD:

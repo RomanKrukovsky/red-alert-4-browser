@@ -1,4 +1,4 @@
-import { assertNever, BuildingCategory, CommandType, MatchState, PlayerType, TechTier, VeterancyRank } from '@ra4/shared-types';
+import { assertNever, BuildingCategory, CommandType, MatchState, OrderMode, PlayerType, TechTier, UnitStance, VeterancyRank } from '@ra4/shared-types';
 import { DEFAULT_DATABASE } from '@ra4/content-runtime';
 import { Mulberry32PRNG } from './prng.js';
 import { SpatialHashGrid } from './spatialGrid.js';
@@ -140,6 +140,9 @@ export class GameSimulation {
             isDisabled: false,
             disabledTicksRemaining: 0,
             attackCooldown: 0,
+            // Buildings defend themselves but obviously never leave their post.
+            stance: UnitStance.DEFENSIVE,
+            orderMode: OrderMode.NONE,
             sightRange: spec.sightRange,
             weaponId: spec.weaponId,
             moveSpeed: 0,
@@ -179,6 +182,10 @@ export class GameSimulation {
             isDisabled: false,
             disabledTicksRemaining: 0,
             attackCooldown: 0,
+            // Units default to aggressive: they engage and pursue what they see,
+            // which is the classic RTS default. HOLD/GUARD/DEFENSIVE are explicit.
+            stance: UnitStance.AGGRESSIVE,
+            orderMode: OrderMode.NONE,
             sightRange: spec.sightRange,
             weaponId: spec.weaponId,
             moveSpeed: Math.round(spec.speed / 30), // per tick
@@ -209,6 +216,13 @@ export class GameSimulation {
                 if (movableEntities.length > 0) {
                     // Deterministic processing order regardless of input entityIds order.
                     movableEntities.sort((a, b) => a.id - b.id);
+                    // A fresh move/attack-move replaces any standing order, otherwise a
+                    // previous patrol/guard would keep overriding the new destination.
+                    const nextMode = cmd.type === CommandType.ATTACK_MOVE ? OrderMode.ATTACK_MOVE : OrderMode.NONE;
+                    for (const e of movableEntities) {
+                        this.clearOrders(e);
+                        e.orderMode = nextMode;
+                    }
                     if (movableEntities.length > 8) {
                         // Large group: shared flow field toward the goal — O(cells) once,
                         // then O(1) steering per unit per tick.
@@ -253,12 +267,9 @@ export class GameSimulation {
                 for (const id of cmd.entityIds) {
                     const e = this.entities.get(id);
                     if (e && e.playerIndex === cmd.playerIndex && !e.isBuilding && this.isEnemy(e, target)) {
+                        // An explicit attack order overrides any standing order.
+                        this.clearOrders(e);
                         e.targetEntityId = cmd.targetEntityId;
-                        e.targetX = undefined;
-                        e.targetY = undefined;
-                        e.waypoints = undefined;
-                        e.flowGoalX = undefined;
-                        e.flowGoalY = undefined;
                     }
                 }
                 break;
@@ -267,12 +278,81 @@ export class GameSimulation {
                 for (const id of cmd.entityIds) {
                     const e = this.entities.get(id);
                     if (e && e.playerIndex === cmd.playerIndex) {
-                        e.targetX = undefined;
-                        e.targetY = undefined;
-                        e.targetEntityId = undefined;
-                        e.waypoints = undefined;
-                        e.flowGoalX = undefined;
-                        e.flowGoalY = undefined;
+                        this.clearOrders(e);
+                    }
+                }
+                break;
+            }
+            case CommandType.HOLD: {
+                // Hold position: fight from where you stand, never pursue. The current
+                // position becomes the post the entity must not leave.
+                for (const id of cmd.entityIds) {
+                    const e = this.entities.get(id);
+                    if (e && e.playerIndex === cmd.playerIndex && !e.isBuilding) {
+                        this.clearOrders(e);
+                        e.orderMode = OrderMode.HOLD;
+                        e.postX = e.x;
+                        e.postY = e.y;
+                    }
+                }
+                break;
+            }
+            case CommandType.PATROL: {
+                const units = cmd.entityIds
+                    .map((id) => this.entities.get(id))
+                    .filter((e) => !!e && e.playerIndex === cmd.playerIndex && !e.isBuilding)
+                    .sort((a, b) => a.id - b.id); // deterministic order
+                for (const e of units) {
+                    if (cmd.append && e.orderMode === OrderMode.PATROL && e.patrolRoute) {
+                        e.patrolRoute.push({ x: cmd.targetX, y: cmd.targetY });
+                    }
+                    else {
+                        // A new patrol runs between the current position and the target,
+                        // so a single click already produces a real back-and-forth route.
+                        this.clearOrders(e);
+                        e.orderMode = OrderMode.PATROL;
+                        e.patrolRoute = [{ x: e.x, y: e.y }, { x: cmd.targetX, y: cmd.targetY }];
+                        e.patrolIndex = 1;
+                        this.setMoveDestination(e, cmd.targetX, cmd.targetY);
+                    }
+                }
+                break;
+            }
+            case CommandType.GUARD: {
+                const units = cmd.entityIds
+                    .map((id) => this.entities.get(id))
+                    .filter((e) => !!e && e.playerIndex === cmd.playerIndex && !e.isBuilding)
+                    .sort((a, b) => a.id - b.id);
+                for (const e of units) {
+                    const guarded = cmd.targetEntityId !== undefined ? this.entities.get(cmd.targetEntityId) : undefined;
+                    // Guarding an enemy is meaningless; ignore rather than half-apply.
+                    if (guarded && this.isEnemy(e, guarded))
+                        continue;
+                    this.clearOrders(e);
+                    e.orderMode = OrderMode.GUARD;
+                    if (guarded) {
+                        e.guardEntityId = guarded.id;
+                        e.postX = guarded.x;
+                        e.postY = guarded.y;
+                    }
+                    else {
+                        e.postX = cmd.targetX ?? e.x;
+                        e.postY = cmd.targetY ?? e.y;
+                        if (cmd.targetX !== undefined && cmd.targetY !== undefined) {
+                            this.setMoveDestination(e, cmd.targetX, cmd.targetY);
+                        }
+                    }
+                }
+                break;
+            }
+            case CommandType.SET_STANCE: {
+                for (const id of cmd.entityIds) {
+                    const e = this.entities.get(id);
+                    if (e && e.playerIndex === cmd.playerIndex) {
+                        e.stance = cmd.stance;
+                        // Dropping out of hold-fire must not keep a stale forced target.
+                        if (cmd.stance === UnitStance.HOLD_FIRE)
+                            e.targetEntityId = undefined;
                     }
                 }
                 break;
@@ -367,17 +447,128 @@ export class GameSimulation {
                 }
                 break;
             }
-            case CommandType.HOLD:
             case CommandType.SELL_STRUCTURE:
             case CommandType.REPAIR_STRUCTURE:
             case CommandType.CAPTURE_BUILDING:
-            // PATROL/GUARD are accepted by the protocol; simulation behavior
-            // lands with the formation/stance system (tracked in roadmap).
-            case CommandType.PATROL:
-            case CommandType.GUARD:
                 break;
             default:
                 assertNever(cmd);
+        }
+    }
+    /**
+     * Cancel every movement/attack/standing order, returning the entity to
+     * plain idle. Stance is a persistent preference and is deliberately kept.
+     */
+    clearOrders(e) {
+        e.targetX = undefined;
+        e.targetY = undefined;
+        e.targetEntityId = undefined;
+        e.waypoints = undefined;
+        e.flowGoalX = undefined;
+        e.flowGoalY = undefined;
+        e.orderMode = OrderMode.NONE;
+        e.patrolRoute = undefined;
+        e.patrolIndex = undefined;
+        e.postX = undefined;
+        e.postY = undefined;
+        e.guardEntityId = undefined;
+    }
+    /** Path an entity toward a world position (single-unit path, no flow field). */
+    setMoveDestination(e, x, y) {
+        e.targetX = x;
+        e.targetY = y;
+        e.flowGoalX = undefined;
+        e.flowGoalY = undefined;
+        e.waypoints = this.navigation.findPath(e.x, e.y, x, y);
+    }
+    /**
+     * How far an entity may stray from its post before it must return.
+     *
+     * HOLD units never leave at all; guards get a leash so they can meet an
+     * attacker but still come back instead of being pulled across the map.
+     */
+    static GUARD_LEASH = 6000; // 6 tiles (scaled ints)
+    /**
+     * Advance standing orders once per tick, before movement executes.
+     *
+     * Iterates `this.entities` in insertion order (deterministic across
+     * environments because ids are allocated deterministically) and only reads
+     * simulation state — no wall clock, no unseeded randomness.
+     */
+    updateStandingOrders() {
+        const ARRIVE_SQ = 900 * 900; // ~0.9 tile — "close enough" to a waypoint
+        for (const e of this.entities.values()) {
+            // Fast path: the vast majority of entities carry no standing order, so
+            // skip them before any further checks (this runs every tick).
+            if (e.orderMode === OrderMode.NONE || e.orderMode === OrderMode.ATTACK_MOVE)
+                continue;
+            if (e.isBuilding || e.isDisabled || e.hp <= 0)
+                continue;
+            switch (e.orderMode) {
+                case OrderMode.HOLD: {
+                    // A holding unit never travels. It may have acquired a target for
+                    // firing, but must not be pulled out of position by it.
+                    if (e.postX !== undefined && e.postY !== undefined) {
+                        e.targetX = undefined;
+                        e.targetY = undefined;
+                        e.waypoints = undefined;
+                        e.flowGoalX = undefined;
+                        e.flowGoalY = undefined;
+                    }
+                    break;
+                }
+                case OrderMode.PATROL: {
+                    const route = e.patrolRoute;
+                    if (!route || route.length < 2)
+                        break;
+                    // Engaging an enemy suspends patrol travel until the fight resolves.
+                    if (e.targetEntityId !== undefined && this.entities.has(e.targetEntityId))
+                        break;
+                    const idx = e.patrolIndex ?? 0;
+                    const leg = route[idx % route.length];
+                    const arrived = fixedDistanceSq(e.x, e.y, leg.x, leg.y) <= ARRIVE_SQ;
+                    if (arrived) {
+                        // Advance to the next leg, cycling the route forever.
+                        const nextIdx = (idx + 1) % route.length;
+                        e.patrolIndex = nextIdx;
+                        const next = route[nextIdx];
+                        this.setMoveDestination(e, next.x, next.y);
+                    }
+                    else if (e.targetX === undefined && e.targetY === undefined) {
+                        // Re-issue the current leg after an interruption (e.g. combat).
+                        this.setMoveDestination(e, leg.x, leg.y);
+                    }
+                    break;
+                }
+                case OrderMode.GUARD: {
+                    // Guarding a unit means following it as it moves.
+                    if (e.guardEntityId !== undefined) {
+                        const guarded = this.entities.get(e.guardEntityId);
+                        if (!guarded || guarded.hp <= 0) {
+                            // The guarded entity died — drop to idle rather than guarding a ghost.
+                            this.clearOrders(e);
+                            break;
+                        }
+                        e.postX = guarded.x;
+                        e.postY = guarded.y;
+                    }
+                    if (e.postX === undefined || e.postY === undefined)
+                        break;
+                    const distToPostSq = fixedDistanceSq(e.x, e.y, e.postX, e.postY);
+                    const engaged = e.targetEntityId !== undefined && this.entities.has(e.targetEntityId);
+                    const leashSq = GameSimulation.GUARD_LEASH * GameSimulation.GUARD_LEASH;
+                    if (distToPostSq > leashSq) {
+                        // Beyond the leash: abandon the chase and return to the post.
+                        e.targetEntityId = undefined;
+                        this.setMoveDestination(e, e.postX, e.postY);
+                    }
+                    else if (!engaged && distToPostSq > ARRIVE_SQ && e.targetX === undefined) {
+                        // Idle and away from the post (post moved, or we drifted) — go back.
+                        this.setMoveDestination(e, e.postX, e.postY);
+                    }
+                    break;
+                }
+            }
         }
     }
     isBuildLocationValid(structSpec, gridX, gridY) {
@@ -439,7 +630,9 @@ export class GameSimulation {
                 }
             }
         }
-        // 3. Movement Logic with Waypoints
+        // 3. Standing Orders (patrol legs, guard leash, hold anchoring)
+        this.updateStandingOrders();
+        // 3b. Movement Logic with Waypoints
         for (const e of this.entities.values()) {
             if (e.disabledTicksRemaining > 0) {
                 e.disabledTicksRemaining--;
@@ -641,23 +834,44 @@ export class GameSimulation {
                     continue;
                 }
                 if (!target) {
+                    // HOLD_FIRE never acquires targets on its own — it only fires at a
+                    // target given by an explicit ATTACK order (set above).
+                    if (e.stance === UnitStance.HOLD_FIRE)
+                        continue;
                     // Auto-target nearest enemy — allocation-free scan with deterministic
                     // tie-breaking (strictly smaller distance wins; equal distance keeps
                     // the earlier-visited candidate, and bucket order is insertion order).
-                    let minDistSq = weapon.range * weapon.range;
-                    let best;
-                    this.spatialGrid.forEachInRadius(e.x, e.y, weapon.range, (cand) => {
-                        if (cand.hp > 0 && this.isEnemy(e, cand)) {
-                            const cdx = e.x - cand.x;
-                            const cdy = e.y - cand.y;
-                            const dSq = cdx * cdx + cdy * cdy;
-                            if (dSq < minDistSq || (dSq === minDistSq && best === undefined)) {
-                                minDistSq = dSq;
-                                best = cand;
+                    // Two-stage acquisition, for cost as much as for behavior:
+                    //  1. cheap scan inside weapon range — the common case in a fight;
+                    //  2. only if nothing is shootable, widen to sight range so the unit
+                    //     can close on an enemy it can see but not yet hit.
+                    // Anchored units (HOLD / DEFENSIVE) never run stage 2: they must not
+                    // leave their post, so a target they cannot hit is of no use.
+                    // Fog of war is not bypassed — sightRange is this entity's own vision.
+                    const scan = (range) => {
+                        let minDistSq = range * range;
+                        let found;
+                        this.spatialGrid.forEachInRadius(e.x, e.y, range, (cand) => {
+                            if (cand.hp > 0 && this.isEnemy(e, cand)) {
+                                const cdx = e.x - cand.x;
+                                const cdy = e.y - cand.y;
+                                const dSq = cdx * cdx + cdy * cdy;
+                                if (dSq < minDistSq || (dSq === minDistSq && found === undefined)) {
+                                    minDistSq = dSq;
+                                    found = cand;
+                                }
                             }
-                        }
-                    });
-                    target = best;
+                        });
+                        return found;
+                    };
+                    const anchored = e.stance === UnitStance.DEFENSIVE || e.orderMode === OrderMode.HOLD;
+                    target = scan(weapon.range);
+                    // Stage 2 is the expensive one (sight radius can be ~2x the weapon
+                    // radius ⇒ ~4x the area), and it only decides whether to START
+                    // closing in. Reached only when nothing is already shootable.
+                    if (!target && !anchored && !e.isBuilding && e.sightRange > weapon.range) {
+                        target = scan(e.sightRange);
+                    }
                 }
                 if (target && target.hp > 0) {
                     const dSq = fixedDistanceSq(e.x, e.y, target.x, target.y);
@@ -686,14 +900,30 @@ export class GameSimulation {
                         }
                     }
                     else if (!e.isBuilding) {
-                        // Move into attack range
-                        const targetDistSq = e.targetX !== undefined && e.targetY !== undefined
-                            ? fixedDistanceSq(e.targetX, e.targetY, target.x, target.y)
-                            : Infinity;
-                        if (e.targetX === undefined || targetDistSq > 2000 * 2000) {
-                            e.targetX = target.x;
-                            e.targetY = target.y;
-                            e.waypoints = this.navigation.findPath(e.x, e.y, e.targetX, e.targetY);
+                        // Target is out of range. Whether we may chase it depends on the
+                        // entity's standing order and stance — this is what makes HOLD and
+                        // GUARD meaningful rather than cosmetic.
+                        const mayPursue = e.orderMode !== OrderMode.HOLD
+                            && e.stance !== UnitStance.DEFENSIVE
+                            && !(e.orderMode === OrderMode.GUARD
+                                && e.postX !== undefined && e.postY !== undefined
+                                && fixedDistanceSq(target.x, target.y, e.postX, e.postY)
+                                    > GameSimulation.GUARD_LEASH * GameSimulation.GUARD_LEASH);
+                        if (!mayPursue) {
+                            // Cannot reach it without abandoning our post: forget the target
+                            // so we re-acquire something actually engageable next scan.
+                            e.targetEntityId = undefined;
+                        }
+                        else {
+                            // Move into attack range
+                            const targetDistSq = e.targetX !== undefined && e.targetY !== undefined
+                                ? fixedDistanceSq(e.targetX, e.targetY, target.x, target.y)
+                                : Infinity;
+                            if (e.targetX === undefined || targetDistSq > 2000 * 2000) {
+                                e.targetX = target.x;
+                                e.targetY = target.y;
+                                e.waypoints = this.navigation.findPath(e.x, e.y, e.targetX, e.targetY);
+                            }
                         }
                     }
                 }
@@ -837,6 +1067,20 @@ export class GameSimulation {
             mix(e.targetEntityId ?? -1);
             mix(e.targetX ?? -1);
             mix(e.targetY ?? -1);
+            // Standing orders are simulation state: two clients disagreeing about a
+            // patrol leg or guard post would diverge, so the hash must cover them.
+            mix(e.orderMode === OrderMode.HOLD ? 1 : e.orderMode === OrderMode.PATROL ? 2
+                : e.orderMode === OrderMode.GUARD ? 3 : e.orderMode === OrderMode.ATTACK_MOVE ? 4 : 0);
+            mix(e.stance === UnitStance.AGGRESSIVE ? 1 : e.stance === UnitStance.DEFENSIVE ? 2 : 3);
+            mix(e.patrolIndex ?? -1);
+            mix(e.postX ?? -1);
+            mix(e.postY ?? -1);
+            mix(e.guardEntityId ?? -1);
+            if (e.patrolRoute)
+                for (const leg of e.patrolRoute) {
+                    mix(leg.x);
+                    mix(leg.y);
+                }
             for (const item of e.productionQueue) {
                 mix(item.progressTicks);
                 mix(item.costPaid);

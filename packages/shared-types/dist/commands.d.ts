@@ -1,4 +1,4 @@
-import { CommandType } from './enums.js';
+import { CommandType, UnitStance } from './enums.js';
 export interface BaseCommand {
     type: CommandType;
     entityIds: number[];
@@ -27,12 +27,22 @@ export interface HoldCommand extends BaseCommand {
 }
 export interface PatrolCommand extends BaseCommand {
     type: CommandType.PATROL;
+    /** Next patrol waypoint. Issued repeatedly (Shift-click) to build a route. */
     targetX: number;
     targetY: number;
+    /** When true, append to the existing route instead of replacing it. */
+    append?: boolean;
 }
 export interface GuardCommand extends BaseCommand {
     type: CommandType.GUARD;
+    /** Guard a specific entity (follows it), or a fixed point when omitted. */
     targetEntityId?: number;
+    targetX?: number;
+    targetY?: number;
+}
+export interface SetStanceCommand extends BaseCommand {
+    type: CommandType.SET_STANCE;
+    stance: UnitStance;
 }
 export interface BuildStructureCommand extends BaseCommand {
     type: CommandType.BUILD_STRUCTURE;
@@ -80,5 +90,5 @@ export interface DepositOreCommand extends BaseCommand {
 export interface SurrenderCommand extends BaseCommand {
     type: CommandType.SURRENDER;
 }
-export type PlayerCommand = MoveCommand | AttackCommand | AttackMoveCommand | StopCommand | HoldCommand | PatrolCommand | GuardCommand | BuildStructureCommand | ProduceUnitCommand | CancelProductionCommand | SellStructureCommand | RepairStructureCommand | UseAbilityCommand | CaptureBuildingCommand | DepositOreCommand | GatherCommand | SurrenderCommand;
+export type PlayerCommand = MoveCommand | AttackCommand | AttackMoveCommand | StopCommand | HoldCommand | PatrolCommand | GuardCommand | SetStanceCommand | BuildStructureCommand | ProduceUnitCommand | CancelProductionCommand | SellStructureCommand | RepairStructureCommand | UseAbilityCommand | CaptureBuildingCommand | DepositOreCommand | GatherCommand | SurrenderCommand;
 //# sourceMappingURL=commands.d.ts.map

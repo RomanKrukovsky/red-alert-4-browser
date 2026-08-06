@@ -91,6 +91,13 @@ Current results (M-series laptop, Node 20):
 | p95 | 5.6 ms | **< 8 ms (Rust/WASM gate)** |
 | p99 | 5.8 ms | < 33.33 ms (30 Hz frame) |
 
+> ⚠️ **Stale as of the stance/standing-order change (2026-08-06).** These
+> figures predate two-stage target acquisition. Attempts to re-measure ran on
+> a machine under load average 24–120, where successive runs of the same build
+> varied by >10× (p95 13 ms → 377 ms), so no trustworthy number could be
+> taken. Re-measure on an idle machine before relying on this table or on the
+> WASM-gate verdict. See `docs/game-design/army-control.md` § Known gap.
+
 **Rust/WASM decision gate:** if p95 on this benchmark exceeds 8 ms after a feature
 addition, the hot systems (pathfinding first) are ported to Rust/WASM behind the
 same command/snapshot boundary. The gate is recorded in the benchmark JSON

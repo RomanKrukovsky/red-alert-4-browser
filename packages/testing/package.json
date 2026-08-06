@@ -23,7 +23,8 @@
     "test:replay": "vitest run apps/game-server/src/__tests__/serverMatchRuntime.test.ts",
     "test:navigation-scale": "node ./dist/navigationScale.test.js",
     "test:protocol-v1": "node ./dist/protocol.test.js",
-    "test:replay-v2": "node ./dist/replayV2.test.js"
+    "test:replay-v2": "node ./dist/replayV2.test.js",
+    "test:stances": "node ./dist/stances.test.js"
   },
   "dependencies": {
     "@ra4/shared-types": "workspace:*",
