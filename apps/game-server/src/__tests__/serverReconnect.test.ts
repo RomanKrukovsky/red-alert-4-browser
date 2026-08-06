@@ -11,17 +11,19 @@ describe('Server Reconnect & Snapshot Recovery Suite', () => {
     runtime.handleDisconnect(0);
     expect(runtime.players.get(0)?.isConnected).toBe(false);
 
+    // Protocol v1: reconnect snapshot arrives as a binary SNAPSHOT_JSON envelope.
+    let receivedKind = -1;
     const mockWs = {
       readyState: 1,
-      send: (data: string) => {
-        const msg = JSON.parse(data);
-        expect(msg.type).toEqual('STATE_SNAPSHOT');
+      send: (data: Uint8Array) => {
+        receivedKind = data[3]; // WireKind byte in the envelope header
       },
     } as any;
 
     const ok = runtime.handleReconnect(0, 'token-0', 0, mockWs);
     expect(ok).toBe(true);
     expect(runtime.players.get(0)?.isConnected).toBe(true);
+    expect(receivedKind).toBe(24); // WireKind.SNAPSHOT_JSON
   });
 
   it('should reject reconnect attempt with invalid token', () => {

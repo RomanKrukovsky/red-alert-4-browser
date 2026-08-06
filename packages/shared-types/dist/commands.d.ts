@@ -25,6 +25,15 @@ export interface StopCommand extends BaseCommand {
 export interface HoldCommand extends BaseCommand {
     type: CommandType.HOLD;
 }
+export interface PatrolCommand extends BaseCommand {
+    type: CommandType.PATROL;
+    targetX: number;
+    targetY: number;
+}
+export interface GuardCommand extends BaseCommand {
+    type: CommandType.GUARD;
+    targetEntityId?: number;
+}
 export interface BuildStructureCommand extends BaseCommand {
     type: CommandType.BUILD_STRUCTURE;
     structureId: string;
@@ -71,5 +80,5 @@ export interface DepositOreCommand extends BaseCommand {
 export interface SurrenderCommand extends BaseCommand {
     type: CommandType.SURRENDER;
 }
-export type PlayerCommand = MoveCommand | AttackCommand | AttackMoveCommand | StopCommand | HoldCommand | BuildStructureCommand | ProduceUnitCommand | CancelProductionCommand | SellStructureCommand | RepairStructureCommand | UseAbilityCommand | CaptureBuildingCommand | DepositOreCommand | GatherCommand | SurrenderCommand;
+export type PlayerCommand = MoveCommand | AttackCommand | AttackMoveCommand | StopCommand | HoldCommand | PatrolCommand | GuardCommand | BuildStructureCommand | ProduceUnitCommand | CancelProductionCommand | SellStructureCommand | RepairStructureCommand | UseAbilityCommand | CaptureBuildingCommand | DepositOreCommand | GatherCommand | SurrenderCommand;
 //# sourceMappingURL=commands.d.ts.map

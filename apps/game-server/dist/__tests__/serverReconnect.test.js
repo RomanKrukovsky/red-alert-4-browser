@@ -10,16 +10,18 @@ const shared_types_1 = require("@ra4/shared-types");
         ]);
         runtime.handleDisconnect(0);
         (0, vitest_1.expect)(runtime.players.get(0)?.isConnected).toBe(false);
+        // Protocol v1: reconnect snapshot arrives as a binary SNAPSHOT_JSON envelope.
+        let receivedKind = -1;
         const mockWs = {
             readyState: 1,
             send: (data) => {
-                const msg = JSON.parse(data);
-                (0, vitest_1.expect)(msg.type).toEqual('STATE_SNAPSHOT');
+                receivedKind = data[3]; // WireKind byte in the envelope header
             },
         };
         const ok = runtime.handleReconnect(0, 'token-0', 0, mockWs);
         (0, vitest_1.expect)(ok).toBe(true);
         (0, vitest_1.expect)(runtime.players.get(0)?.isConnected).toBe(true);
+        (0, vitest_1.expect)(receivedKind).toBe(24); // WireKind.SNAPSHOT_JSON
     });
     (0, vitest_1.it)('should reject reconnect attempt with invalid token', () => {
         const runtime = new matchRuntime_1.AuthoritativeMatchRuntime('map_red_square_duel', [

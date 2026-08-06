@@ -267,6 +267,9 @@ importers:
 
   packages/netcode:
     dependencies:
+      '@ra4/content-runtime':
+        specifier: workspace:*
+        version: link:../content-runtime
       '@ra4/shared-types':
         specifier: workspace:*
         version: link:../shared-types
@@ -283,6 +286,9 @@ importers:
       '@ra4/content-runtime':
         specifier: workspace:*
         version: link:../content-runtime
+      '@ra4/netcode':
+        specifier: workspace:*
+        version: link:../netcode
       '@ra4/shared-types':
         specifier: workspace:*
         version: link:../shared-types
@@ -318,6 +324,9 @@ importers:
 
   packages/testing:
     dependencies:
+      '@ra4/netcode':
+        specifier: workspace:*
+        version: link:../netcode
       '@ra4/replay':
         specifier: workspace:*
         version: link:../replay

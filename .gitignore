@@ -3,3 +3,7 @@ assets-source/extracted/
 assets-source/blender/
 assets-source/previews/
 
+apps/game-server/src/**/*.js
+apps/game-server/src/**/*.js.map
+apps/game-server/src/**/*.d.ts
+apps/game-server/src/**/*.d.ts.map

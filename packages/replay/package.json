@@ -15,9 +15,11 @@
   "dependencies": {
     "@ra4/shared-types": "workspace:*",
     "@ra4/sim-core": "workspace:*",
-    "@ra4/content-runtime": "workspace:*"
+    "@ra4/content-runtime": "workspace:*",
+    "@ra4/netcode": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.7.3"
-  }
+  },
+  "type": "module"
 }

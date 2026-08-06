@@ -444,6 +444,10 @@ export class GameSimulation {
       case CommandType.SELL_STRUCTURE:
       case CommandType.REPAIR_STRUCTURE:
       case CommandType.CAPTURE_BUILDING:
+      // PATROL/GUARD are accepted by the protocol; simulation behavior
+      // lands with the formation/stance system (tracked in roadmap).
+      case CommandType.PATROL:
+      case CommandType.GUARD:
         break;
       default:
         assertNever(cmd);
@@ -895,12 +899,52 @@ export class GameSimulation {
     return this.playerTeams[source.playerIndex] !== this.playerTeams[target.playerIndex];
   }
 
+  /**
+   * Full-state checksum (checksum format v2).
+   *
+   * Covers: tick, seed, PRNG state, per-entity spatial + combat + economy +
+   * production state, and per-player economy. Entity iteration order is
+   * insertion order of the Map, which is identical across environments
+   * because entity ids are allocated deterministically.
+   */
   public calculateChecksum(): number {
     let hash = this.tickIndex ^ this.seed;
-    for (const e of this.entities.values()) {
-      hash = ((hash << 5) - hash) + e.id + e.x + e.y + e.hp + e.currentOre;
+    const mix = (v: number): void => {
+      hash = ((hash << 5) - hash) + (v | 0);
       hash |= 0;
+    };
+
+    mix(this.prng.getSeedState());
+    mix(this.matchState === MatchState.FINISHED ? 0x5150 + this.winnerTeam : 0);
+
+    for (const e of this.entities.values()) {
+      mix(e.id); mix(e.x); mix(e.y); mix(e.hp); mix(e.currentOre);
+      mix(e.shield);
+      mix(e.attackCooldown);
+      mix(e.veterancy);
+      mix(e.expEarned);
+      mix(e.isPowered ? 1 : 0);
+      mix(e.disabledTicksRemaining);
+      mix(e.targetEntityId ?? -1);
+      mix(e.targetX ?? -1); mix(e.targetY ?? -1);
+      for (const item of e.productionQueue) {
+        mix(item.progressTicks); mix(item.costPaid);
+        // Cheap deterministic string hash of the queued spec id
+        let sh = 0;
+        for (let i = 0; i < item.specId.length; i++) sh = ((sh << 5) - sh + item.specId.charCodeAt(i)) | 0;
+        mix(sh);
+      }
     }
+
+    for (const p of this.players) {
+      mix(p.credits); mix(p.powerProduced); mix(p.powerConsumed);
+      mix(p.commandCapUsed); mix(p.hasHQ ? 1 : 0);
+    }
+
+    for (const rn of this.resourceNodes.values()) {
+      mix(rn.creditsRemaining);
+    }
+
     return Math.abs(hash);
   }
 

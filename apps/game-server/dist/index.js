@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -121,6 +154,36 @@ async function main() {
         let userId = 'guest-anon';
         socket.on('message', async (data) => {
             try {
+                // Protocol v1 binary frames (match-critical path): magic 'RA'.
+                if (Buffer.isBuffer(data) && data.length >= 2 && data[0] === 0x52 && data[1] === 0x41) {
+                    const { decodeEnvelope, decodeCommandList, decodeChecksum, WireKind } = await Promise.resolve().then(() => __importStar(require('@ra4/netcode')));
+                    const envelope = decodeEnvelope(new Uint8Array(data));
+                    switch (envelope.kind) {
+                        case WireKind.SUBMIT_COMMANDS: {
+                            if (currentMatch) {
+                                for (const command of decodeCommandList(envelope.payload)) {
+                                    const res = currentMatch.submitCommand(playerIndex, command);
+                                    if (!res.valid) {
+                                        metrics_js_1.rejectedCommandsTotal.inc({ reason: res.reason || 'invalid' });
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        case WireKind.CHECKSUM_REPORT: {
+                            if (currentMatch) {
+                                const report = decodeChecksum(envelope.payload);
+                                currentMatch.reportChecksum(playerIndex, report.tick, report.checksum);
+                            }
+                            break;
+                        }
+                        case WireKind.HEARTBEAT:
+                            break;
+                        default:
+                            break;
+                    }
+                    return;
+                }
                 const msg = JSON.parse(data.toString());
                 switch (msg.type) {
                     case 'JOIN_LOBBY': {

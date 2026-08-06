@@ -105,6 +105,14 @@ export declare class GameSimulation {
     private updateFogOfWar;
     checkVictory(): void;
     private isEnemy;
+    /**
+     * Full-state checksum (checksum format v2).
+     *
+     * Covers: tick, seed, PRNG state, per-entity spatial + combat + economy +
+     * production state, and per-player economy. Entity iteration order is
+     * insertion order of the Map, which is identical across environments
+     * because entity ids are allocated deterministically.
+     */
     calculateChecksum(): number;
     createSnapshot(): WorldSnapshot;
 }

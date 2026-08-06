@@ -32,6 +32,17 @@ export interface HoldCommand extends BaseCommand {
   type: CommandType.HOLD;
 }
 
+export interface PatrolCommand extends BaseCommand {
+  type: CommandType.PATROL;
+  targetX: number;
+  targetY: number;
+}
+
+export interface GuardCommand extends BaseCommand {
+  type: CommandType.GUARD;
+  targetEntityId?: number;
+}
+
 export interface BuildStructureCommand extends BaseCommand {
   type: CommandType.BUILD_STRUCTURE;
   structureId: string;
@@ -94,6 +105,8 @@ export type PlayerCommand =
   | AttackMoveCommand
   | StopCommand
   | HoldCommand
+  | PatrolCommand
+  | GuardCommand
   | BuildStructureCommand
   | ProduceUnitCommand
   | CancelProductionCommand

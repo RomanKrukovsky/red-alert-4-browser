@@ -132,8 +132,39 @@ async function main() {
     let userRole: 'player' | 'moderator' | 'admin' = 'player';
     let userId: string = 'guest-anon';
 
-    socket.on('message', async (data: string) => {
+    socket.on('message', async (data: Buffer | string) => {
       try {
+        // Protocol v1 binary frames (match-critical path): magic 'RA'.
+        if (Buffer.isBuffer(data) && data.length >= 2 && data[0] === 0x52 && data[1] === 0x41) {
+          const { decodeEnvelope, decodeCommandList, decodeChecksum, WireKind } = await import('@ra4/netcode');
+          const envelope = decodeEnvelope(new Uint8Array(data));
+          switch (envelope.kind) {
+            case WireKind.SUBMIT_COMMANDS: {
+              if (currentMatch) {
+                for (const command of decodeCommandList(envelope.payload)) {
+                  const res = currentMatch.submitCommand(playerIndex, command);
+                  if (!res.valid) {
+                    rejectedCommandsTotal.inc({ reason: res.reason || 'invalid' });
+                  }
+                }
+              }
+              break;
+            }
+            case WireKind.CHECKSUM_REPORT: {
+              if (currentMatch) {
+                const report = decodeChecksum(envelope.payload);
+                currentMatch.reportChecksum(playerIndex, report.tick, report.checksum);
+              }
+              break;
+            }
+            case WireKind.HEARTBEAT:
+              break;
+            default:
+              break;
+          }
+          return;
+        }
+
         const msg: ClientMessage = JSON.parse(data.toString());
 
         switch (msg.type) {
