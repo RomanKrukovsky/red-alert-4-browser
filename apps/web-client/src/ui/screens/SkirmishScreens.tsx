@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { FactionId } from '@ra4/shared-types';
 import { Emblem, MetalPanel, MilitaryButton, RA4Icon } from '../components/RA4Primitives.js';
+import { DEFAULT_DATABASE } from '@ra4/content-runtime';
 import { LoadingStage, MatchSetup } from '../types.js';
 
 const factions = [
@@ -10,7 +11,9 @@ const factions = [
   { id: FactionId.CHRONOLEGION, label: 'ХРОНОЛЕГИОН' },
 ];
 
-const maps = ['АЛЯСКА — ХОЛОДНАЯ ВЕРШИНА', 'КИЕВ — КРАСНЫЙ РУБЕЖ', 'ОСТРОВА — СИНЯЯ БУРЯ'];
+// Real content maps only — a selector listing maps that do not exist would
+// be a dead control (and would silently fall back to the first map).
+const maps = DEFAULT_DATABASE.maps.map((m) => ({ id: m.id, name: m.name }));
 
 export const SkirmishSetupScreen: React.FC<{ onBack: () => void; onStart: (setup: MatchSetup) => void }> = ({ onBack, onStart }) => {
   const [faction, setFaction] = useState(FactionId.USSR);
@@ -18,7 +21,8 @@ export const SkirmishSetupScreen: React.FC<{ onBack: () => void; onStart: (setup
   const [difficulty, setDifficulty] = useState<MatchSetup['difficulty']>('NORMAL');
   const [credits, setCredits] = useState(10000);
   const [gameSpeed, setGameSpeed] = useState<MatchSetup['gameSpeed']>('NORMAL');
-  const [mapName, setMapName] = useState(maps[0]);
+  const [mapId, setMapId] = useState(maps[0].id);
+  const mapName = maps.find((m) => m.id === mapId)?.name ?? maps[0].name;
   const participants = useMemo(() => [
     { name: 'SOKOLOV_1945', faction, color: '#bd241d', team: 1, human: true },
     { name: `ИИ — ${difficulty}`, faction: opponent, color: '#245eac', team: 2, human: false },
@@ -30,7 +34,7 @@ export const SkirmishSetupScreen: React.FC<{ onBack: () => void; onStart: (setup
     <main className="ra4-screen ra4-skirmish theme-soviet">
       <header><h1>НАСТРОЙКА СХВАТКИ</h1><div className="ra4-wordmark">COMMAND &amp; CONQUER <b>RED ALERT 4</b></div><span>2 / 2 ИГРОКОВ ГОТОВЫ</span></header>
       <MetalPanel className="ra4-lobby-left">
-        <Emblem /><h2>СХВАТКА</h2><label>КАРТА<select value={mapName} onChange={(event) => setMapName(event.target.value)}>{maps.map((map) => <option key={map}>{map}</option>)}</select></label>
+        <Emblem /><h2>СХВАТКА</h2><label>КАРТА<select value={mapId} onChange={(event) => setMapId(event.target.value)}>{maps.map((map) => <option value={map.id} key={map.id}>{map.name}</option>)}</select></label>
         <h3>ПОБЕДНЫЕ УСЛОВИЯ</h3><p>УНИЧТОЖИТЬ ВСЕХ ПРОТИВНИКОВ</p>
         <div className="ra4-settings-list"><span>ДРУЖЕСКИЙ ОГОНЬ <b>ВЫКЛ.</b></span><span>ОГРАНИЧЕНИЕ ВРЕМЕНИ <b>НЕТ</b></span><span>СУПЕРОРУЖИЕ <b>ВКЛ.</b></span></div>
         <MilitaryButton icon="back" onClick={onBack}>ПОКИНУТЬ ЛОББИ</MilitaryButton>
@@ -52,7 +56,7 @@ export const SkirmishSetupScreen: React.FC<{ onBack: () => void; onStart: (setup
         <div className="ra4-settings-form"><label>СЛОЖНОСТЬ<select value={difficulty} onChange={(event) => setDifficulty(event.target.value as MatchSetup['difficulty'])}><option value="EASY">ЛЕГКО</option><option value="NORMAL">НОРМАЛЬНО</option><option value="HARD">ВЕТЕРАН</option></select></label><label>НАЧАЛЬНЫЕ РЕСУРСЫ<select value={credits} onChange={(event) => setCredits(Number(event.target.value))}><option value="5000">5 000</option><option value="10000">10 000</option><option value="20000">20 000</option></select></label><label>СКОРОСТЬ ИГРЫ<select value={gameSpeed} onChange={(event) => setGameSpeed(event.target.value as MatchSetup['gameSpeed'])}><option value="SLOW">НИЗКАЯ</option><option value="NORMAL">НОРМАЛЬНАЯ</option><option value="FAST">ВЫСОКАЯ</option></select></label></div>
         <p>ИГРОК: <b>{labelForFaction(faction)}</b></p><p>ПРОТИВНИК: <b>{labelForFaction(opponent)}</b></p>
       </MetalPanel>
-      <div className="ra4-lobby-actions"><MilitaryButton tone="primary" icon="play" className="ra4-glow-pulse" onClick={() => onStart({ faction, opponentFaction: opponent, mapName, difficulty, startingCredits: credits, gameSpeed })}>НАЧАТЬ БИТВУ</MilitaryButton></div>
+      <div className="ra4-lobby-actions"><MilitaryButton tone="primary" icon="play" className="ra4-glow-pulse" onClick={() => onStart({ faction, opponentFaction: opponent, mapName, mapId, difficulty, startingCredits: credits, gameSpeed })}>НАЧАТЬ БИТВУ</MilitaryButton></div>
     </main>
   );
 };

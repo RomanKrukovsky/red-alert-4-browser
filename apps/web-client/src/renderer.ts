@@ -16,8 +16,10 @@ export class RTSRenderer {
   public engine: Engine;
   public scene: Scene;
   public rtsCamera: RTSCamera;
+  /** The map this renderer is presenting, selected by content id. */
+  public readonly map: typeof DEFAULT_DATABASE.maps[number];
   /** Map size in grid tiles (world units), sourced from content data. */
-  public readonly mapSize: number = DEFAULT_DATABASE.maps[0].width;
+  public readonly mapSize: number;
   public entityMeshes: Map<number, TransformNode> = new Map();
   public selectionRings: Map<number, Mesh> = new Map();
   public healthBars: Map<number, { bg: Mesh, fill: Mesh }> = new Map();
@@ -34,7 +36,9 @@ export class RTSRenderer {
   private assetRegistry: RuntimeAssetRegistry;
   private previousHp: Map<number, number> = new Map();
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, mapId?: string) {
+    this.map = (mapId ? DEFAULT_DATABASE.maps.find((m) => m.id === mapId) : undefined) ?? DEFAULT_DATABASE.maps[0];
+    this.mapSize = this.map.width;
     this.engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
     this.scene = new Scene(this.engine);
     this.scene.clearColor = new Color4(.045, .05, .062, 1);
@@ -226,7 +230,7 @@ export class RTSRenderer {
       this.tacticalMeshes.push(horizontalMark);
     }
 
-    for (const [index, position] of DEFAULT_DATABASE.maps[0].spawnPoints.map((sp) => [sp.x, sp.y] as [number, number]).entries()) {
+    for (const [index, position] of this.map.spawnPoints.map((sp) => [sp.x, sp.y] as [number, number]).entries()) {
       const pad = MeshBuilder.CreateGround(`concrete-pad-${index}`, { width: 22, height: 22 }, this.scene);
       pad.position = new Vector3(position[0], .026, position[1]);
       pad.receiveShadows = true;
@@ -269,8 +273,8 @@ export class RTSRenderer {
     const crystalMaterial = new StandardMaterial('ore-crystal-material', this.scene);
     crystalMaterial.diffuseColor = new Color3(.85, .55, .16);
     crystalMaterial.emissiveColor = new Color3(.32, .16, .03);
-    for (const [index, [x, z]] of DEFAULT_DATABASE.maps[0].resourceNodes.map((rn) => [rn.x, rn.y] as [number, number]).entries()) {
-      const isRich = DEFAULT_DATABASE.maps[0].resourceNodes[index]?.isRich ?? false;
+    for (const [index, [x, z]] of this.map.resourceNodes.map((rn) => [rn.x, rn.y] as [number, number]).entries()) {
+      const isRich = this.map.resourceNodes[index]?.isRich ?? false;
       const field = MeshBuilder.CreateCylinder(`ore-field-${index}`, { diameter: isRich ? 7 : 5, height: .06, tessellation: 32 }, this.scene);
       field.position = new Vector3(x, .08, z);
       field.material = oreMaterial;

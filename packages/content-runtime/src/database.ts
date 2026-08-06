@@ -1441,10 +1441,49 @@ export const OFFICIAL_MAP_DUEL = {
   passabilityGrid: Array(128).fill(0).map(() => Array(128).fill(0))
 };
 
+/**
+ * Second official map — a compact 96×96 four-corner arena.
+ *
+ * Distinct from the duel map in shape and economy: spawns sit closer
+ * together (faster contact), each corner has a single home field, and the
+ * two rich fields are on the shared diagonal, so contesting them is the
+ * central decision instead of a single rich centre.
+ */
+export const OFFICIAL_MAP_CROSSROADS = {
+  id: 'map_iron_crossroads',
+  name: 'Железный Перекрёсток (2v2 / FFA)',
+  width: 96,
+  height: 96,
+  maxPlayers: 4,
+  spawnPoints: [
+    { index: 0, x: 12, y: 12 },
+    { index: 1, x: 84, y: 84 },
+    { index: 2, x: 84, y: 12 },
+    { index: 3, x: 12, y: 84 }
+  ],
+  resourceNodes: [
+    // One home field per corner
+    { id: 'xr_home_0', x: 22, y: 22, isRich: false, creditsRemaining: 40000 },
+    { id: 'xr_home_1', x: 74, y: 74, isRich: false, creditsRemaining: 40000 },
+    { id: 'xr_home_2', x: 74, y: 22, isRich: false, creditsRemaining: 40000 },
+    { id: 'xr_home_3', x: 22, y: 74, isRich: false, creditsRemaining: 40000 },
+    // Two contested rich fields on the shared diagonal
+    { id: 'xr_rich_a', x: 36, y: 60, isRich: true, creditsRemaining: 60000 },
+    { id: 'xr_rich_b', x: 60, y: 36, isRich: true, creditsRemaining: 60000 }
+  ],
+  neutralStructures: [
+    { id: 'xr_oil_n', type: 'OIL_DERRICK' as const, x: 48, y: 20 },
+    { id: 'xr_oil_s', type: 'OIL_DERRICK' as const, x: 48, y: 76 },
+    { id: 'xr_oil_c', type: 'OIL_DERRICK' as const, x: 48, y: 48 }
+  ],
+  heightMap: Array(96).fill(0).map(() => Array(96).fill(0)),
+  passabilityGrid: Array(96).fill(0).map(() => Array(96).fill(0))
+};
+
 export const DEFAULT_DATABASE: ContentDatabase = {
   factions: OFFICIAL_FACTIONS,
   buildings: OFFICIAL_BUILDINGS,
   units: OFFICIAL_UNITS,
   weapons: OFFICIAL_WEAPONS,
-  maps: [OFFICIAL_MAP_DUEL]
+  maps: [OFFICIAL_MAP_DUEL, OFFICIAL_MAP_CROSSROADS]
 };

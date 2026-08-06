@@ -37,7 +37,7 @@ export class MatchLifecycleManager {
         const seed = config.seed ?? 1337;
         this.tickMs = 1000 / (config.tickRate ?? 30);
         this.accumulator = 0;
-        this.sim = new GameSimulation(seed);
+        this.sim = new GameSimulation(seed, undefined, undefined, config.mapId);
         this.sim.initMatch(config.players, config.startingCredits);
         this.state = MatchLifecycleState.INITIALIZED;
     }

@@ -98,13 +98,13 @@ export const App: React.FC = () => {
     disposeMatch();
     setLoadingStages((stages) => stages.map((stage) => stage.id === 'renderer' ? { ...stage, status: 'active', progress: 28 } : stage));
 
-    const renderer = new RTSRenderer(canvasRef.current);
+    const renderer = new RTSRenderer(canvasRef.current, matchSetup.mapId);
     rendererRef.current = renderer;
     await renderer.ready;
     if (rendererRef.current !== renderer) return;
-    // Start camera at player spawn (10,10), pulled back enough to see the base
-    const spawn = DEFAULT_DATABASE.maps[0].spawnPoints[0];
-    renderer.rtsCamera.setMapBounds(DEFAULT_DATABASE.maps[0].width, DEFAULT_DATABASE.maps[0].height);
+    // Frame the player's spawn, pulled back enough to see the whole base.
+    const spawn = renderer.map.spawnPoints[0];
+    renderer.rtsCamera.setMapBounds(renderer.map.width, renderer.map.height);
     renderer.rtsCamera.focusOnPosition(spawn.x + 2, spawn.y + 2);
     renderer.rtsCamera.camera.radius = 40;
     renderer.rtsCamera.camera.beta = Math.PI / 3.5; // ~51° — shows more of the map
@@ -119,6 +119,7 @@ export const App: React.FC = () => {
       seed: Math.floor(Math.random() * 1_000_000),
       tickRate: matchSetup.gameSpeed === 'FAST' ? 36 : matchSetup.gameSpeed === 'SLOW' ? 24 : 30,
       startingCredits: matchSetup.startingCredits,
+      mapId: matchSetup.mapId,
       players: [
         { name: 'Игрок', factionId: matchSetup.faction, type: PlayerType.HUMAN, team: 0 },
         { name: 'ИИ-Соперник', factionId: matchSetup.opponentFaction, type: matchSetup.difficulty === 'HARD' ? PlayerType.AI_HARD : matchSetup.difficulty === 'EASY' ? PlayerType.AI_EASY : PlayerType.AI_MEDIUM, team: 1 },
@@ -195,7 +196,7 @@ export const App: React.FC = () => {
    * is driven by the server's tick stream inside the session's Worker; the
    * client never advances a tick on its own authority.
    */
-  const attachNetworkedPresentation = useCallback(async (session: NetworkedMatchSession, ownFaction: FactionId) => {
+  const attachNetworkedPresentation = useCallback(async (session: NetworkedMatchSession, ownFaction: FactionId, mapId: string) => {
     if (!canvasRef.current) return;
     // Tear down any local-match objects, but keep the network session.
     inputManagerRef.current?.dispose();
@@ -203,12 +204,13 @@ export const App: React.FC = () => {
     simClientRef.current = null;
     hasReceivedSnapshotRef.current = false;
 
-    const renderer = new RTSRenderer(canvasRef.current);
+    // The server's map is authoritative for presentation too.
+    const renderer = new RTSRenderer(canvasRef.current, mapId);
     rendererRef.current = renderer;
     await renderer.ready;
     if (rendererRef.current !== renderer) return;
 
-    const map = DEFAULT_DATABASE.maps[0];
+    const map = renderer.map;
     const spawn = map.spawnPoints[Math.min(session.playerIndex, map.spawnPoints.length - 1)];
     renderer.rtsCamera.setMapBounds(map.width, map.height);
     renderer.rtsCamera.focusOnPosition(spawn.x + 2, spawn.y + 2);
@@ -230,6 +232,8 @@ export const App: React.FC = () => {
         getSelectedEntityIds: () => useUIStore.getState().selectedEntityIds,
         projectWorldToScreen: (wx: number, wz: number) => rendererRef.current?.projectWorldToScreen(wx, wz) ?? null,
         getNetworkStatus: () => ({ status: session.net.status, tick: session.net.lastServerTick, desync: session.net.isDesynced }),
+        /** QA: which map the presentation + simulation actually loaded. */
+        getMapInfo: () => ({ mapId: renderer.map.id, width: renderer.map.width, height: renderer.map.height }),
         /** QA: per-tick local checksums, for cross-client parity assertions. */
         getChecksumHistory: () => session.net.getChecksumHistory(),
         getPerformance: () => ({
@@ -285,7 +289,7 @@ export const App: React.FC = () => {
           { id: 'snapshot', label: 'ПЕРВЫЙ АВТОРИТЕТНЫЙ ТИК', progress: 80, status: 'pending' },
         ]);
         navigate('LOADING', '#/loading');
-        void attachNetworkedPresentation(session, ownSlot?.factionId ?? FactionId.USSR);
+        void attachNetworkedPresentation(session, ownSlot?.factionId ?? FactionId.USSR, info.mapId);
       },
       onDesync: () => setNetDesync(true),
       onGameOver: () => { /* handled through the authoritative frame path */ },
@@ -398,6 +402,7 @@ export const App: React.FC = () => {
           onSetFaction={(factionId) => netSessionRef.current?.setSlot(ownPlayerIndex, factionId)}
           onSetTeam={(team) => netSessionRef.current?.setSlot(ownPlayerIndex, undefined, undefined, team)}
           onSetReady={(isReady) => netSessionRef.current?.setReady(isReady)}
+          onSetMap={(mapId) => netSessionRef.current?.setMap(mapId)}
           onStartMatch={() => netSessionRef.current?.startMatch()}
         />
       )}

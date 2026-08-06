@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { FactionId, PlayerType } from '@ra4/shared-types';
+import { DEFAULT_DATABASE } from '@ra4/content-runtime';
 import { Emblem, MetalPanel, MilitaryButton, RA4Icon } from '../components/RA4Primitives.js';
 import type { LobbySlotInfo, LobbyStateInfo, NetworkStatus } from '../../net/NetworkMatchClient.js';
+
+const availableMaps = DEFAULT_DATABASE.maps.map((m) => ({ id: m.id, name: m.name, maxPlayers: m.maxPlayers }));
+const mapName = (id: string): string => availableMaps.find((m) => m.id === id)?.name ?? id;
 
 const factions = [
   { id: FactionId.USSR, label: 'СССР' },
@@ -125,8 +129,9 @@ export const MultiplayerLobbyScreen: React.FC<{
   onSetFaction: (factionId: FactionId) => void;
   onSetTeam: (team: number) => void;
   onSetReady: (isReady: boolean) => void;
+  onSetMap: (mapId: string) => void;
   onStartMatch: () => void;
-}> = ({ lobby, ownPlayerIndex, status, statusDetail, onBack, onSetFaction, onSetTeam, onSetReady, onStartMatch }) => {
+}> = ({ lobby, ownPlayerIndex, status, statusDetail, onBack, onSetFaction, onSetTeam, onSetReady, onSetMap, onStartMatch }) => {
   const slots: LobbySlotInfo[] = lobby?.slots ?? [];
   const own = slots.find((s) => s.index === ownPlayerIndex);
   // Only occupied human slots gate readiness; empty slots and AI never block.
@@ -148,7 +153,21 @@ export const MultiplayerLobbyScreen: React.FC<{
         <h2>КОМНАТА</h2>
         <p className="ra4-room-code">КОД: <b>{lobby?.roomId ?? '—'}</b></p>
         <h3>КАРТА</h3>
-        <p>{lobby?.mapId ?? '—'}</p>
+        {isHost ? (
+          <label className="ra4-lobby-map-select">
+            <select
+              value={lobby?.mapId ?? availableMaps[0].id}
+              aria-label="Карта матча"
+              onChange={(event) => onSetMap(event.target.value)}
+            >
+              {availableMaps.map((m) => (
+                <option value={m.id} key={m.id}>{m.name}</option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <p>{lobby ? mapName(lobby.mapId) : '—'}</p>
+        )}
         <h3>ПОБЕДНЫЕ УСЛОВИЯ</h3>
         <p>УНИЧТОЖИТЬ ВСЕХ ПРОТИВНИКОВ</p>
         <NetworkStatusBanner status={status} detail={statusDetail} />
@@ -204,7 +223,7 @@ export const MultiplayerLobbyScreen: React.FC<{
       </MetalPanel>
 
       <MetalPanel className="ra4-lobby-right" title="СТАТУС">
-        <h2>{lobby?.mapId ?? 'КАРТА НЕ ВЫБРАНА'}</h2>
+        <h2>{lobby ? mapName(lobby.mapId) : 'КАРТА НЕ ВЫБРАНА'}</h2>
         <div className="ra4-map-preview"><span className="start-one">1</span><span className="start-two">2</span></div>
         <p>ВАША ФРАКЦИЯ: <b>{own ? factionLabel(own.factionId) : '—'}</b></p>
         <p>ВАША КОМАНДА: <b>{own ? own.team + 1 : '—'}</b></p>

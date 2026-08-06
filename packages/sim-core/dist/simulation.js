@@ -34,10 +34,16 @@ export class GameSimulation {
     /** Map dimensions in grid tiles (1 tile = 1000 scaled units). */
     mapWidth;
     mapHeight;
-    constructor(seed = 1337, mapWidth, mapHeight) {
+    /** Content id of the map this match is played on. */
+    mapId;
+    constructor(seed = 1337, mapWidth, mapHeight, mapId) {
         this.seed = seed;
-        this.mapWidth = mapWidth ?? DEFAULT_DATABASE.maps[0].width;
-        this.mapHeight = mapHeight ?? DEFAULT_DATABASE.maps[0].height;
+        const map = mapId
+            ? DEFAULT_DATABASE.maps.find((m) => m.id === mapId) ?? DEFAULT_DATABASE.maps[0]
+            : DEFAULT_DATABASE.maps[0];
+        this.mapId = map.id;
+        this.mapWidth = mapWidth ?? map.width;
+        this.mapHeight = mapHeight ?? map.height;
         this.prng = new Mulberry32PRNG(seed);
         this.spatialGrid = new SpatialHashGrid(4000, this.mapWidth * 1000);
         this.fogOfWar = new FogOfWarManager(this.mapWidth, this.mapHeight);
@@ -81,8 +87,8 @@ export class GameSimulation {
                 this.aiAgents.set(idx, new SkirmishAIAgent(idx, p.factionId, difficulty, 'ADAPTIVE', p.team));
             }
         });
-        // Spawn Resource Nodes from default map
-        const defaultMap = DEFAULT_DATABASE.maps[0];
+        // Spawn Resource Nodes from the match's map (selected by id in the ctor)
+        const defaultMap = DEFAULT_DATABASE.maps.find((m) => m.id === this.mapId) ?? DEFAULT_DATABASE.maps[0];
         defaultMap.resourceNodes.forEach(rn => {
             this.resourceNodes.set(rn.id, {
                 id: rn.id,

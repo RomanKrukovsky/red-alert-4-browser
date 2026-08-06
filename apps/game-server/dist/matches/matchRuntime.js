@@ -49,7 +49,8 @@ class AuthoritativeMatchRuntime {
         this.matchId = node_crypto_1.default.randomUUID();
         this.mapId = mapId;
         this.seed = seed;
-        this.sim = new sim_core_1.GameSimulation(seed);
+        // The room's selected map is authoritative for the simulation.
+        this.sim = new sim_core_1.GameSimulation(seed, undefined, undefined, mapId);
         for (const p of playerConfigs) {
             this.players.set(p.playerIndex, { ...p, outSeq: p.outSeq ?? 0 });
         }

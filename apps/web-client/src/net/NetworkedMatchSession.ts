@@ -98,6 +98,9 @@ export class NetworkedMatchSession {
       tickRate: info.tickRate,
       startingCredits: info.startingCredits,
       players: info.players,
+      // The server's map is authoritative — loading a different one would
+      // change spawns/resources and desync immediately.
+      mapId: info.mapId,
     };
 
     await this.sim.initializeNetworked(config);

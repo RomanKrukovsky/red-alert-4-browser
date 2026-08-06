@@ -178,5 +178,40 @@ export declare const OFFICIAL_MAP_DUEL: {
     heightMap: any[][];
     passabilityGrid: any[][];
 };
+/**
+ * Second official map — a compact 96×96 four-corner arena.
+ *
+ * Distinct from the duel map in shape and economy: spawns sit closer
+ * together (faster contact), each corner has a single home field, and the
+ * two rich fields are on the shared diagonal, so contesting them is the
+ * central decision instead of a single rich centre.
+ */
+export declare const OFFICIAL_MAP_CROSSROADS: {
+    id: string;
+    name: string;
+    width: number;
+    height: number;
+    maxPlayers: number;
+    spawnPoints: {
+        index: number;
+        x: number;
+        y: number;
+    }[];
+    resourceNodes: {
+        id: string;
+        x: number;
+        y: number;
+        isRich: boolean;
+        creditsRemaining: number;
+    }[];
+    neutralStructures: {
+        id: string;
+        type: "OIL_DERRICK";
+        x: number;
+        y: number;
+    }[];
+    heightMap: any[][];
+    passabilityGrid: any[][];
+};
 export declare const DEFAULT_DATABASE: ContentDatabase;
 //# sourceMappingURL=database.d.ts.map

@@ -20,6 +20,8 @@ export interface MatchConfig {
     }[];
     tickRate?: number;
     startingCredits?: number;
+    /** Content id of the map to play. Defaults to the first official map. */
+    mapId?: string;
 }
 export interface AdvanceResult {
     /** Snapshot of the last executed tick this advance, or null when no tick ran. */

@@ -85,7 +85,9 @@ export declare class GameSimulation {
     /** Map dimensions in grid tiles (1 tile = 1000 scaled units). */
     mapWidth: number;
     mapHeight: number;
-    constructor(seed?: number, mapWidth?: number, mapHeight?: number);
+    /** Content id of the map this match is played on. */
+    mapId: string;
+    constructor(seed?: number, mapWidth?: number, mapHeight?: number, mapId?: string);
     initMatch(playerConfigs: {
         name: string;
         factionId: FactionId;

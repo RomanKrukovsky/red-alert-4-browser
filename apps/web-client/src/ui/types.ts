@@ -23,6 +23,8 @@ export interface MatchSetup {
   faction: FactionId;
   opponentFaction: FactionId;
   mapName: string;
+  /** Content id of the selected map. Falls back to the first official map. */
+  mapId?: string;
   difficulty: 'EASY' | 'NORMAL' | 'HARD';
   startingCredits: number;
   gameSpeed: 'SLOW' | 'NORMAL' | 'FAST';

@@ -244,6 +244,25 @@ async function main() {
                         }
                         break;
                     }
+                    case 'SET_MAP': {
+                        if (currentRoomId) {
+                            // Validate against the content database — an unknown map id
+                            // would silently fall back and desync client expectations.
+                            const { DEFAULT_DATABASE } = await Promise.resolve().then(() => __importStar(require('@ra4/content-runtime')));
+                            const known = DEFAULT_DATABASE.maps.some((m) => m.id === msg.mapId);
+                            if (!known) {
+                                socket.send(JSON.stringify({ type: 'ERROR', message: `Unknown map ${msg.mapId}` }));
+                                break;
+                            }
+                            const room = roomManager.getRoom(currentRoomId);
+                            if (room && room.hostIndex !== playerIndex) {
+                                socket.send(JSON.stringify({ type: 'ERROR', message: 'Only the host can change the map' }));
+                                break;
+                            }
+                            broadcastLobbyState(currentRoomId, roomManager.setMap(currentRoomId, msg.mapId));
+                        }
+                        break;
+                    }
                     case 'SET_READY': {
                         if (currentRoomId) {
                             const room = roomManager.setReady(currentRoomId, playerIndex, msg.isReady);

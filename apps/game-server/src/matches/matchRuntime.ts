@@ -79,7 +79,8 @@ export class AuthoritativeMatchRuntime {
     this.mapId = mapId;
     this.seed = seed;
 
-    this.sim = new GameSimulation(seed);
+    // The room's selected map is authoritative for the simulation.
+    this.sim = new GameSimulation(seed, undefined, undefined, mapId);
 
     for (const p of playerConfigs) {
       this.players.set(p.playerIndex, { ...p, outSeq: p.outSeq ?? 0 });

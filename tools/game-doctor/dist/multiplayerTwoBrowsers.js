@@ -101,6 +101,38 @@ export async function runMultiplayerTwoBrowsers() {
             await page.waitForTimeout(300);
         }
         console.log('🤖 [MP-E2E] Both commanders marked ready.');
+        // The host selects the SECOND map, proving map selection is real: the
+        // choice must propagate to the other client's lobby view and then to
+        // the actual simulation both clients run.
+        let selectedMapName = null;
+        for (const page of [pageA, pageB]) {
+            const mapSelect = page.locator('.ra4-lobby-map-select select');
+            if (await mapSelect.count() > 0) {
+                const options = await mapSelect.locator('option').all();
+                if (options.length >= 2) {
+                    const secondValue = await options[1].getAttribute('value');
+                    selectedMapName = await options[1].textContent();
+                    await mapSelect.selectOption(secondValue);
+                    console.log(`🤖 [MP-E2E] Host selected map: ${selectedMapName} (${secondValue})`);
+                    await page.waitForTimeout(600);
+                }
+                break;
+            }
+        }
+        if (!selectedMapName)
+            throw new Error('Host had no map selector — map selection is not wired');
+        // The non-host client must see the host's map choice (lobby broadcast).
+        const nonHostSeesMap = await Promise.all([pageA, pageB].map(async (page) => {
+            const isHost = await page.locator('.ra4-lobby-map-select select').count() > 0;
+            if (isHost)
+                return true;
+            const text = await page.locator('.ra4-lobby-left').innerText();
+            return text.includes(selectedMapName.trim());
+        }));
+        if (nonHostSeesMap.some((seen) => !seen)) {
+            throw new Error(`Non-host client did not receive the host's map selection (${selectedMapName})`);
+        }
+        console.log('🤖 [MP-E2E] Map selection propagated to the other client.');
         // The host starts the battle. Whichever page shows an enabled start
         // button is the host (server assigns hostIndex).
         let started = false;
@@ -168,6 +200,17 @@ export async function runMultiplayerTwoBrowsers() {
         if (mismatched.length > 0) {
             const sample = mismatched.slice(0, 3).map((t) => `tick ${t}: A=${historyA[String(t)]} B=${historyB[String(t)]}`);
             failures.push(`cross-client checksum divergence at ${mismatched.length} tick(s): ${sample.join(' | ')}`);
+        }
+        // The host's map choice must be the map BOTH clients actually loaded —
+        // not merely a label in the lobby.
+        const mapA = await pageA.evaluate(() => window.__RA4_GAME_DOCTOR__.getMapInfo());
+        const mapB = await pageB.evaluate(() => window.__RA4_GAME_DOCTOR__.getMapInfo());
+        console.log(`🔬 [MP-E2E] Loaded map — A: ${mapA.mapId} (${mapA.width}x${mapA.height}), B: ${mapB.mapId} (${mapB.width}x${mapB.height})`);
+        if (mapA.mapId !== mapB.mapId) {
+            failures.push(`clients loaded different maps: A=${mapA.mapId} B=${mapB.mapId}`);
+        }
+        if (mapA.mapId === 'map_red_square_duel') {
+            failures.push(`host selected the second map but clients loaded the default (${mapA.mapId}) — SET_MAP did not reach the match`);
         }
         const fatalConsole = consoleErrors.filter((e) => !e.includes('favicon') && !e.includes('WebGL'));
         if (fatalConsole.length > 0)
