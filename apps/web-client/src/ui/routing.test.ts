@@ -12,6 +12,8 @@ describe('UI routing and themes', () => {
     expect(resolveScreen('#/victory')).toBe('VICTORY');
     expect(resolveScreen('#/defeat')).toBe('DEFEAT');
     expect(resolveScreen('#/hud/soviet')).toBe('MATCH');
+    expect(resolveScreen('#/multiplayer')).toBe('MULTIPLAYER_CONNECT');
+    expect(resolveScreen('#/multiplayer/lobby')).toBe('MULTIPLAYER_LOBBY');
     expect(resolveScreen('#/unknown')).toBe('SPLASH');
   });
 

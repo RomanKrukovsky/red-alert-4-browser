@@ -31,7 +31,7 @@ export const SplashScreen: React.FC<{ onEnter: () => void }> = ({ onEnter }) => 
 
 const menuItems = [
   { id: 'CAMPAIGN', label: 'КАМПАНИЯ', icon: 'star' as const },
-  { id: 'MULTIPLAYER', label: 'СЕТЕВАЯ ИГРА', icon: 'globe' as const, deferred: true },
+  { id: 'MULTIPLAYER', label: 'СЕТЕВАЯ ИГРА', icon: 'globe' as const },
   { id: 'SKIRMISH', label: 'СХВАТКА', icon: 'crossed' as const },
   { id: 'EDITOR', label: 'РЕДАКТОР', icon: 'repair' as const, deferred: true },
   { id: 'ENCYCLOPEDIA', label: 'ЭНЦИКЛОПЕДИЯ', icon: 'book' as const, deferred: true },

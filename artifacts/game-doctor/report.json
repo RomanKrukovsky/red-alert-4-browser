@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-08-06T07:47:10.714Z",
-  "durationSeconds": 41.765,
+  "timestamp": "2026-08-06T08:46:02.030Z",
+  "durationSeconds": 84.361,
   "mode": "play",
   "passed": true,
   "issuesFoundCount": 0,
@@ -9,7 +9,7 @@
     {
       "name": "Full E2E Playwright Browser Playtest Match",
       "passed": true,
-      "durationMs": 41764
+      "durationMs": 84360
     }
   ],
   "screenshots": [

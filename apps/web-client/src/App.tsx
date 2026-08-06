@@ -9,6 +9,10 @@ import { GameplayHUD, PauseOverlay } from './ui/hud/GameplayHUD.js';
 import { factionByHash, resolveScreen, screenByHash } from './ui/routing.js';
 import { BriefingScreen, CampaignSelectScreen, CommandCenterScreen, FactionCampaignScreen, MainMenuScreen, MatchResultScreen, SplashScreen, StrategicMapScreen, TransmissionScreen } from './ui/screens/FrontEndScreens.js';
 import { LoadingScreen, SkirmishSetupScreen } from './ui/screens/SkirmishScreens.js';
+import { MultiplayerConnectScreen, MultiplayerLobbyScreen, NetworkStatusBanner } from './ui/screens/MultiplayerScreens.js';
+import { NetworkedMatchSession } from './net/NetworkedMatchSession.js';
+import type { LobbyStateInfo, NetworkStatus } from './net/NetworkMatchClient.js';
+import { createFrameHandler, hudHashForFaction } from './match/frameHandler.js';
 import { FrontendScreen, LoadingStage, MatchSetup } from './ui/types.js';
 import { MusicManager } from './audio/musicManager.js';
 import { VoiceManager } from './audio/voiceManager.js';
@@ -33,6 +37,19 @@ const factionCampaignHash: Record<FactionId, string> = {
   [FactionId.NEUTRAL]: '#/campaign/soviet',
 };
 
+/** Default authoritative match server. Overridable in the connect screen. */
+const defaultServerUrl = ((): string => {
+  if (typeof window === 'undefined') return 'ws://127.0.0.1:8080/ws';
+  const override = new URLSearchParams(window.location.search).get('server');
+  if (override) return override;
+  return 'ws://127.0.0.1:8080/ws';
+})();
+
+const defaultPlayerName = ((): string => {
+  if (typeof window === 'undefined') return 'КОМАНДИР';
+  return new URLSearchParams(window.location.search).get('name') ?? 'КОМАНДИР';
+})();
+
 export const App: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<RTSRenderer | null>(null);
@@ -44,6 +61,13 @@ export const App: React.FC = () => {
   const [loadingStages, setLoadingStages] = useState<LoadingStage[]>([]);
   const [paused, setPaused] = useState(false);
   const [galleryOpen, setGalleryOpen] = useState(window.location.hash === '#/asset-gallery');
+  // ── Multiplayer state (server-authoritative path) ────────────────────
+  const netSessionRef = useRef<NetworkedMatchSession | null>(null);
+  const [netStatus, setNetStatus] = useState<NetworkStatus>('DISCONNECTED');
+  const [netDetail, setNetDetail] = useState<string | undefined>(undefined);
+  const [lobby, setLobby] = useState<LobbyStateInfo | null>(null);
+  const [ownPlayerIndex, setOwnPlayerIndex] = useState(0);
+  const [netDesync, setNetDesync] = useState(false);
   const snapshot = useUIStore((state) => state.snapshot);
   const selectedEntityIds = useUIStore((state) => state.selectedEntityIds);
 
@@ -124,68 +148,20 @@ export const App: React.FC = () => {
       };
     }
 
-    let prevEntities = new Map<number, { hp: number; isBuilding: boolean; specId: string; playerIndex: number }>();
-
-    const handleFrame = (frame: SimFrame) => {
-      const nextSnapshot: WorldSnapshot = frame.snapshot;
-      renderer.updateScene(nextSnapshot);
-      useUIStore.getState().setSnapshot(nextSnapshot);
-
-      const activePlayerIdx = useUIStore.getState().activePlayerIndex;
-      const currentEntities = new Map<number, { hp: number; isBuilding: boolean; specId: string; playerIndex: number }>();
-
-      for (const ent of nextSnapshot.entities) {
-        currentEntities.set(ent.id, { hp: ent.hp, isBuilding: ent.isBuilding, specId: ent.specId, playerIndex: ent.playerIndex });
-
-        if (prevEntities.size > 0 && !prevEntities.has(ent.id)) {
-          // Newly created entity for player
-          if (ent.playerIndex === activePlayerIdx) {
-            if (ent.isBuilding) {
-              VoiceManager.getInstance().playEVAMessage('BUILDING_COMPLETE');
-            } else {
-              VoiceManager.getInstance().playEVAMessage('UNIT_READY');
-            }
-          }
-        } else if (prevEntities.has(ent.id)) {
-          const prev = prevEntities.get(ent.id)!;
-          if (ent.playerIndex === activePlayerIdx && ent.hp < prev.hp - 15) {
-            if (ent.isBuilding) {
-              VoiceManager.getInstance().playEVAMessage('BASE_UNDER_ATTACK', undefined, 8000);
-            } else {
-              VoiceManager.getInstance().playUnitBark(ent.specId, 'Damaged');
-            }
-          }
-        }
-      }
-
-      // Check for destroyed entities
-      if (prevEntities.size > 0) {
-        for (const [id, prev] of prevEntities.entries()) {
-          if (!currentEntities.has(id) && prev.playerIndex === activePlayerIdx) {
-            if (!prev.isBuilding) {
-              VoiceManager.getInstance().playUnitBark(prev.specId, 'Death');
-              VoiceManager.getInstance().playEVAMessage('UNIT_LOST', undefined, 4000);
-            }
-          }
-        }
-      }
-
-      prevEntities = currentEntities;
-
-      if (frame.matchState === MatchState.FINISHED) {
+    const handleFrame = createFrameHandler({
+      renderer,
+      onMatchFinished: (winnerTeam) => {
         simClient.stop();
-        const isVictory = frame.winnerTeam === 0;
+        const isVictory = winnerTeam === 0;
         VoiceManager.getInstance().playEVAMessage(isVictory ? 'VICTORY' : 'DEFEAT');
         navigate(isVictory ? 'VICTORY' : 'DEFEAT', isVictory ? '#/victory' : '#/defeat');
-        return;
-      }
-      if (!hasReceivedSnapshotRef.current) {
+      },
+      onFirstFrame: () => {
         hasReceivedSnapshotRef.current = true;
-        VoiceManager.getInstance().playEVAMessage('MATCH_START');
         setLoadingStages((stages) => stages.map((stage) => ({ ...stage, status: 'complete', progress: 100 })));
-        window.requestAnimationFrame(() => navigate('MATCH', `#/hud/${matchSetup.faction === FactionId.ALLIANCE ? 'allies' : matchSetup.faction === FactionId.ORIENTAL_COALITION ? 'coalition' : matchSetup.faction === FactionId.CHRONOLEGION ? 'chronolegion' : 'soviet'}`));
-      }
-    };
+        window.requestAnimationFrame(() => navigate('MATCH', hudHashForFaction(matchSetup.faction)));
+      },
+    });
     simClient.onFrame(handleFrame);
     simClient.start();
   }, [disposeMatch, navigate]);
@@ -203,6 +179,122 @@ export const App: React.FC = () => {
     window.requestAnimationFrame(() => { void initializeMatch(matchSetup); });
   }, [initializeMatch, navigate]);
 
+  // ── Server-authoritative multiplayer ─────────────────────────────────
+
+  const disposeNetSession = useCallback(() => {
+    netSessionRef.current?.dispose();
+    netSessionRef.current = null;
+    setLobby(null);
+    setNetDesync(false);
+    setNetStatus('DISCONNECTED');
+    setNetDetail(undefined);
+  }, []);
+
+  /**
+   * Boot the renderer + input for a networked match. The simulation itself
+   * is driven by the server's tick stream inside the session's Worker; the
+   * client never advances a tick on its own authority.
+   */
+  const attachNetworkedPresentation = useCallback(async (session: NetworkedMatchSession, ownFaction: FactionId) => {
+    if (!canvasRef.current) return;
+    // Tear down any local-match objects, but keep the network session.
+    inputManagerRef.current?.dispose();
+    rendererRef.current?.dispose();
+    simClientRef.current = null;
+    hasReceivedSnapshotRef.current = false;
+
+    const renderer = new RTSRenderer(canvasRef.current);
+    rendererRef.current = renderer;
+    await renderer.ready;
+    if (rendererRef.current !== renderer) return;
+
+    const map = DEFAULT_DATABASE.maps[0];
+    const spawn = map.spawnPoints[Math.min(session.playerIndex, map.spawnPoints.length - 1)];
+    renderer.rtsCamera.setMapBounds(map.width, map.height);
+    renderer.rtsCamera.focusOnPosition(spawn.x + 2, spawn.y + 2);
+    renderer.rtsCamera.camera.radius = 40;
+    renderer.rtsCamera.camera.beta = Math.PI / 3.5;
+
+    useUIStore.getState().setActiveFaction(ownFaction);
+    useUIStore.getState().setActivePlayerIndex(session.playerIndex);
+    useUIStore.getState().setSelectedEntityIds([]);
+
+    // Input dispatches through the network session: commands go to the
+    // server for validation and come back in the authoritative stream.
+    const inputManager = new InputManager(renderer, canvasRef.current, (command) => session.dispatchCommand(command));
+    inputManagerRef.current = inputManager;
+
+    if (typeof window !== 'undefined') {
+      (window as any).__RA4_GAME_DOCTOR__ = {
+        getSnapshot: () => useUIStore.getState().snapshot,
+        getSelectedEntityIds: () => useUIStore.getState().selectedEntityIds,
+        projectWorldToScreen: (wx: number, wz: number) => rendererRef.current?.projectWorldToScreen(wx, wz) ?? null,
+        getNetworkStatus: () => ({ status: session.net.status, tick: session.net.lastServerTick, desync: session.net.isDesynced }),
+        /** QA: per-tick local checksums, for cross-client parity assertions. */
+        getChecksumHistory: () => session.net.getChecksumHistory(),
+        getPerformance: () => ({
+          fps: renderer.engine.getFps(),
+          activeMeshes: renderer.scene.getActiveMeshes().length,
+          totalMeshes: renderer.scene.meshes.length,
+          heap: (performance as any).memory?.usedJSHeapSize ?? 0,
+        }),
+      };
+    }
+
+    const handleFrame = createFrameHandler({
+      renderer,
+      onMatchFinished: (winnerTeam) => {
+        // Authority note: the SERVER decides the outcome; this only reacts
+        // to the authoritative state already applied locally.
+        const ownTeam = lobby?.slots.find((s) => s.index === session.playerIndex)?.team ?? 0;
+        const isVictory = winnerTeam === ownTeam;
+        VoiceManager.getInstance().playEVAMessage(isVictory ? 'VICTORY' : 'DEFEAT');
+        navigate(isVictory ? 'VICTORY' : 'DEFEAT', isVictory ? '#/victory' : '#/defeat');
+      },
+      onFirstFrame: () => {
+        hasReceivedSnapshotRef.current = true;
+        setLoadingStages((stages) => stages.map((stage) => ({ ...stage, status: 'complete', progress: 100 })));
+        window.requestAnimationFrame(() => navigate('MATCH', hudHashForFaction(ownFaction)));
+      },
+    });
+    session.onFrame(handleFrame);
+  }, [lobby, navigate]);
+
+  const connectToServer = useCallback((url: string, playerName: string) => {
+    disposeNetSession();
+    setNetStatus('CONNECTING');
+
+    const session = new NetworkedMatchSession({
+      url,
+      playerName,
+      onStatus: (status, detail) => { setNetStatus(status); setNetDetail(detail); },
+      onLobbyState: (state) => {
+        setLobby(state);
+        setOwnPlayerIndex(session.playerIndex);
+        if (window.location.hash !== '#/multiplayer/lobby') {
+          navigate('MULTIPLAYER_LOBBY', '#/multiplayer/lobby');
+        }
+      },
+      onMatchStart: (info) => {
+        const ownSlot = info.players[session.playerIndex];
+        setLoadingStages([
+          { id: 'manifest', label: 'ПРОВЕРКА МАНИФЕСТА РЕСУРСОВ', progress: 12, status: 'complete' },
+          { id: 'network', label: 'СИНХРОНИЗАЦИЯ С СЕРВЕРОМ МАТЧА', progress: 30, status: 'complete' },
+          { id: 'renderer', label: 'BABYLON PRESENTATION LAYER', progress: 40, status: 'active' },
+          { id: 'input', label: 'КОМАНДНЫЙ ПРОТОКОЛ И HUD', progress: 60, status: 'pending' },
+          { id: 'snapshot', label: 'ПЕРВЫЙ АВТОРИТЕТНЫЙ ТИК', progress: 80, status: 'pending' },
+        ]);
+        navigate('LOADING', '#/loading');
+        void attachNetworkedPresentation(session, ownSlot?.factionId ?? FactionId.USSR);
+      },
+      onDesync: () => setNetDesync(true),
+      onGameOver: () => { /* handled through the authoritative frame path */ },
+    });
+
+    netSessionRef.current = session;
+    session.connect();
+  }, [attachNetworkedPresentation, disposeNetSession, navigate]);
+
   useEffect(() => {
     const onHashChange = () => {
       setGalleryOpen(window.location.hash === '#/asset-gallery');
@@ -217,7 +309,12 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (currentScreen === 'MATCH' && !simClientRef.current) startMatch({ ...setup, faction: factionByHash[window.location.hash] ?? setup.faction });
+    // Deep-link into a match (e.g. #/hud/soviet) starts a LOCAL skirmish.
+    // Never do this while a networked session owns the match, or we would
+    // spawn a second, non-authoritative simulation on top of it.
+    if (currentScreen === 'MATCH' && !simClientRef.current && !netSessionRef.current) {
+      startMatch({ ...setup, faction: factionByHash[window.location.hash] ?? setup.faction });
+    }
   }, [currentScreen, setup, startMatch]);
 
   useEffect(() => {
@@ -237,10 +334,18 @@ export const App: React.FC = () => {
 
   useEffect(() => disposeMatch, [disposeMatch]);
 
-  const issueCommand = (command: PlayerCommand) => simClientRef.current?.dispatchCommand(command);
+  const issueCommand = (command: PlayerCommand) => {
+    // In a networked match commands must go through the server for
+    // validation; only a local skirmish dispatches straight to the Worker.
+    if (netSessionRef.current) return netSessionRef.current.dispatchCommand(command);
+    return simClientRef.current?.dispatchCommand(command);
+  };
   const beginBuildingPlacement = (structureId: string) => inputManagerRef.current?.beginBuildingPlacement(structureId);
   const beginCommandMode = (mode: CommandType.MOVE | CommandType.ATTACK) => inputManagerRef.current?.beginCommandMode(mode);
   const pauseMatch = () => {
+    // A networked match cannot be paused unilaterally — the server owns the
+    // clock. Pausing locally would stall our tick application and desync us.
+    if (netSessionRef.current) return;
     simClientRef.current?.pause();
     setPaused(true);
   };
@@ -250,6 +355,11 @@ export const App: React.FC = () => {
   };
   const returnToMenu = () => {
     setPaused(false);
+    if (netSessionRef.current) {
+      // Leaving a live networked match is a surrender: the server records it.
+      netSessionRef.current.surrender();
+      disposeNetSession();
+    }
     disposeMatch();
     navigate('MAIN_MENU', '#/menu');
   };
@@ -260,7 +370,7 @@ export const App: React.FC = () => {
     <div className="ra4-app-shell">
       <canvas ref={canvasRef} id="renderCanvas" className={currentScreen === 'MATCH' ? 'is-visible' : ''} />
       {currentScreen === 'SPLASH' && <SplashScreen onEnter={() => navigate('MAIN_MENU', '#/menu')} />}
-      {currentScreen === 'MAIN_MENU' && <MainMenuScreen onSelect={(option) => option === 'CAMPAIGN' ? navigate('CAMPAIGN_SELECT', '#/campaign') : option === 'SKIRMISH' ? navigate('SKIRMISH_SETUP', '#/skirmish') : option === 'EXIT' ? navigate('SPLASH', '#/splash') : undefined} />}
+      {currentScreen === 'MAIN_MENU' && <MainMenuScreen onSelect={(option) => option === 'CAMPAIGN' ? navigate('CAMPAIGN_SELECT', '#/campaign') : option === 'SKIRMISH' ? navigate('SKIRMISH_SETUP', '#/skirmish') : option === 'MULTIPLAYER' ? navigate('MULTIPLAYER_CONNECT', '#/multiplayer') : option === 'EXIT' ? navigate('SPLASH', '#/splash') : undefined} />}
       {currentScreen === 'CAMPAIGN_SELECT' && <CampaignSelectScreen onBack={() => navigate('MAIN_MENU', '#/menu')} onSelect={(faction) => { setSetup((current) => ({ ...current, faction })); navigate('FACTION_CAMPAIGN', factionCampaignHash[faction]); }} />}
       {currentScreen === 'FACTION_CAMPAIGN' && setup.faction !== FactionId.NEUTRAL && <FactionCampaignScreen faction={setup.faction} onBack={() => navigate('CAMPAIGN_SELECT', '#/campaign')} onContinue={() => setup.faction === FactionId.ALLIANCE ? navigate('COMMAND_CENTER', '#/allied-command') : setup.faction === FactionId.ORIENTAL_COALITION ? navigate('COMMAND_CENTER', '#/coalition-command') : navigate('STRATEGIC_MAP', '#/strategic-map')} />}
       {currentScreen === 'COMMAND_CENTER' && (setup.faction === FactionId.ALLIANCE || setup.faction === FactionId.ORIENTAL_COALITION) && <CommandCenterScreen faction={setup.faction} onBack={() => navigate('FACTION_CAMPAIGN', factionCampaignHash[setup.faction])} onContinue={() => navigate('STRATEGIC_MAP', '#/strategic-map')} />}
@@ -268,8 +378,36 @@ export const App: React.FC = () => {
       {currentScreen === 'BRIEFING' && <BriefingScreen onBack={() => navigate('STRATEGIC_MAP', '#/strategic-map')} onContinue={() => navigate('TRANSMISSION', '#/transmission')} />}
       {currentScreen === 'TRANSMISSION' && <TransmissionScreen onBack={() => navigate('BRIEFING', '#/briefing')} onContinue={() => startMatch(setup)} />}
       {currentScreen === 'SKIRMISH_SETUP' && <SkirmishSetupScreen onBack={() => navigate('MAIN_MENU', '#/menu')} onStart={startMatch} />}
+      {currentScreen === 'MULTIPLAYER_CONNECT' && (
+        <MultiplayerConnectScreen
+          defaultUrl={defaultServerUrl}
+          defaultName={defaultPlayerName}
+          status={netStatus}
+          statusDetail={netDetail}
+          onBack={() => { disposeNetSession(); navigate('MAIN_MENU', '#/menu'); }}
+          onConnect={connectToServer}
+        />
+      )}
+      {currentScreen === 'MULTIPLAYER_LOBBY' && (
+        <MultiplayerLobbyScreen
+          lobby={lobby}
+          ownPlayerIndex={ownPlayerIndex}
+          status={netStatus}
+          statusDetail={netDetail}
+          onBack={() => { disposeNetSession(); navigate('MAIN_MENU', '#/menu'); }}
+          onSetFaction={(factionId) => netSessionRef.current?.setSlot(ownPlayerIndex, factionId)}
+          onSetTeam={(team) => netSessionRef.current?.setSlot(ownPlayerIndex, undefined, undefined, team)}
+          onSetReady={(isReady) => netSessionRef.current?.setReady(isReady)}
+          onStartMatch={() => netSessionRef.current?.startMatch()}
+        />
+      )}
       {currentScreen === 'LOADING' && <LoadingScreen setup={setup} stages={loadingStages} />}
       {currentScreen === 'MATCH' && <GameplayHUD faction={setup.faction} snapshot={snapshot} selectedEntityIds={selectedEntityIds} onIssueCommand={issueCommand} onBeginBuildingPlacement={beginBuildingPlacement} onBeginCommandMode={beginCommandMode} onPause={pauseMatch} onMinimapClick={(x, y) => inputManagerRef.current?.focusCamera(x, y)} />}
+      {currentScreen === 'MATCH' && netSessionRef.current && (
+        <div className="ra4-net-banner-overlay">
+          <NetworkStatusBanner status={netStatus} detail={netDetail} desync={netDesync} />
+        </div>
+      )}
       {currentScreen === 'MATCH' && paused && <PauseOverlay onResume={resumeMatch} onExit={returnToMenu} />}
       {currentScreen === 'VICTORY' && <MatchResultScreen result="victory" onMenu={returnToMenu} onRetry={() => startMatch(setup)} />}
       {currentScreen === 'DEFEAT' && <MatchResultScreen result="defeat" onMenu={returnToMenu} onRetry={() => startMatch(setup)} />}

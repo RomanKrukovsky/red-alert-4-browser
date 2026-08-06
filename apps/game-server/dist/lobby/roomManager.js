@@ -9,11 +9,13 @@ const shared_types_1 = require("@ra4/shared-types");
 class RoomManager {
     rooms = new Map();
     constructor() {
-        // Initialize default lobby room
-        this.createRoom('Default Skirmish Room', 'host-system', false, 'map_red_square_duel');
+        // Initialize the default lobby room under the stable well-known id that
+        // clients join when no room code is supplied. Using a random UUID here
+        // made every `JOIN_LOBBY` for 'default-room' fail with "Room not found".
+        this.createRoom('Default Skirmish Room', 'host-system', false, 'map_red_square_duel', 'default-room');
     }
-    createRoom(name, hostUserId, isPrivate = false, mapId = 'map_red_square_duel') {
-        const id = node_crypto_1.default.randomUUID().slice(0, 8);
+    createRoom(name, hostUserId, isPrivate = false, mapId = 'map_red_square_duel', fixedId) {
+        const id = fixedId ?? node_crypto_1.default.randomUUID().slice(0, 8);
         const inviteCode = isPrivate ? Math.random().toString(36).substring(2, 8).toUpperCase() : undefined;
         const defaultSlots = [
             {

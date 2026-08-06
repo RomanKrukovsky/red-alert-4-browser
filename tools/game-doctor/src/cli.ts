@@ -21,6 +21,13 @@ async function main() {
     process.exit(ok ? 0 : 1);
   }
 
+  if (command === 'multiplayer-two-browsers') {
+    console.log(`🏥 RA4 GAME DOCTOR — Two-Browser Multiplayer Gate`);
+    const { runMultiplayerTwoBrowsers } = await import('./multiplayerTwoBrowsers.js');
+    const ok = await runMultiplayerTwoBrowsers();
+    process.exit(ok ? 0 : 1);
+  }
+
   const validModes: GameDoctorOptions['mode'][] = ['audit', 'play', 'headless', 'visual', 'stress', 'soak', 'report', 'visual-audit'];
   const mode = validModes.includes(command as any) ? (command as GameDoctorOptions['mode']) : 'audit';
 

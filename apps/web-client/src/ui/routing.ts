@@ -15,6 +15,8 @@ export const screenByHash: Record<string, FrontendScreen> = {
   '#/allied-command': 'COMMAND_CENTER',
   '#/coalition-command': 'COMMAND_CENTER',
   '#/skirmish': 'SKIRMISH_SETUP',
+  '#/multiplayer': 'MULTIPLAYER_CONNECT',
+  '#/multiplayer/lobby': 'MULTIPLAYER_LOBBY',
   '#/loading': 'LOADING',
   '#/victory': 'VICTORY',
   '#/defeat': 'DEFEAT',

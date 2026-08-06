@@ -10,6 +10,8 @@ export type FrontendScreen =
   | 'TRANSMISSION'
   | 'COMMAND_CENTER'
   | 'SKIRMISH_SETUP'
+  | 'MULTIPLAYER_CONNECT'
+  | 'MULTIPLAYER_LOBBY'
   | 'LOADING'
   | 'MATCH'
   | 'VICTORY'

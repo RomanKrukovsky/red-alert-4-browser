@@ -15,7 +15,7 @@ export interface RoomConfig {
 export declare class RoomManager {
     private rooms;
     constructor();
-    createRoom(name: string, hostUserId: string, isPrivate?: boolean, mapId?: string): RoomConfig;
+    createRoom(name: string, hostUserId: string, isPrivate?: boolean, mapId?: string, fixedId?: string): RoomConfig;
     getRoom(id: string): RoomConfig | null;
     listPublicRooms(): RoomConfig[];
     joinRoom(roomId: string, playerName: string, userId: string): {

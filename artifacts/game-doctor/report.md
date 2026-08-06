@@ -1,9 +1,9 @@
 # RA4 Game Doctor Autonomous QA Report
 
 **Status**: ✅ PASSED  
-**Timestamp**: 2026-08-06T07:47:10.714Z  
+**Timestamp**: 2026-08-06T08:46:02.030Z  
 **Execution Mode**: `play`  
-**Duration**: 41.77 seconds  
+**Duration**: 84.36 seconds  
 
 ---
 
@@ -20,7 +20,7 @@
 
 | Scenario Name | Status | Duration (ms) | Checksum | Details / Error |
 |---|---|---|---|---|
-| **Full E2E Playwright Browser Playtest Match** | ✅ PASS | 41764 | N/A | - |
+| **Full E2E Playwright Browser Playtest Match** | ✅ PASS | 84360 | N/A | - |
 
 ---
 

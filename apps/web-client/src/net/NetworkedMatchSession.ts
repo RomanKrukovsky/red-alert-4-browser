@@ -111,6 +111,14 @@ export class NetworkedMatchSession {
     this.net.connect();
   }
 
+  /**
+   * Replace the frame handler. Used by the host to attach the renderer once
+   * the match actually starts (the renderer does not exist while in lobby).
+   */
+  public onFrame(handler: (frame: SimFrame) => void): void {
+    this.opts.onFrame = handler;
+  }
+
   /** Player input path: commands go to the server, never applied locally. */
   public dispatchCommand(command: PlayerCommand): { accepted: boolean } {
     this.net.submitCommand({ ...command, playerIndex: this.playerIndex });

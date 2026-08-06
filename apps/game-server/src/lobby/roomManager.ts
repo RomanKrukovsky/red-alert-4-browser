@@ -19,12 +19,20 @@ export class RoomManager {
   private rooms: Map<string, RoomConfig> = new Map();
 
   constructor() {
-    // Initialize default lobby room
-    this.createRoom('Default Skirmish Room', 'host-system', false, 'map_red_square_duel');
+    // Initialize the default lobby room under the stable well-known id that
+    // clients join when no room code is supplied. Using a random UUID here
+    // made every `JOIN_LOBBY` for 'default-room' fail with "Room not found".
+    this.createRoom('Default Skirmish Room', 'host-system', false, 'map_red_square_duel', 'default-room');
   }
 
-  public createRoom(name: string, hostUserId: string, isPrivate: boolean = false, mapId: string = 'map_red_square_duel'): RoomConfig {
-    const id = crypto.randomUUID().slice(0, 8);
+  public createRoom(
+    name: string,
+    hostUserId: string,
+    isPrivate: boolean = false,
+    mapId: string = 'map_red_square_duel',
+    fixedId?: string,
+  ): RoomConfig {
+    const id = fixedId ?? crypto.randomUUID().slice(0, 8);
     const inviteCode = isPrivate ? Math.random().toString(36).substring(2, 8).toUpperCase() : undefined;
 
     const defaultSlots: PlayerSlot[] = [

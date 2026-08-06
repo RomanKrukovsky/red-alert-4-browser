@@ -75,6 +75,20 @@ function registerRoomSocket(roomId, slotIndex, socket) {
 function unregisterRoomSocket(roomId, slotIndex) {
     roomSockets.get(roomId)?.delete(slotIndex);
 }
+/**
+ * Broadcast lobby state to EVERY socket in a room.
+ *
+ * Lobby mutations (ready, faction, team, map) must reach all participants —
+ * replying only to the sender left other clients showing stale state, so
+ * readiness never converged and the host's start button stayed disabled.
+ */
+function broadcastLobbyState(roomId, room) {
+    const frame = JSON.stringify({ type: 'LOBBY_STATE', state: roomManager.getLobbyState(room) });
+    for (const peer of roomSockets.get(roomId)?.values() ?? []) {
+        if (peer.readyState === 1)
+            peer.send(frame);
+    }
+}
 const matchmaker = new matchmaker_js_1.Matchmaker();
 const activeMatches = new Map();
 async function main() {
@@ -215,27 +229,25 @@ async function main() {
                         currentRoomId = result.room.id;
                         playerIndex = result.slotIndex;
                         registerRoomSocket(currentRoomId, playerIndex, socket);
+                        // Tell the joiner its authoritative slot index explicitly. The
+                        // client must not infer its own index by matching player names.
+                        socket.send(JSON.stringify({ type: 'JOIN_ACK', playerIndex, roomId: currentRoomId }));
                         // Broadcast the updated lobby to every player in the room so
                         // joins/leaves are visible to all, not just the joiner.
-                        const lobbyState = roomManager.getLobbyState(result.room);
-                        const lobbyFrame = JSON.stringify({ type: 'LOBBY_STATE', state: lobbyState });
-                        for (const peer of roomSockets.get(currentRoomId)?.values() ?? []) {
-                            if (peer.readyState === 1)
-                                peer.send(lobbyFrame);
-                        }
+                        broadcastLobbyState(currentRoomId, result.room);
                         break;
                     }
                     case 'SET_SLOT': {
                         if (currentRoomId) {
                             const room = roomManager.setSlotConfig(currentRoomId, msg.slotIndex, msg.factionId, msg.playerType, msg.team);
-                            socket.send(JSON.stringify({ type: 'LOBBY_STATE', state: roomManager.getLobbyState(room) }));
+                            broadcastLobbyState(currentRoomId, room);
                         }
                         break;
                     }
                     case 'SET_READY': {
                         if (currentRoomId) {
                             const room = roomManager.setReady(currentRoomId, playerIndex, msg.isReady);
-                            socket.send(JSON.stringify({ type: 'LOBBY_STATE', state: roomManager.getLobbyState(room) }));
+                            broadcastLobbyState(currentRoomId, room);
                         }
                         break;
                     }
@@ -309,6 +321,11 @@ async function main() {
             }
             catch (err) {
                 metrics_js_1.logger.error({ err }, '[WS] Error processing message');
+                // Never leave the client hanging on a rejected request: it has no
+                // other way to learn the message failed and would wait forever.
+                if (socket.readyState === 1) {
+                    socket.send(JSON.stringify({ type: 'ERROR', message: err.message }));
+                }
             }
         });
         socket.on('close', () => {

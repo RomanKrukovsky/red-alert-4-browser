@@ -219,6 +219,16 @@ export class NetworkMatchClient {
     this.channel?.send(WireKind.CHECKSUM_REPORT, encodeChecksum({ tick, checksum }));
   }
 
+  /**
+   * Local checksum history by tick. Exposed for QA: two clients in the same
+   * match must hold identical checksums at every common tick.
+   */
+  public getChecksumHistory(): Record<number, number> {
+    const out: Record<number, number> = {};
+    for (const [tick, checksum] of this.localChecksums) out[tick] = checksum;
+    return out;
+  }
+
   public setReady(isReady: boolean): void {
     this.sendJson({ type: 'SET_READY', isReady });
   }
@@ -311,11 +321,14 @@ export class NetworkMatchClient {
     try {
       const msg = JSON.parse(data) as { type: string; [k: string]: unknown };
       switch (msg.type) {
+        case 'JOIN_ACK': {
+          // Authoritative slot assignment — never inferred from names.
+          this.playerIndex = Number(msg.playerIndex ?? 0);
+          if (typeof msg.roomId === 'string') this.opts.roomId = msg.roomId;
+          break;
+        }
         case 'LOBBY_STATE': {
           const state = msg.state as LobbyStateInfo & { slots: LobbySlotInfo[] };
-          // Identify our own slot by name on first lobby state.
-          const own = state.slots?.find((s) => s.name === this.opts.playerName);
-          if (own) this.playerIndex = own.index;
           this.setStatus('IN_LOBBY');
           this.opts.onLobbyState?.(state);
           break;
