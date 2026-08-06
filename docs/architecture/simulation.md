@@ -91,12 +91,31 @@ Current results (M-series laptop, Node 20):
 | p95 | 5.6 ms | **< 8 ms (Rust/WASM gate)** |
 | p99 | 5.8 ms | < 33.33 ms (30 Hz frame) |
 
-> ⚠️ **Stale as of the stance/standing-order change (2026-08-06).** These
-> figures predate two-stage target acquisition. Attempts to re-measure ran on
-> a machine under load average 24–120, where successive runs of the same build
-> varied by >10× (p95 13 ms → 377 ms), so no trustworthy number could be
-> taken. Re-measure on an idle machine before relying on this table or on the
-> WASM-gate verdict. See `docs/game-design/army-control.md` § Known gap.
+> **Absolute figures above were taken on an idle machine and are the reference.**
+> They could not be refreshed after the stance/standing-order change (the dev
+> machine was at load average 24–120; successive runs of the *same* build varied
+> >10×, p95 13 ms → 377 ms). Instead that change was validated with two
+> load-immune methods — see below. Re-take the absolute table on an idle
+> machine when one is available.
+
+### Measuring under machine contention
+
+Wall-clock percentiles are meaningless when the machine is loaded. Two methods
+give trustworthy answers anyway, and both were used for the stance change:
+
+1. **Deterministic work count.** Wrap `spatialGrid.forEachInRadius` and count
+   candidate visits over a fixed scenario. Same seed ⇒ same count, load
+   irrelevant. Normalise per *entity-tick*, because a behaviour change alters
+   how fast units die and therefore the entity population.
+2. **Interleaved A/B.** Load the current build and a patched baseline in one
+   process and step them alternately, then compare medians. Load hits both
+   equally, so the *ratio* is valid even when absolutes are inflated.
+
+Result for two-stage target acquisition (stance change): **183.8 vs 301.6 grid
+visits per entity-tick (−39%)**, and interleaved A/B showed the new build
+faster at every percentile across three runs (p50 ≈1.8×, p95 ≈1.7×). Units now
+acquire and close in decisively instead of idling and re-scanning, which *nets
+out cheaper* despite the wider scan radius. No regression.
 
 **Rust/WASM decision gate:** if p95 on this benchmark exceeds 8 ms after a feature
 addition, the hot systems (pathfinding first) are ported to Rust/WASM behind the

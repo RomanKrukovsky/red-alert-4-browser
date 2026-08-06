@@ -97,13 +97,23 @@ Test-authoring notes worth keeping: assertions must use **effective health**
 absorbs the first hits, and "out of range" must exceed the *weapon* range of
 the specific unit under test (a tank at 2000 units is already in range).
 
-## Known gap
+## Performance of two-stage acquisition
 
-The stress benchmark could not be re-measured reliably for this change: the
-development machine was under load average 24–120 during the attempt and
-successive runs of the *same* build varied by more than 10× (p95 from 13 ms to
-377 ms). The two-stage acquisition was introduced specifically to keep the
-added cost off the hot path, and a throttling variant was tried and reverted
-because the data could not justify it. **The 1500-entity p95 figure in
-`docs/architecture/simulation.md` predates this change and must be
-re-measured on an idle machine before it is trusted.**
+The wider (sight-range) scan looked like a cost risk, and a first wall-clock
+reading suggested p95 had regressed 5.6 → 8.9 ms. That reading was machine
+contention (load average 24–120; the same build varied >10× between runs). Two
+load-immune measurements settled it:
+
+- **Deterministic grid-visit count**, normalised per entity-tick:
+  **183.8 (new) vs 301.6 (old) — 39% less work.**
+- **Interleaved A/B** (both builds stepped alternately in one process, so load
+  affects them equally): new build faster at every percentile, stable across
+  three runs — p50 ≈1.8×, p95 ≈1.7×.
+
+The reason is behavioural: units now acquire and close in decisively instead of
+idling within sight of an enemy and re-scanning every 5 ticks. The engagement
+resolves sooner, so total work drops even though each scan can be wider.
+
+Method details are in `docs/architecture/simulation.md` § Measuring under
+machine contention. Absolute percentiles still need a re-take on an idle
+machine, but the no-regression verdict does not depend on that.

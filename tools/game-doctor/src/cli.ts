@@ -21,6 +21,15 @@ async function main() {
     process.exit(ok ? 0 : 1);
   }
 
+  if (command === 'perf-probe') {
+    console.log(`🏥 RA4 GAME DOCTOR — Contention-Immune Performance Probe`);
+    const { workCount } = await import('./perfProbe.js');
+    const result = workCount();
+    console.log(`🔬 [PerfProbe] ${JSON.stringify(result, null, 2)}`);
+    console.log(`🔬 [PerfProbe] Compare 'visitsPerEntityTick' (${result.visitsPerEntityTick}) across builds — it is load-independent.`);
+    process.exit(0);
+  }
+
   if (command === 'multiplayer-two-browsers') {
     console.log(`🏥 RA4 GAME DOCTOR — Two-Browser Multiplayer Gate`);
     const { runMultiplayerTwoBrowsers } = await import('./multiplayerTwoBrowsers.js');

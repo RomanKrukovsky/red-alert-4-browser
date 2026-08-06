@@ -1,9 +1,9 @@
 # RA4 Game Doctor Autonomous QA Report
 
 **Status**: ✅ PASSED  
-**Timestamp**: 2026-08-06T12:13:17.116Z  
+**Timestamp**: 2026-08-06T12:39:11.769Z  
 **Execution Mode**: `headless`  
-**Duration**: 0.31 seconds  
+**Duration**: 0.70 seconds  
 
 ---
 
@@ -20,14 +20,14 @@
 
 | Scenario Name | Status | Duration (ms) | Checksum | Details / Error |
 |---|---|---|---|---|
-| **Harvester Economic Cycle** | ✅ PASS | 41 | `1063254177` | - |
-| **Base Building Chain** | ✅ PASS | 27 | `1872858141` | - |
-| **Army Production & Combat** | ✅ PASS | 12 | `504610614` | - |
-| **HQ Destruction & Victory/Defeat Trigger** | ✅ PASS | 1 | `463231359` | - |
-| **Loss of Asset Recovery** | ✅ PASS | 14 | `1617072785` | - |
-| **AI Agent Recovery & Development** | ✅ PASS | 11 | `1015089804` | - |
-| **Seed Determinism Checksum Verification** | ✅ PASS | 51 | `1053368897` | - |
-| **30-Minute Simulation Soak Test (3000 fast ticks)** | ✅ PASS | 153 | `265140802` | - |
+| **Harvester Economic Cycle** | ✅ PASS | 84 | `1063254177` | - |
+| **Base Building Chain** | ✅ PASS | 59 | `1872858141` | - |
+| **Army Production & Combat** | ✅ PASS | 27 | `504610614` | - |
+| **HQ Destruction & Victory/Defeat Trigger** | ✅ PASS | 2 | `463231359` | - |
+| **Loss of Asset Recovery** | ✅ PASS | 30 | `1617072785` | - |
+| **AI Agent Recovery & Development** | ✅ PASS | 24 | `1015089804` | - |
+| **Seed Determinism Checksum Verification** | ✅ PASS | 112 | `1053368897` | - |
+| **30-Minute Simulation Soak Test (3000 fast ticks)** | ✅ PASS | 366 | `265140802` | - |
 
 ---
 
